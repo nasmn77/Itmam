@@ -4,8 +4,19 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
 `PROMPT.md` is the full brief and the source of truth; this file is the short rule set. Read both at the start of a session.
 
 ## Current status
-- **Current phase:** 1 — Core (approved, merged into `main`).
-- **Next phase:** 2 — Win32 hook thread, layout detection, focus tracking, debug window.
+- **Current phase:** 2 — Win32 hooks (approved, merged into `main`).
+- **Next phase:** 3 — caret locator + suggestion popup (ask the user for a screenshot of the native Win11 suggestion bar first).
+- Backspace on an empty word (user decision): buffer becomes *detached*; `InputPipeline` reads ≤ 49 chars before the caret via
+  UI Automation (`UiaCaretContextSource`, never in password fields, nothing stored) and resumes with the word the caret is in,
+  or empty. Without UIA: resume at boundary, click, navigation, shortcut (Ctrl+A) or focus change. Documented in PRIVACY.md.
+- Hook latency criterion (user decision): **p99 < 1 ms and max < 5 ms** (not a hard 1 ms max). Warm-up before install,
+  AboveNormal hook thread, cached foreground input thread. Measured by the user: max ≈ 1.07 ms, no GC involvement.
+- Unavailable caret context is retried once after 100 ms (Chromium/Electron wake up their accessibility tree); verified by the
+  user in Notepad, Word and Chrome.
+- Phase 2 notes: input path documented in `docs/ARCHITECTURE.md`; `Program.cs` temporarily runs `DebugWindow` (replaced in
+  Phase 6). Key classification (`KeyClassifier`) and layout gating (`InputTracker`) live in Core and are unit-tested.
+- `gh` CLI token on this machine is invalid; read CI status from the public badge
+  (`https://github.com/nasmn77/Itmam/actions/workflows/build.yml/badge.svg?branch=main`) instead of polling the API.
 - **Open questions:** MSIX tooling must be installed in Visual Studio before Phase 7.
 
 ## Build & test

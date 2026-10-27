@@ -1,4 +1,5 @@
 using Itmam.Core.Input;
+using Itmam.Core.Text;
 
 namespace Itmam.Core.Tests.Input;
 
@@ -91,6 +92,122 @@ public class WordBufferTests
 
     [Fact]
     public void Backspace_on_empty_buffer_does_nothing() => Send(InputEventKind.Backspace).ShouldBe(BufferResult.None);
+
+    [Fact]
+    public void Each_backspace_removes_one_character_and_only_the_last_one_resets()
+    {
+        Type("مدرسة");
+
+        foreach (var expected in new[] { "مدرس", "مدر", "مد", "م" })
+        {
+            Send(InputEventKind.Backspace).Outcome.ShouldBe(BufferOutcome.Updated);
+            _buffer.Text.ShouldBe(expected);
+            _buffer.LetterCount.ShouldBe(expected.Length);
+        }
+
+        Send(InputEventKind.Backspace).Outcome.ShouldBe(BufferOutcome.Reset);
+        _buffer.IsEmpty.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Backspace_then_retyping_continues_the_same_word()
+    {
+        Type("كتب");
+        Send(InputEventKind.Backspace);
+        Type("ا").Outcome.ShouldBe(BufferOutcome.Updated);
+
+        _buffer.Text.ShouldBe("كتا");
+    }
+
+    [Fact]
+    public void Backspace_into_the_previous_word_stops_tracking_until_the_next_boundary()
+    {
+        Type("كتاب ");
+        Send(InputEventKind.Backspace);   // caret is now at the end of كتاب
+        _buffer.IsDetached.ShouldBeTrue();
+
+        Type("ة").ShouldBe(BufferResult.None);
+        _buffer.IsEmpty.ShouldBeTrue();
+        Type(" ").ShouldBe(BufferResult.None); // the half-seen word is never committed
+
+        _buffer.IsDetached.ShouldBeFalse();
+        Type("قلم ").ShouldBe(new BufferResult(BufferOutcome.Committed, "قلم"));
+    }
+
+    [Theory]
+    [InlineData(InputEventKind.MouseClick)]
+    [InlineData(InputEventKind.Navigation)]
+    [InlineData(InputEventKind.Shortcut)]      // e.g. Ctrl+A
+    [InlineData(InputEventKind.FocusChanged)]
+    [InlineData(InputEventKind.ForegroundChanged)]
+    public void Context_change_after_detaching_starts_tracking_again(InputEventKind kind)
+    {
+        Type("كتاب ");
+        Send(InputEventKind.Backspace);
+        Send(kind);
+
+        Type("قلم ").ShouldBe(new BufferResult(BufferOutcome.Committed, "قلم"));
+    }
+
+    [Theory]
+    [InlineData("")]                 // all text deleted: start of the field
+    [InlineData("ذهبت إلى ")]        // a space before the caret
+    [InlineData("سطر\r")]            // a line break
+    [InlineData("مرحبا، ")]
+    public void Context_with_a_boundary_before_the_caret_resumes_with_an_empty_word(string before)
+    {
+        Type("كتاب ");
+        Send(InputEventKind.Backspace);
+
+        _buffer.ResumeFromContext(before, maxRead: 48).ShouldBe(new BufferResult(BufferOutcome.Reset));
+
+        _buffer.IsDetached.ShouldBeFalse();
+        Type("قلم ").ShouldBe(new BufferResult(BufferOutcome.Committed, "قلم"));
+    }
+
+    [Theory]
+    [InlineData("ذهبت إلى المدر", "المدر")]
+    [InlineData("المدر", "المدر")]
+    [InlineData("مُدَرِّ", "مُدَرِّ")]
+    public void Context_ending_in_a_word_makes_it_the_current_word(string before, string expectedWord)
+    {
+        Type("كتاب ");
+        Send(InputEventKind.Backspace);
+
+        _buffer.ResumeFromContext(before, maxRead: 48).Outcome.ShouldBe(BufferOutcome.Updated);
+
+        _buffer.Text.ShouldBe(expectedWord);
+        Type("سة ").ShouldBe(new BufferResult(BufferOutcome.Committed, ArabicText.StripIgnorable(expectedWord) + "سة"));
+    }
+
+    [Theory]
+    [InlineData("helloكت")]                  // glued to a Latin letter
+    [InlineData("hello")]                    // caret after a non-Arabic word
+    public void Unusable_context_keeps_the_buffer_detached(string before)
+    {
+        Send(InputEventKind.Backspace);
+
+        _buffer.ResumeFromContext(before, maxRead: 48).ShouldBe(BufferResult.None);
+        _buffer.IsDetached.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Word_that_may_continue_beyond_the_read_window_keeps_the_buffer_detached()
+    {
+        Send(InputEventKind.Backspace);
+
+        _buffer.ResumeFromContext("كتابات", maxRead: 6).ShouldBe(BufferResult.None);
+        _buffer.IsDetached.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Context_is_ignored_when_not_detached()
+    {
+        Type("كت");
+
+        _buffer.ResumeFromContext("", maxRead: 48).ShouldBe(BufferResult.None);
+        _buffer.Text.ShouldBe("كت");
+    }
 
     [Theory]
     [InlineData(InputEventKind.CtrlBackspace)]

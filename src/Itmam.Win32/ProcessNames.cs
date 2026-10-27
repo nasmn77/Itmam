@@ -1,0 +1,88 @@
+using Windows.Win32;
+using Windows.Win32.Foundation;
+using Windows.Win32.System.Threading;
+
+namespace Itmam.Win32;
+
+/// <summary>Executable file names of processes, used to apply the excluded-apps list.</summary>
+public static class ProcessNames
+{
+    private const int CacheLimit = 256;
+    private static readonly Dictionary<uint, string?> Cache = [];
+    private static readonly Lock CacheLock = new();
+
+    /// <summary>Executable name of the process owning the foreground window, or null.</summary>
+    public static string? ForegroundProcessName()
+    {
+        var foreground = PInvoke.GetForegroundWindow();
+        if (foreground.IsNull)
+        {
+            return null;
+        }
+
+        unsafe
+        {
+            uint processId;
+            PInvoke.GetWindowThreadProcessId(foreground, &processId);
+            return Of(processId);
+        }
+    }
+
+    /// <summary>Executable file name (e.g. "WindowsTerminal.exe") or null if it cannot be read (e.g. protected process).</summary>
+    public static string? Of(uint processId)
+    {
+        if (processId == 0)
+        {
+            return null;
+        }
+
+        lock (CacheLock)
+        {
+            if (Cache.TryGetValue(processId, out var cached))
+            {
+                return cached;
+            }
+        }
+
+        var name = Query(processId);
+        lock (CacheLock)
+        {
+            // Process ids are reused; a small bounded cache keeps stale entries short-lived.
+            if (Cache.Count >= CacheLimit)
+            {
+                Cache.Clear();
+            }
+
+            Cache[processId] = name;
+        }
+
+        return name;
+    }
+
+    private static unsafe string? Query(uint processId)
+    {
+        var process = PInvoke.OpenProcess(PROCESS_ACCESS_RIGHTS.PROCESS_QUERY_LIMITED_INFORMATION, false, processId);
+        if (process.IsNull)
+        {
+            return null;
+        }
+
+        try
+        {
+            const int capacity = 1024;
+            var buffer = stackalloc char[capacity];
+            var length = (uint)capacity;
+            if (!PInvoke.QueryFullProcessImageName(process, PROCESS_NAME_FORMAT.PROCESS_NAME_WIN32, buffer, &length))
+            {
+                return null;
+            }
+
+            var path = new ReadOnlySpan<char>(buffer, (int)length);
+            return path[(path.LastIndexOf('\\') + 1)..].ToString();
+        }
+        finally
+        {
+            PInvoke.CloseHandle(process);
+        }
+    }
+}

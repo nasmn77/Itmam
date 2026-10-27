@@ -38,7 +38,10 @@ public sealed class WordBuffer
     public const int MaxLength = 48;
 
     private readonly StringBuilder _text = new(MaxLength);
-    private bool _overflowed;
+
+    // True when the caret is inside a word whose start we did not see (Backspace into the previous
+    // word, or a run longer than MaxLength). Letters are ignored until the next boundary or reset.
+    private bool _detached;
 
     /// <summary>The word as typed, including tashkeel and tatweel.</summary>
     public string Text => _text.ToString();
@@ -50,6 +53,9 @@ public sealed class WordBuffer
 
     public bool IsEmpty => _text.Length == 0;
 
+    /// <summary>The caret is inside a word whose start was not seen; nothing is tracked until a boundary.</summary>
+    public bool IsDetached => _detached;
+
     public BufferResult Apply(InputEvent input) => input.Kind switch
     {
         InputEventKind.Character => ApplyCharacter(input.Character),
@@ -57,13 +63,72 @@ public sealed class WordBuffer
         _ => Reset(),
     };
 
+    /// <summary>
+    /// Resumes tracking after <see cref="IsDetached"/>, using the text immediately before the caret
+    /// read from the app (only a few characters, never stored beyond the current word).
+    /// </summary>
+    /// <param name="textBeforeCaret">Characters before the caret, at most <paramref name="maxRead"/>.</param>
+    /// <param name="maxRead">How many characters were requested; a full read with no boundary means the word may be cut.</param>
+    /// <returns>
+    /// <see cref="BufferOutcome.Updated"/> when the word before the caret became the current word,
+    /// <see cref="BufferOutcome.Reset"/> when tracking resumed with an empty word (start of text or a
+    /// boundary before the caret), <see cref="BufferOutcome.None"/> when the context is unusable and
+    /// the buffer stays detached.
+    /// </returns>
+    public BufferResult ResumeFromContext(ReadOnlySpan<char> textBeforeCaret, int maxRead)
+    {
+        if (!_detached)
+        {
+            return BufferResult.None;
+        }
+
+        // Trailing run of Arabic letters and marks = the word the caret is in.
+        var start = textBeforeCaret.Length;
+        while (start > 0 && (ArabicText.IsArabicLetter(textBeforeCaret[start - 1]) || ArabicText.IsIgnorable(textBeforeCaret[start - 1])))
+        {
+            start--;
+        }
+
+        var word = textBeforeCaret[start..];
+        var before = start > 0 ? textBeforeCaret[start - 1] : '\0';
+
+        // Unusable: the word may continue beyond what was read, it is glued to a non-Arabic letter,
+        // or it is longer than a word can be.
+        if ((start == 0 && textBeforeCaret.Length >= maxRead)
+            || (start > 0 && !ArabicText.IsWordBoundary(before))
+            || word.Length > MaxLength)
+        {
+            return BufferResult.None;
+        }
+
+        // Leading marks without a letter are not part of a word.
+        while (!word.IsEmpty && !ArabicText.IsArabicLetter(word[0]))
+        {
+            word = word[1..];
+        }
+
+        _detached = false;
+        _text.Clear();
+        _text.Append(word);
+        LetterCount = 0;
+        foreach (var c in word)
+        {
+            if (ArabicText.IsArabicLetter(c))
+            {
+                LetterCount++;
+            }
+        }
+
+        return new BufferResult(word.IsEmpty ? BufferOutcome.Reset : BufferOutcome.Updated);
+    }
+
     /// <summary>Discards the current word without committing it.</summary>
     public BufferResult Reset()
     {
         var hadContent = _text.Length > 0;
         _text.Clear();
         LetterCount = 0;
-        _overflowed = false;
+        _detached = false;
         return hadContent ? new BufferResult(BufferOutcome.Reset) : BufferResult.None;
     }
 
@@ -74,7 +139,7 @@ public sealed class WordBuffer
             return Commit();
         }
 
-        if (_overflowed)
+        if (_detached)
         {
             return BufferResult.None;
         }
@@ -83,9 +148,7 @@ public sealed class WordBuffer
         {
             if (_text.Length >= MaxLength)
             {
-                var result = Reset();
-                _overflowed = true;
-                return result;
+                return Detach();
             }
 
             _text.Append(c);
@@ -108,16 +171,21 @@ public sealed class WordBuffer
         return Reset();
     }
 
+    /// <summary>
+    /// Backspace removes exactly one character; the word is reset only when no letter is left.
+    /// Backspace on an empty buffer moves the caret into the previous word, whose start we do not
+    /// know, so tracking stops until the next boundary.
+    /// </summary>
     private BufferResult ApplyBackspace()
     {
-        if (_overflowed)
+        if (_detached)
         {
-            return Reset();
+            return BufferResult.None;
         }
 
         if (_text.Length == 0)
         {
-            return BufferResult.None;
+            return Detach();
         }
 
         var removed = _text[^1];
@@ -136,9 +204,16 @@ public sealed class WordBuffer
         return new BufferResult(BufferOutcome.Updated);
     }
 
+    private BufferResult Detach()
+    {
+        var result = Reset();
+        _detached = true;
+        return result;
+    }
+
     private BufferResult Commit()
     {
-        if (LetterCount == 0 || _overflowed)
+        if (LetterCount == 0 || _detached)
         {
             return Reset();
         }
