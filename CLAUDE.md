@@ -6,7 +6,6 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
 ## Current status
 - **Current phase:** 5 — learning + persistence (SQLite, approved) + password/elevated/excluded guards. Not started yet;
   create branch `phase-5-learning` from `main`. Phases 0–4 approved and merged into `main`.
-- **Pending:** `main` has phases 3 and 4 merged locally but is **NOT pushed** — ask the user before pushing.
 - Phase 4 (approved after the user's tests in Notepad; other apps not tested yet): `HotkeyInterceptor` (Core) decides in the hook
   from `PopupState`; Tab/Ctrl+N/Esc only while the bar is visible, Ctrl+Alt+P always; `SendInputInjector` releases a held Ctrl,
   sends backspaces + Delete + unicode in one batch. Native navigation (Up/Left/Right/Enter/Esc) ON by default (user decision).
