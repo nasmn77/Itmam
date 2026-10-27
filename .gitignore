@@ -1,0 +1,70 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+ARM64/
+[Ll]og/
+*.binlog
+
+# Visual Studio / Rider / VS Code
+.vs/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.rsuser
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Tests and coverage
+TestResults/
+[Tt]est[Rr]esult*/
+coverage*.json
+coverage*.xml
+*.coverage
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+project.lock.json
+project.fragment.lock.json
+
+# MSIX packaging output
+AppPackages/
+BundleArtifacts/
+*.msix
+*.msixbundle
+*.msixupload
+*.appx
+*.appxbundle
+*.appxupload
+
+# Signing material and secrets — never commit
+*.pfx
+*.p12
+*.cer
+*.snk
+*.pvk
+*.key
+Package.StoreAssociation.xml
+*.publishsettings
+.env
+secrets.json
+
+# Local user data — never commit
+user.db
+user.db-*
+user.json
+
+# Dictionary build scratch (raw downloads stay local; see data/README.md)
+data/raw/
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store

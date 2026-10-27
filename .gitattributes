@@ -1,0 +1,26 @@
+# Normalize line endings; Arabic text files must stay UTF-8 (enforced by .editorconfig).
+* text=auto
+
+*.cs       text diff=csharp eol=crlf
+*.csproj   text eol=crlf
+*.props    text eol=crlf
+*.targets  text eol=crlf
+*.wapproj  text eol=crlf
+*.sln      text eol=crlf
+*.slnf     text eol=crlf
+*.resx     text eol=crlf
+*.appxmanifest text eol=crlf
+*.json     text eol=lf
+*.md       text eol=lf
+*.txt      text eol=lf
+*.yml      text eol=lf
+
+# Binary files
+*.png  binary
+*.ico  binary
+*.jpg  binary
+*.bin  binary
+*.dat  binary
+*.gz   binary
+*.br   binary
+*.db   binary
