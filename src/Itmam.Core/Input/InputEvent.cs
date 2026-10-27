@@ -14,6 +14,9 @@ public enum InputEventKind
     /// <summary>Arrows, Home/End, PageUp/PageDown, Delete.</summary>
     Navigation,
 
+    /// <summary>Text selection with the keyboard: Shift+navigation, Ctrl+Shift+arrows, Ctrl+A.</summary>
+    Selection,
+
     Escape,
 
     /// <summary>Any Ctrl/Alt/Win shortcut.</summary>

@@ -16,7 +16,29 @@ public readonly record struct InputRecord(InputEvent Input, nint KeyboardLayout,
 /// </summary>
 public interface ICaretContextSource
 {
-    Task<string?> ReadBeforeCaretAsync(int maxChars, CancellationToken cancellation);
+    Task<CaretContext> ReadBeforeCaretAsync(int maxChars, CancellationToken cancellation);
+}
+
+public enum CaretContextStatus
+{
+    /// <summary>The text before the caret was read.</summary>
+    Text,
+
+    /// <summary>Not readable: no UI Automation text support, password field, excluded app, timeout.</summary>
+    Unavailable,
+
+    /// <summary>Text is selected: typing replaces it, so there is no word to continue.</summary>
+    Selection,
+}
+
+/// <summary>Result of reading the caret context.</summary>
+public readonly record struct CaretContext(CaretContextStatus Status, string Text = "")
+{
+    public static CaretContext Unavailable => new(CaretContextStatus.Unavailable);
+
+    public static CaretContext Selection => new(CaretContextStatus.Selection);
+
+    public static CaretContext Of(string text) => new(CaretContextStatus.Text, text);
 }
 
 /// <summary>Types an edit into the focused app (SendInput in production). Returns false if it failed.</summary>
@@ -50,6 +72,9 @@ public enum ProbeOutcome
     /// tracking resumed as if the caret were at the start of a word.
     /// </summary>
     AssumedEmpty,
+
+    /// <summary>Text is selected (keyboard or mouse): nothing is tracked until the selection ends.</summary>
+    SelectionActive,
 }
 
 /// <summary>State after an event or a context probe, raised on the pipeline's thread.</summary>
@@ -196,6 +221,14 @@ public sealed class InputPipeline(
                 var result = Process(record);
                 Raise(record, result, probe: null);
 
+                // Keyboard selection: nothing to read until the selection ends (a plain caret move,
+                // click or boundary).
+                if (record.Input.Kind == InputEventKind.Selection)
+                {
+                    probeDue = null;
+                    continue;
+                }
+
                 // Every non-character event that leaves the context unknown (Backspace into a word,
                 // click, arrows, focus/foreground/layout change, paste, shortcut) restarts the delay
                 // and the retry allowance, so holding a key probes once.
@@ -282,7 +315,7 @@ public sealed class InputPipeline(
             return ProbeOutcome.NotAllowed;
         }
 
-        var text = await context.ReadBeforeCaretAsync(_options.ProbeChars, cancellation).ConfigureAwait(false);
+        var caret = await context.ReadBeforeCaretAsync(_options.ProbeChars, cancellation).ConfigureAwait(false);
 
         ProbeOutcome outcome;
         var result = BufferResult.None;
@@ -290,7 +323,11 @@ public sealed class InputPipeline(
         {
             outcome = ProbeOutcome.Discarded;
         }
-        else if (text is null)
+        else if (caret.Status == CaretContextStatus.Selection)
+        {
+            outcome = ProbeOutcome.SelectionActive; // e.g. selected by dragging the mouse
+        }
+        else if (caret.Status == CaretContextStatus.Unavailable)
         {
             outcome = ProbeOutcome.Unavailable;
             if (isRetry && afterCaretMove)
@@ -304,7 +341,7 @@ public sealed class InputPipeline(
         }
         else
         {
-            result = Tracker.Buffer.ResumeFromContext(text, _options.ProbeChars);
+            result = Tracker.Buffer.ResumeFromContext(caret.Text, _options.ProbeChars);
             outcome = result.Outcome switch
             {
                 BufferOutcome.Updated => ProbeOutcome.ResumedWithWord,

@@ -24,23 +24,29 @@ public sealed class UiaCaretContextSource(UiaWorker worker, Func<string?, bool> 
 {
     private readonly TimeSpan _timeout = timeout ?? TimeSpan.FromMilliseconds(250);
 
-    public Task<string?> ReadBeforeCaretAsync(int maxChars, CancellationToken cancellation) =>
-        worker.RunAsync(automation => Read(automation, maxChars), null, _timeout, cancellation);
+    public Task<CaretContext> ReadBeforeCaretAsync(int maxChars, CancellationToken cancellation) =>
+        worker.RunAsync(automation => Read(automation, maxChars), CaretContext.Unavailable, _timeout, cancellation);
 
-    private string? Read(IUIAutomation automation, int maxChars)
+    private CaretContext Read(IUIAutomation automation, int maxChars)
     {
         var element = automation.GetFocusedElement();
         if (element is null
             || isExcludedProcess(ProcessNames.Of((uint)element.CurrentProcessId))
             || element.CurrentIsPassword)
         {
-            return null;
+            return CaretContext.Unavailable;
+        }
+
+        // Selected text (e.g. dragged with the mouse) is replaced by typing: no word to continue.
+        if (UiaText.HasSelection(element))
+        {
+            return CaretContext.Selection;
         }
 
         var caret = UiaText.CaretRange(element);
         if (caret is null)
         {
-            return null;
+            return CaretContext.Unavailable;
         }
 
         // Collapse a copy to the caret, then extend its start backwards by up to maxChars characters.
@@ -52,7 +58,7 @@ public sealed class UiaCaretContextSource(UiaWorker worker, Func<string?, bool> 
         var text = before.GetText(maxChars);
         try
         {
-            return text.ToString() ?? string.Empty;
+            return CaretContext.Of(text.ToString() ?? string.Empty);
         }
         finally
         {
@@ -67,6 +73,24 @@ public sealed class UiaCaretContextSource(UiaWorker worker, Func<string?, bool> 
 /// <summary>Shared UI Automation text helpers.</summary>
 internal static class UiaText
 {
+    /// <summary>True when the focused text has a non-empty selection.</summary>
+    public static bool HasSelection(IUIAutomationElement element)
+    {
+        if (element.GetCurrentPattern(UIA_PATTERN_ID.UIA_TextPatternId) is not IUIAutomationTextPattern pattern)
+        {
+            return false;
+        }
+
+        var selection = pattern.GetSelection();
+        if (selection is null || selection.Length == 0)
+        {
+            return false;
+        }
+
+        var range = selection.GetElement(0);
+        return range.CompareEndpoints(TextPatternRangeEndpoint.TextPatternRangeEndpoint_Start, range, TextPatternRangeEndpoint.TextPatternRangeEndpoint_End) != 0;
+    }
+
     /// <summary>Degenerate range at the caret: TextPattern2 caret range, or the TextPattern selection.</summary>
     public static unsafe IUIAutomationTextRange? CaretRange(IUIAutomationElement element)
     {

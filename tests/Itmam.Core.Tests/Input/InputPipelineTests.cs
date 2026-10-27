@@ -322,6 +322,45 @@ public sealed class InputPipelineTests : IAsyncDisposable
         _updates.Last(u => u.Input?.Input.Kind == InputEventKind.Character).SuggestionsSuppressed.ShouldBeFalse();
     }
 
+    [Fact]
+    public async Task Keyboard_selection_hides_suggestions_without_reading_the_context()
+    {
+        _context.Next = "ذهبت إلى المدرسة";
+        Type("مدر");
+        Send(InputEvent.Of(InputEventKind.Selection));   // Shift+Left
+        await DrainAsync();
+        await Task.Delay(50, TestContext.Current.CancellationToken);
+
+        _updates.Last(u => u.Input?.Input.Kind == InputEventKind.Selection).IsDetached.ShouldBeTrue();
+        _context.Calls.ShouldBe(0);
+        _updates.ShouldNotContain(u => u.Probe != null);
+    }
+
+    [Fact]
+    public async Task Plain_caret_move_after_a_selection_reads_the_context_again()
+    {
+        _context.Next = "ذهبت إلى المدر";
+        Send(InputEvent.Of(InputEventKind.Selection));
+        Send(InputEvent.Of(InputEventKind.Navigation));  // Right without Shift: selection collapsed
+
+        (await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedWithWord)).Word.ShouldBe("المدر");
+    }
+
+    [Fact]
+    public async Task Mouse_selection_keeps_suggestions_hidden_and_never_assumes_an_empty_word()
+    {
+        _context.HasSelection = true;                    // text dragged with the mouse
+        Send(InputEvent.Of(InputEventKind.MouseClick));
+
+        var probe = await WaitForProbeAsync();
+        await Task.Delay(150, TestContext.Current.CancellationToken);
+
+        probe.Probe.ShouldBe(ProbeOutcome.SelectionActive);
+        probe.IsDetached.ShouldBeTrue();
+        _context.Calls.ShouldBe(1);                       // no retry
+        _updates.ShouldNotContain(u => u.Probe == ProbeOutcome.AssumedEmpty);
+    }
+
     private sealed class FakeInjector : ITextInjector
     {
         public List<TextEdit> Edits { get; } = [];
@@ -352,7 +391,10 @@ public sealed class InputPipelineTests : IAsyncDisposable
 
         public int Calls => Volatile.Read(ref _calls);
 
-        public async Task<string?> ReadBeforeCaretAsync(int maxChars, CancellationToken cancellation)
+        /// <summary>Text is selected in the app (overrides <see cref="Next"/>).</summary>
+        public bool HasSelection { get; set; }
+
+        public async Task<CaretContext> ReadBeforeCaretAsync(int maxChars, CancellationToken cancellation)
         {
             var call = Interlocked.Increment(ref _calls);
             if (Delay > TimeSpan.Zero)
@@ -360,7 +402,13 @@ public sealed class InputPipelineTests : IAsyncDisposable
                 await Task.Delay(Delay, cancellation);
             }
 
-            return Responses is { } responses ? responses(call) : Next;
+            if (HasSelection)
+            {
+                return CaretContext.Selection;
+            }
+
+            var text = Responses is { } responses ? responses(call) : Next;
+            return text is null ? CaretContext.Unavailable : CaretContext.Of(text);
         }
     }
 }

@@ -82,7 +82,10 @@ process that owns the focused UI Automation element right before reading.
 `WordBuffer.ResumeFromContext` keeps only the trailing Arabic word of that text (the word the
 caret is in) as the current word, or resumes with an empty word if a boundary or the start of the
 field precedes the caret. The rest of the text is discarded immediately; nothing is stored or
-logged. If keys arrive while reading, the result is discarded and the text is read again once
+logged. While text is selected — with the keyboard (Shift+navigation, Ctrl+Shift+arrows, Ctrl+A:
+a `Selection` event, after which nothing is read) or with the mouse (UI Automation reports a
+non-empty selection) — nothing is tracked or suggested, because typing replaces the selection;
+the next plain caret move, click or boundary resumes. If keys arrive while reading, the result is discarded and the text is read again once
 they settle (it then includes them). If the app has no UI Automation text support (the call fails
 or times out after 250 ms, on a dedicated thread, and once more after 100 ms): after a caret move,
 tracking resumes with an empty word if no letter was typed meanwhile; after Backspace, or if
