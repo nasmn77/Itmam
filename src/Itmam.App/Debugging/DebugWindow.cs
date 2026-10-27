@@ -104,7 +104,7 @@ internal sealed class DebugWindow : Form
     {
         var d = _hooks.Diagnostics;
         _health.Text =
-            $"keys {d.KeyEvents}  clicks {d.MouseClicks}  focus {d.FocusEvents} (+{d.RepeatedFocusEvents} repeated, ignored)  reinstalls {d.Reinstalls}  errors {d.CallbackErrors}\n" +
+            $"{(_hooks.IsEnabled ? "ENABLED" : "DISABLED (Ctrl+Alt+P)")}   keys {d.KeyEvents}  clicks {d.MouseClicks}  focus {d.FocusEvents} (+{d.RepeatedFocusEvents} repeated, ignored)  reinstalls {d.Reinstalls}  errors {d.CallbackErrors}\n" +
             $"hook callback: p99 {d.P99.TotalMicroseconds:F0} µs {Verdict(d.P99 < HookDiagnostics.P99Target)} (< {HookDiagnostics.P99Target.TotalMicroseconds:F0}), " +
             $"max {d.MaxCallback.TotalMicroseconds:F0} µs {Verdict(d.MaxCallback < HookDiagnostics.MaxTarget)} (< {HookDiagnostics.MaxTarget.TotalMicroseconds:F0}), " +
             $"last {d.LastCallback.TotalMicroseconds:F0} µs, max after {HookDiagnostics.SteadyAfterKeys} keys {d.MaxCallbackSteady.TotalMicroseconds:F0} µs\n" +

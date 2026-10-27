@@ -13,7 +13,8 @@ internal readonly record struct SuggestionShown(int Count, CaretSource Source, T
 /// Connects the input pipeline to the suggestion bar: on every word change it asks the engine for
 /// suggestions (on the pipeline thread), then locates the caret and shows or hides the bar.
 /// Only the most recent request is processed, so fast typing never queues stale bars.
-/// Phase 3 shows suggestions only; accepting them arrives in Phase 4.
+/// Accepting (Tab, Ctrl+N, click) is done by the pipeline; afterwards the word is empty or
+/// suppressed, so the bar hides by itself.
 /// </summary>
 internal sealed class SuggestionController : IDisposable
 {
@@ -21,17 +22,19 @@ internal sealed class SuggestionController : IDisposable
     private readonly CaretLocator _caret;
     private readonly ExcludedApps _excludedApps;
     private readonly SuggestionPopup _popup;
+    private readonly Func<bool> _isEnabled;
     private readonly Channel<Request> _requests = Channel.CreateBounded<Request>(
         new BoundedChannelOptions(1) { FullMode = BoundedChannelFullMode.DropOldest, SingleReader = true, SingleWriter = true });
     private readonly CancellationTokenSource _stop = new();
     private long _sequence;
 
-    public SuggestionController(SuggestionEngine engine, CaretLocator caret, ExcludedApps excludedApps, SuggestionPopup popup)
+    public SuggestionController(SuggestionEngine engine, CaretLocator caret, ExcludedApps excludedApps, SuggestionPopup popup, Func<bool> isEnabled)
     {
         _engine = engine;
         _caret = caret;
         _excludedApps = excludedApps;
         _popup = popup;
+        _isEnabled = isEnabled;
         _ = Task.Run(() => ProcessAsync(_stop.Token));
     }
 
@@ -41,9 +44,17 @@ internal sealed class SuggestionController : IDisposable
     /// <summary>Call from the pipeline thread for every update.</summary>
     public void OnPipelineUpdated(PipelineUpdate update)
     {
+        // Native navigation only moves the selection; the words stay the same.
+        if (update.Input?.Input is { Kind: InputEventKind.NavigationSelect } select)
+        {
+            OnUi(() => _popup.SetSelected(select.Index));
+            return;
+        }
+
         var sequence = Interlocked.Increment(ref _sequence);
         IReadOnlyList<string> words = [];
-        if (update is { IsArabicLayout: true, IsDetached: false }
+        if (update is { IsArabicLayout: true, IsDetached: false, SuggestionsSuppressed: false }
+            && _isEnabled()
             && update.Letters >= _engine.Options.MinChars
             && !_excludedApps.IsExcluded(ProcessNames.ForegroundProcessName()))
         {
