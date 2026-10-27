@@ -1,0 +1,4 @@
+# Words that must never be suggested (profanity, slurs, offensive terms).
+# One word per line, UTF-8. Lines starting with # are comments.
+# Matching is by normalized form, so one spelling blocks its alef/ya/ta-marbuta variants too.
+# Entries are applied by tools/DictionaryBuilder (--blocklist); rebuild the dictionary after editing.

@@ -24,3 +24,4 @@
 *.gz   binary
 *.br   binary
 *.db   binary
+*.dict binary
