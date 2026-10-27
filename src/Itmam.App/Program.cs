@@ -1,3 +1,6 @@
+using Itmam.App.Debugging;
+using Itmam.Win32;
+
 namespace Itmam.App;
 
 internal static class Program
@@ -7,6 +10,9 @@ internal static class Program
     {
         ApplicationConfiguration.Initialize();
 
-        // The tray ApplicationContext, hooks and popup are wired up here in later phases.
+        // Phase 2: hooks + temporary debug window. The tray ApplicationContext replaces this in Phase 6.
+        using var hooks = new InputHookService();
+        hooks.Start();
+        Application.Run(new DebugWindow(hooks));
     }
 }
