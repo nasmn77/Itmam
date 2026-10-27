@@ -4,12 +4,9 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
 `PROMPT.md` is the full brief and the source of truth; this file is the short rule set. Read both at the start of a session.
 
 ## Current status
-- **Current phase:** 1 — Core (done on branch `phase-1-core`, awaiting review). Phase 0 merged and pushed; CI green.
+- **Current phase:** 1 — Core (approved, merged into `main`).
 - **Next phase:** 2 — Win32 hook thread, layout detection, focus tracking, debug window.
-- **Open questions:** blocklist source (`data/blocklist.txt` is empty); MSIX tooling must be installed in Visual Studio before Phase 7.
-- **Local machine note:** a failed VS update left `C:\Program Files (x86)\NuGet\Config\Microsoft.VisualStudio.FallbackLocation.config`
-  unreadable. Until it is repaired (VS Installer → Retry), restore with `dotnet restore Itmam.CI.slnf --configfile <temp nuget.config>`
-  that only lists nuget.org, then build/test with `--no-restore`.
+- **Open questions:** blocklist source (`data/blocklist.txt` is empty; candidate licenses being checked); MSIX tooling must be installed in Visual Studio before Phase 7.
 
 ## Build & test
 ```
@@ -41,11 +38,17 @@ Tests run on Microsoft.Testing.Platform (opted in via `global.json` → `test.ru
 - Dictionary sources: **FrequencyWords `ar_full` first (Phase 1)**; Arabic Wikipedia counts added later once everything works. CC-BY-SA on the derived dictionary file is accepted. Verify each license and tell the user **before** downloading.
   - FrequencyWords (github.com/hermitdave/FrequencyWords, `content/2018/ar/ar_full.txt`, ~42 MB): README states
     "MIT License for code, CC-by-sa-4.0 for content"; data derived from OpenSubtitles 2018 (OPUS). Approved; pinned commit +
-    SHA-256 in `tools/DictionaryBuilder/download-sources.ps1`. Built with `--min-count 3` → 471,652 words, 1.47 MB.
+    SHA-256 in `tools/DictionaryBuilder/download-sources.ps1`. Built with `--min-count 3 --drop-bare-alef-variants`
+    → 522,618 spellings, 1.66 MB file, ~20 MB in memory, load ~200–270 ms.
   - `data/itmam-ar.dict` is CC-BY-SA-4.0 (derived data); code stays MIT. Attribution in `THIRD_PARTY_NOTICES.md`.
 - Ranking: literal-prefix matches get a score bonus (`LiteralMatchBonus`, default ln 10) instead of an absolute tier, because
   users often type ا for أ/إ; hamza-fallback and clitic matches are strict lower tiers. Setting the bonus to +∞ restores the strict rule.
-- Dedup by normalized key keeps one spelling per key (e.g. على wins over علي); the other comes back through user learning.
+- `CompleteWordBonus` (default ln 10): spellings whose normalized form equals the typed text get a bonus, so typing ان
+  suggests أن | إن | أنا.
+- **Several spellings per normalized key** (user decision: never merge distinct words like أن/إن, على/علي, إلى/إلي).
+  Each spelling keeps its own frequency; per key: max 4 spellings, drop spellings < 5% of the top spelling, and drop a
+  spelling that is exactly a more frequent spelling minus the hamza on its alef (ان/انا/الى). Tests assert أن، إن، على، علي، إلى
+  are in the shipped dictionary.
 - Committed words are stored without tashkeel/tatweel.
 - Code license: MIT.
 - Terminals are excluded by default (user can re-enable in settings).
