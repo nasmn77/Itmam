@@ -20,6 +20,29 @@ with the following third-party components and data, each under its own license.
 The dictionary file `data/itmam-ar.dict` is an adaptation of this material and is therefore
 licensed under **CC-BY-SA-4.0**. The Itmam program code is not affected and remains MIT.
 
+### Blocklist sources (`data/blocklist.txt`)
+
+`data/blocklist.txt` contains a hand-reviewed selection of words from the two lists below.
+
+**List of Dirty, Naughty, Obscene, and Otherwise Bad Words — Arabic (`ar`)**
+- LDNOOBW project contributors — https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words
+  (commit `5faf2ba42d7b1c0977169ec3611df25a3c08eb13`)
+- License: Creative Commons Attribution 4.0 International (CC-BY-4.0) — https://creativecommons.org/licenses/by/4.0/
+- Changes made: a subset of entries was selected; ordinary, medical, legal and news vocabulary was removed.
+
+**Arabic Bad & Dirty Word Filter List**
+- UXBERT — https://github.com/uxbertlabs/arabic_bad_dirty_word_filter_list
+  (commit `15f64b425d0f34c0be3e3809f5eb0002eaf6e723`)
+- License: MIT. Copyright (c) 2017 UXBERT.
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+  associated documentation files (the "Software"), to deal in the Software without restriction,
+  including without limitation the rights to use, copy, modify, merge, publish, distribute,
+  sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions: The above copyright notice and this
+  permission notice shall be included in all copies or substantial portions of the Software.
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
+
 ## Build-time and test packages (not redistributed in the app unless noted)
 
 | Package | License | Notes |

@@ -1,4 +1,40 @@
 # Words that must never be suggested (profanity, slurs, offensive terms).
 # One word per line, UTF-8. Lines starting with # are comments.
-# Matching is by normalized form, so one spelling blocks its alef/ya/ta-marbuta variants too.
-# Entries are applied by tools/DictionaryBuilder (--blocklist); rebuild the dictionary after editing.
+#
+# Matching (src/Itmam.Core/Dictionary/Building/Blocklist.cs) is by normalized form with hamza seats
+# folded, so tashkeel/alef/ya/ta-marbuta/hamza variants are blocked too. Clitic forms are blocked
+# for 4+ letter words (any clitic) and 3-letter words (article forms only); 2-letter words never.
+#
+# Selected and reviewed by the maintainer from:
+#   - LDNOOBW "List of Dirty, Naughty, Obscene, and Otherwise Bad Words", file `ar`,
+#     commit 5faf2ba42d7b1c0977169ec3611df25a3c08eb13 — CC-BY-4.0
+#     https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words
+#   - uxbertlabs "Arabic Bad & Dirty Word Filter List",
+#     commit 15f64b425d0f34c0be3e3809f5eb0002eaf6e723 — MIT
+#     https://github.com/uxbertlabs/arabic_bad_dirty_word_filter_list
+# Words from those lists that are ordinary, medical, legal/religious or news vocabulary (e.g. أمك،
+# أختك، قضيب، فرج، ثدي، اغتصاب، لواط، سحاق) were deliberately NOT included; see data/README.md.
+#
+# Rebuild the dictionary after editing (see data/README.md).
+
+بزاز
+خرا
+خنيث
+زب
+سكس
+شرموط
+شرموطة
+طيز
+عرص
+قحبة
+كس
+كسمك
+متناك
+متناكة
+ممحون
+منيك
+منيوك
+مفلقسة
+عاهرة
+لوطي
+سحاقية

@@ -15,8 +15,12 @@ internal static class TestDictionaries
     public static WordDictionary Of(params (string Word, double PerMillion)[] words) =>
         WordDictionary.Build(words.Select(w => new WeightedWord(w.Word, w.PerMillion)));
 
-    /// <summary>Path of the shipped dictionary, found by walking up to the repository root.</summary>
-    public static string ShippedDictionaryPath
+    public static string ShippedDictionaryPath => Path.Combine(RepositoryRoot, "data", "itmam-ar.dict");
+
+    public static string ShippedBlocklistPath => Path.Combine(RepositoryRoot, "data", "blocklist.txt");
+
+    /// <summary>Found by walking up from the test output folder to the folder holding Itmam.sln.</summary>
+    private static string RepositoryRoot
     {
         get
         {
@@ -24,7 +28,7 @@ internal static class TestDictionaries
             {
                 if (File.Exists(Path.Combine(dir.FullName, "Itmam.sln")))
                 {
-                    return Path.Combine(dir.FullName, "data", "itmam-ar.dict");
+                    return dir.FullName;
                 }
             }
 

@@ -53,9 +53,21 @@ Options: `--source <name>=<path>` (repeatable; the name must be a known source w
 6. Writes a Brotli-compressed binary file: sorted normalized keys with front coding, display
    spellings and varint frequencies (format documented in `src/Itmam.Core/Dictionary/DictionaryFile.cs`).
 
-Current build: **522,618 words** (spellings), 1.66 MB.
+Current build: **522,510 words** (spellings), 1.66 MB; the blocklist removed 108 entries.
 
 ## Blocklist
 
 `blocklist.txt` lists words that are never suggested (one per line, `#` comments). Contributions
 are welcome; rebuild the dictionary after editing it. Users can also block words themselves.
+
+- **Sources:** 21 words selected by hand from LDNOOBW `ar` (CC-BY-4.0) and uxbertlabs'
+  Arabic list (MIT); see `THIRD_PARTY_NOTICES.md`. A third candidate (AhmedRedaAmin/ArabicSlangProfanity)
+  was rejected because it is written in Latin script (Arabizi).
+- **Deliberately not blocked:** words from those lists that are ordinary or have a common
+  non-offensive meaning, or are medical, legal/religious or news vocabulary: أمك، أختك، نيك (mostly
+  the name Nick)، شاذ، قضيب، قواد، فرج، حلمه، خول، لبوة، مبادل، زق، بز، ثدي، شرج، بظر، احتلام، خنثى،
+  جماع، شهوة، اغتصاب، لواط، سحاق، لعق، لحس، مص، تمص، بيضان.
+- **Matching:** normalized form with hamza seats folded (ؤ/ئ = ء), so tashkeel, alef, ya,
+  ta marbuta and hamza variants are all caught. Clitic forms: 4+ letter words with any clitic,
+  3-letter words only after ال/وال/بال/فال/كال/لل, 2-letter words never (so كس does not block ألكس
+  or كسكس, and خرا does not block فخرا).

@@ -48,7 +48,12 @@ public sealed class WordDictionary
         {
             _baseScores[i] = (float)Ranking.BaseScore(FrequencyScale.ToPerMillion(frequencies[i]));
         }
+
+        Cache = PrefixCandidateCache.Build(this);
     }
+
+    /// <summary>Precomputed candidates for short prefixes with large ranges.</summary>
+    internal PrefixCandidateCache Cache { get; }
 
     public static WordDictionary Empty { get; } = new([], [0], [], [0], [], []);
 
