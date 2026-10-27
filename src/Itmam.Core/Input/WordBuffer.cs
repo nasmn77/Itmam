@@ -38,7 +38,10 @@ public sealed class WordBuffer
     public const int MaxLength = 48;
 
     private readonly StringBuilder _text = new(MaxLength);
-    private bool _overflowed;
+
+    // True when the caret is inside a word whose start we did not see (Backspace into the previous
+    // word, or a run longer than MaxLength). Letters are ignored until the next boundary or reset.
+    private bool _detached;
 
     /// <summary>The word as typed, including tashkeel and tatweel.</summary>
     public string Text => _text.ToString();
@@ -49,6 +52,9 @@ public sealed class WordBuffer
     public int LetterCount { get; private set; }
 
     public bool IsEmpty => _text.Length == 0;
+
+    /// <summary>The caret is inside a word whose start was not seen; nothing is tracked until a boundary.</summary>
+    public bool IsDetached => _detached;
 
     public BufferResult Apply(InputEvent input) => input.Kind switch
     {
@@ -63,7 +69,7 @@ public sealed class WordBuffer
         var hadContent = _text.Length > 0;
         _text.Clear();
         LetterCount = 0;
-        _overflowed = false;
+        _detached = false;
         return hadContent ? new BufferResult(BufferOutcome.Reset) : BufferResult.None;
     }
 
@@ -74,7 +80,7 @@ public sealed class WordBuffer
             return Commit();
         }
 
-        if (_overflowed)
+        if (_detached)
         {
             return BufferResult.None;
         }
@@ -83,9 +89,7 @@ public sealed class WordBuffer
         {
             if (_text.Length >= MaxLength)
             {
-                var result = Reset();
-                _overflowed = true;
-                return result;
+                return Detach();
             }
 
             _text.Append(c);
@@ -108,16 +112,21 @@ public sealed class WordBuffer
         return Reset();
     }
 
+    /// <summary>
+    /// Backspace removes exactly one character; the word is reset only when no letter is left.
+    /// Backspace on an empty buffer moves the caret into the previous word, whose start we do not
+    /// know, so tracking stops until the next boundary.
+    /// </summary>
     private BufferResult ApplyBackspace()
     {
-        if (_overflowed)
+        if (_detached)
         {
-            return Reset();
+            return BufferResult.None;
         }
 
         if (_text.Length == 0)
         {
-            return BufferResult.None;
+            return Detach();
         }
 
         var removed = _text[^1];
@@ -136,9 +145,16 @@ public sealed class WordBuffer
         return new BufferResult(BufferOutcome.Updated);
     }
 
+    private BufferResult Detach()
+    {
+        var result = Reset();
+        _detached = true;
+        return result;
+    }
+
     private BufferResult Commit()
     {
-        if (LetterCount == 0 || _overflowed)
+        if (LetterCount == 0 || _detached)
         {
             return Reset();
         }

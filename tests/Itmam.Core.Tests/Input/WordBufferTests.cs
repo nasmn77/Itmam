@@ -92,6 +92,57 @@ public class WordBufferTests
     [Fact]
     public void Backspace_on_empty_buffer_does_nothing() => Send(InputEventKind.Backspace).ShouldBe(BufferResult.None);
 
+    [Fact]
+    public void Each_backspace_removes_one_character_and_only_the_last_one_resets()
+    {
+        Type("مدرسة");
+
+        foreach (var expected in new[] { "مدرس", "مدر", "مد", "م" })
+        {
+            Send(InputEventKind.Backspace).Outcome.ShouldBe(BufferOutcome.Updated);
+            _buffer.Text.ShouldBe(expected);
+            _buffer.LetterCount.ShouldBe(expected.Length);
+        }
+
+        Send(InputEventKind.Backspace).Outcome.ShouldBe(BufferOutcome.Reset);
+        _buffer.IsEmpty.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Backspace_then_retyping_continues_the_same_word()
+    {
+        Type("كتب");
+        Send(InputEventKind.Backspace);
+        Type("ا").Outcome.ShouldBe(BufferOutcome.Updated);
+
+        _buffer.Text.ShouldBe("كتا");
+    }
+
+    [Fact]
+    public void Backspace_into_the_previous_word_stops_tracking_until_the_next_boundary()
+    {
+        Type("كتاب ");
+        Send(InputEventKind.Backspace);   // caret is now at the end of كتاب
+        _buffer.IsDetached.ShouldBeTrue();
+
+        Type("ة").ShouldBe(BufferResult.None);
+        _buffer.IsEmpty.ShouldBeTrue();
+        Type(" ").ShouldBe(BufferResult.None); // the half-seen word is never committed
+
+        _buffer.IsDetached.ShouldBeFalse();
+        Type("قلم ").ShouldBe(new BufferResult(BufferOutcome.Committed, "قلم"));
+    }
+
+    [Fact]
+    public void Context_change_after_detaching_starts_tracking_again()
+    {
+        Send(InputEventKind.Backspace);
+        Send(InputEventKind.MouseClick);
+
+        Type("قل");
+        _buffer.Text.ShouldBe("قل");
+    }
+
     [Theory]
     [InlineData(InputEventKind.CtrlBackspace)]
     [InlineData(InputEventKind.Navigation)]
