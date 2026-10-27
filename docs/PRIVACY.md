@@ -13,7 +13,7 @@
 
 ### ما الذي لا يفعله
 - لا يحفظ ما تكتبه، ولا الجمل، ولا ترتيب الكلمات، ولا يكتبه في أي سجل.
-- لا يعمل في حقول كلمات المرور، ولا في التطبيقات المستثناة.
+- لا يعمل في حقول كلمات المرور، ولا في التطبيقات المستثناة، ولا يقرأ منها أي نص.
 
 ### ما الذي يُحفظ على جهازك
 سيُضاف في المرحلة 5: الكلمات التي تتعلمها (الكلمة وعدد مرات استخدامها وآخر استخدام فقط) في ملف على جهازك، مع طريقة حذفها.
@@ -28,7 +28,7 @@
 
 ### What it does not do
 - It does not save what you type, sentences or word order, and never writes it to any log.
-- It does nothing in password fields or excluded apps.
+- It does nothing in password fields or excluded apps, and never reads any text from them.
 
 ### What is stored on your device
 To be completed in Phase 5: learned words (the word, its use count and last-used time only) in a file on your device, and how to delete it.

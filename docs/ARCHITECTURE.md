@@ -73,6 +73,11 @@ before the caret:
 2. Caret range from `TextPattern2.GetCaretRange`, or the (empty) selection from `TextPattern`.
 3. A copy of the range is extended **backwards by at most 49 characters** and `GetText(49)` is called.
 
+Nothing is read in excluded apps (`Itmam.Core.Input.ExcludedApps`; defaults: remote desktop/VMs,
+terminals, game launchers). This is checked twice: by `InputPipelineOptions.CanReadContext`
+against the foreground process before every read, and by `UiaCaretContextSource` against the
+process that owns the focused UI Automation element right before reading.
+
 `WordBuffer.ResumeFromContext` keeps only the trailing Arabic word of that text (the word the
 caret is in) as the current word, or resumes with an empty word if a boundary or the start of the
 field precedes the caret. The rest of the text is discarded immediately; nothing is stored or
@@ -89,6 +94,11 @@ change.
   hook thread compares `GetLastInputInfo` with the last time its hooks ran; if the system saw
   input the hooks missed for > 1.5 s, both low-level hooks are reinstalled (at most once per 10 s).
 - Hook delegates are held in fields so the GC cannot collect them while installed.
+- Before installing, every keystroke code path is run once (warm-up) so JIT and P/Invoke stub
+  generation never happen inside a real callback.
+- A garbage collection pauses all managed threads, the hook thread included. The app runs with
+  `GCLatencyMode.SustainedLowLatency` and the worker avoids per-event allocations; the debug
+  window reports callbacks slower than 500 µs and how many of them overlapped a GC.
 
 ## Privacy guarantees in the code
 
