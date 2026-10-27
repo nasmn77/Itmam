@@ -15,6 +15,7 @@ public sealed class InputPipelineTests : IAsyncDisposable
     private readonly ConcurrentQueue<PipelineUpdate> _updates = new();
     private readonly CancellationTokenSource _stop = new();
     private readonly Task _run;
+    private readonly FakeInjector _injector = new();
     private volatile bool _foregroundExcluded;
 
     public InputPipelineTests()
@@ -22,7 +23,8 @@ public sealed class InputPipelineTests : IAsyncDisposable
         var pipeline = new InputPipeline(
             _channel.Reader,
             _context,
-            new InputPipelineOptions { ProbeDelay = TimeSpan.FromMilliseconds(10), CanReadContext = () => !_foregroundExcluded });
+            new InputPipelineOptions { ProbeDelay = TimeSpan.FromMilliseconds(10), CanReadContext = () => !_foregroundExcluded },
+            _injector);
         pipeline.Updated += _updates.Enqueue;
         _run = Task.Run(() => pipeline.RunAsync(_stop.Token));
     }
@@ -261,6 +263,156 @@ public sealed class InputPipelineTests : IAsyncDisposable
         _context.Calls.ShouldBe(0);
     }
 
+    [Fact]
+    public async Task Accepting_types_the_minimal_edit_and_commits_the_word()
+    {
+        Type("مدرسه");
+        Send(InputEvent.Accept(0, "مدرسة"));
+        await DrainAsync();
+
+        _injector.Edits.ShouldBe([new TextEdit(1, "ة ")]);  // fix the last letter, add a space
+        Commits().ShouldBe(["مدرسة"]);
+        _updates.Last(u => u.Result.Outcome == BufferOutcome.Committed).Word.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task Accepting_a_hamza_spelling_replaces_the_whole_prefix()
+    {
+        Type("احم");
+        Send(InputEvent.Accept(0, "أحمد"));
+        await DrainAsync();
+
+        _injector.Edits.ShouldBe([new TextEdit(3, "أحمد ")]);
+    }
+
+    [Fact]
+    public async Task Accept_is_ignored_when_the_context_is_unknown()
+    {
+        Type("كلمة ");
+        Send(InputEvent.Of(InputEventKind.MouseClick));
+        Send(InputEvent.Accept(0, "مدرسة"));
+        await DrainAsync();
+
+        _injector.Edits.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task Failed_injection_leaves_the_word_unchanged()
+    {
+        _injector.Succeeds = false;
+        Type("مدر");
+        Send(InputEvent.Accept(0, "مدرسة"));
+        await DrainAsync();
+
+        Commits().ShouldBeEmpty();
+        _updates.Last(u => u.Input?.Input.Kind == InputEventKind.AcceptSuggestion).Word.ShouldBe("مدر");
+    }
+
+    [Fact]
+    public async Task Esc_suppresses_suggestions_until_the_word_ends()
+    {
+        Type("مدر");
+        Send(InputEvent.Of(InputEventKind.DismissSuggestions));
+        Type("س");
+        await DrainAsync();
+        _updates.Last(u => u.Input?.Input.Kind == InputEventKind.Character).SuggestionsSuppressed.ShouldBeTrue();
+
+        Type(" قل");
+        await DrainAsync();
+        _updates.Last(u => u.Input?.Input.Kind == InputEventKind.Character).SuggestionsSuppressed.ShouldBeFalse();
+    }
+
+    [Theory]
+    [InlineData(' ', 1, "سة ")]   // space after the caret: replaced, never doubled
+    [InlineData('،', 0, "سة")]    // punctuation: no space before it
+    [InlineData('\0', 0, "سة ")]  // end of the text: space added
+    public async Task Accepting_mid_line_respects_the_character_after_the_caret(char after, int deleteForward, string typed)
+    {
+        _context.Next = "ذهبت إلى ";
+        _context.CharAfter = after;
+        Send(InputEvent.Of(InputEventKind.MouseClick));     // clicked in the middle of a line
+        await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedEmpty);
+
+        Type("مدر");
+        Send(InputEvent.Accept(0, "مدرسة"));
+        await DrainAsync();
+
+        _injector.Edits.ShouldBe([new TextEdit(0, typed, deleteForward)]);
+        Commits().ShouldBe(["مدرسة"]);
+    }
+
+    [Fact]
+    public async Task What_follows_the_caret_stays_known_across_words_until_the_caret_moves()
+    {
+        _context.Next = "";
+        _context.CharAfter = ' ';
+        Send(InputEvent.Of(InputEventKind.MouseClick));
+        await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedEmpty);
+
+        Type("ذهبت مدر");                                   // typing inserts before the same space
+        Send(InputEvent.Accept(0, "مدرسة"));
+        Send(InputEvent.Of(InputEventKind.Escape));
+        await DrainAsync();
+
+        _injector.Edits.Single().DeleteForward.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task Keyboard_selection_hides_suggestions_without_reading_the_context()
+    {
+        _context.Next = "ذهبت إلى المدرسة";
+        Type("مدر");
+        Send(InputEvent.Of(InputEventKind.Selection));   // Shift+Left
+        await DrainAsync();
+        await Task.Delay(50, TestContext.Current.CancellationToken);
+
+        _updates.Last(u => u.Input?.Input.Kind == InputEventKind.Selection).IsDetached.ShouldBeTrue();
+        _context.Calls.ShouldBe(0);
+        _updates.ShouldNotContain(u => u.Probe != null);
+    }
+
+    [Fact]
+    public async Task Plain_caret_move_after_a_selection_reads_the_context_again()
+    {
+        _context.Next = "ذهبت إلى المدر";
+        Send(InputEvent.Of(InputEventKind.Selection));
+        Send(InputEvent.Of(InputEventKind.Navigation));  // Right without Shift: selection collapsed
+
+        (await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedWithWord)).Word.ShouldBe("المدر");
+    }
+
+    [Fact]
+    public async Task Mouse_selection_keeps_suggestions_hidden_and_never_assumes_an_empty_word()
+    {
+        _context.HasSelection = true;                    // text dragged with the mouse
+        Send(InputEvent.Of(InputEventKind.MouseClick));
+
+        var probe = await WaitForProbeAsync();
+        await Task.Delay(150, TestContext.Current.CancellationToken);
+
+        probe.Probe.ShouldBe(ProbeOutcome.SelectionActive);
+        probe.IsDetached.ShouldBeTrue();
+        _context.Calls.ShouldBe(1);                       // no retry
+        _updates.ShouldNotContain(u => u.Probe == ProbeOutcome.AssumedEmpty);
+    }
+
+    private sealed class FakeInjector : ITextInjector
+    {
+        public List<TextEdit> Edits { get; } = [];
+
+        public bool Succeeds { get; set; } = true;
+
+        public bool Send(TextEdit edit)
+        {
+            if (Succeeds)
+            {
+                Edits.Add(edit);
+            }
+
+            return Succeeds;
+        }
+    }
+
     private sealed class FakeCaretContext : ICaretContextSource
     {
         private int _calls;
@@ -274,7 +426,10 @@ public sealed class InputPipelineTests : IAsyncDisposable
 
         public int Calls => Volatile.Read(ref _calls);
 
-        public async Task<string?> ReadBeforeCaretAsync(int maxChars, CancellationToken cancellation)
+        /// <summary>Text is selected in the app (overrides <see cref="Next"/>).</summary>
+        public bool HasSelection { get; set; }
+
+        public async Task<CaretContext> ReadBeforeCaretAsync(int maxChars, CancellationToken cancellation)
         {
             var call = Interlocked.Increment(ref _calls);
             if (Delay > TimeSpan.Zero)
@@ -282,7 +437,16 @@ public sealed class InputPipelineTests : IAsyncDisposable
                 await Task.Delay(Delay, cancellation);
             }
 
-            return Responses is { } responses ? responses(call) : Next;
+            if (HasSelection)
+            {
+                return CaretContext.Selection;
+            }
+
+            var text = Responses is { } responses ? responses(call) : Next;
+            return text is null ? CaretContext.Unavailable : CaretContext.Of(text, CharAfter);
         }
+
+        /// <summary>The character after the caret returned with the text.</summary>
+        public char? CharAfter { get; set; }
     }
 }

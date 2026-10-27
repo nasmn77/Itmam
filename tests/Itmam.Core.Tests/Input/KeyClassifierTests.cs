@@ -70,6 +70,17 @@ public class KeyClassifierTests
     [InlineData(0xE5)]
     public void Navigation_delete_and_ime_keys_reset(int vk) => Classify(vk).Kind.ShouldBe(InputEventKind.Navigation);
 
+    [Theory]
+    [InlineData(0x25, KeyModifiers.Shift)]                    // Shift+Left
+    [InlineData(0x27, KeyModifiers.Shift)]                    // Shift+Right
+    [InlineData(0x24, KeyModifiers.Shift)]                    // Shift+Home
+    [InlineData(0x23, KeyModifiers.Shift)]                    // Shift+End
+    [InlineData(0x26, KeyModifiers.Shift)]                    // Shift+Up
+    [InlineData(0x25, KeyModifiers.Shift | KeyModifiers.Ctrl)] // Ctrl+Shift+Left (word)
+    [InlineData(0x41, KeyModifiers.Ctrl)]                     // Ctrl+A
+    public void Selecting_text_is_a_selection_event(int vk, KeyModifiers modifiers) =>
+        Classify(vk, modifiers).ShouldBe(new KeyClassification(KeyAction.Event, InputEventKind.Selection));
+
     [Fact]
     public void Escape_is_its_own_event() => Classify(0x1B).Kind.ShouldBe(InputEventKind.Escape);
 }

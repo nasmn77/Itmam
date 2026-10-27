@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading.Channels;
 using Itmam.Core.Input;
+using Itmam.Core.Presentation;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.Accessibility;
@@ -18,10 +19,12 @@ namespace Itmam.Win32;
 /// </summary>
 /// <remarks>
 /// Windows silently removes a low-level hook whose callback exceeds LowLevelHooksTimeout, so the
-/// callbacks only filter, translate and enqueue, never block, and always pass the input on
-/// (nothing is swallowed in this phase). Injected input (LLKHF_INJECTED, including our own
-/// SendInput) is ignored. A timer compares the system's last-input time with the last time our
-/// hooks ran; if the system saw input we did not, the hooks are reinstalled.
+/// callbacks only filter, translate and enqueue, never block. Keys pass to the app untouched
+/// unless <see cref="HotkeyInterceptor"/> decides they act on the visible suggestion bar (or are
+/// the global toggle); such a key, and its matching key-up, is swallowed. Injected input
+/// (LLKHF_INJECTED, including our own SendInput) is ignored. A timer compares the system's
+/// last-input time with the last time our hooks ran; if the system saw input we did not, the
+/// hooks are reinstalled.
 /// </remarks>
 public sealed unsafe class InputHookService : IDisposable
 {
@@ -29,9 +32,17 @@ public sealed unsafe class InputHookService : IDisposable
     private const uint HealthTimerMs = 2000;
     private const uint MissedInputThresholdMs = 1500;
     private const long ReinstallCooldownMs = 10_000;
+    private const uint WM_KEYUP = 0x0101;
+    private const uint WM_SYSKEYUP = 0x0105;
 
+    // Multiple writers: the hook thread, and the UI thread for clicks on the suggestion bar.
     private readonly Channel<InputRecord> _channel =
-        Channel.CreateUnbounded<InputRecord>(new UnboundedChannelOptions { SingleReader = true, SingleWriter = true });
+        Channel.CreateUnbounded<InputRecord>(new UnboundedChannelOptions { SingleReader = true });
+
+    private readonly PopupState _popup;
+    private readonly HotkeyInterceptor _interceptor;
+    private readonly bool[] _swallowedKeys = new bool[256];
+    private volatile bool _enabled = true;
 
     // Delegates must stay referenced for as long as the hooks are installed.
     private readonly HOOKPROC _keyboardProc;
@@ -55,14 +66,35 @@ public sealed unsafe class InputHookService : IDisposable
     private long _lastReinstallTick;
     private Exception? _startError;
 
-    public InputHookService()
+    /// <param name="popup">What the suggestion bar shows (read on every key-down).</param>
+    /// <param name="hotkeys">Keys that act on the bar.</param>
+    public InputHookService(PopupState popup, HotkeySettings hotkeys)
     {
+        _popup = popup;
+        _interceptor = new HotkeyInterceptor(hotkeys);
         _keyboardProc = KeyboardProc;
         _mouseProc = MouseProc;
         _winEventProc = WinEventProc;
     }
 
     public ChannelReader<InputRecord> Events => _channel.Reader;
+
+    /// <summary>Toggled by the global hotkey; while false nothing is tracked or intercepted.</summary>
+    public bool IsEnabled
+    {
+        get => _enabled;
+        set
+        {
+            if (_enabled != value)
+            {
+                _enabled = value;
+                Publish(InputEvent.Of(InputEventKind.ToggleEnabled), 0);
+            }
+        }
+    }
+
+    /// <summary>Publishes an event from another thread (e.g. a click on a suggestion).</summary>
+    public void Post(InputEvent input) => Publish(input, KeyboardLayouts.ForegroundLayout());
 
     public HookDiagnostics Diagnostics { get; } = new();
 
@@ -160,8 +192,15 @@ public sealed unsafe class InputHookService : IDisposable
         OnKeyDown(&backspace, publish: false);
         OnKeyDown(&shift, publish: false);
 
+        // Hotkey decisions with a visible bar, on a separate interceptor (no state change here).
+        var warmInterceptor = new HotkeyInterceptor(_interceptor.Settings);
+        var bar = new PopupSnapshot(["ا", "ب"], System.Drawing.Rectangle.Empty);
+        warmInterceptor.OnKeyDown(0x09, KeyModifiers.None, bar);
+        warmInterceptor.OnKeyDown(0x32, KeyModifiers.Ctrl, bar);
+        warmInterceptor.OnKeyDown(0x41, KeyModifiers.None, _popup.Current);
+
         // Channel write/read code for InputRecord, on a throwaway channel so no fake event is published.
-        var probe = Channel.CreateUnbounded<InputRecord>(new UnboundedChannelOptions { SingleReader = true, SingleWriter = true });
+        var probe = Channel.CreateUnbounded<InputRecord>(new UnboundedChannelOptions { SingleReader = true });
         probe.Writer.TryWrite(new InputRecord(InputEvent.Char('ا'), KeyboardLayouts.ForegroundLayout(), Stopwatch.GetTimestamp()));
         probe.Reader.TryRead(out _);
 
@@ -248,16 +287,26 @@ public sealed unsafe class InputHookService : IDisposable
             // the entry itself and is not included. A GC during the body is detected by the count.
             var start = Stopwatch.GetTimestamp();
             var gcCount = GC.CollectionCount(0);
+            var swallow = false;
             try
             {
                 Volatile.Write(ref _lastHookTick, (uint)Environment.TickCount);
                 var data = (KBDLLHOOKSTRUCT*)lParam.Value;
                 var message = (uint)wParam.Value;
                 var injected = (data->flags & KBDLLHOOKSTRUCT_FLAGS.LLKHF_INJECTED) != 0;
-                if ((message == PInvoke.WM_KEYDOWN || message == PInvoke.WM_SYSKEYDOWN) && !injected)
+                if (!injected)
                 {
-                    Diagnostics.KeyEvents++;
-                    OnKeyDown(data, publish: true);
+                    if (message == PInvoke.WM_KEYDOWN || message == PInvoke.WM_SYSKEYDOWN)
+                    {
+                        Diagnostics.KeyEvents++;
+                        swallow = OnKeyDownIntercept(data);
+                    }
+                    else if ((message == WM_KEYUP || message == WM_SYSKEYUP) && data->vkCode < 256 && _swallowedKeys[data->vkCode])
+                    {
+                        // The app never saw this key go down, so it must not see it go up either.
+                        _swallowedKeys[data->vkCode] = false;
+                        swallow = true;
+                    }
                 }
             }
             catch (Exception)
@@ -266,9 +315,47 @@ public sealed unsafe class InputHookService : IDisposable
             }
 
             Diagnostics.RecordKeyCallback(Stopwatch.GetElapsedTime(start), GC.CollectionCount(0) != gcCount);
+            if (swallow)
+            {
+                return new LRESULT(1); // the key does not reach the app (nor later hooks)
+            }
         }
 
         return PInvoke.CallNextHookEx(default, code, wParam, lParam);
+    }
+
+    /// <returns>True when the key must be swallowed.</returns>
+    private bool OnKeyDownIntercept(KBDLLHOOKSTRUCT* data)
+    {
+        var modifiers = CurrentModifiers(data);
+        var decision = _interceptor.OnKeyDown((int)data->vkCode, modifiers, _enabled ? _popup.Current : PopupSnapshot.Hidden);
+
+        if (decision.Command is { Kind: InputEventKind.ToggleEnabled })
+        {
+            _enabled = !_enabled;
+            _swallowedKeys[data->vkCode & 0xFF] = true;
+            Publish(InputEvent.Of(InputEventKind.ToggleEnabled), 0);
+            return true;
+        }
+
+        if (!_enabled)
+        {
+            return false; // disabled: nothing is tracked, every key passes
+        }
+
+        if (decision.Command is { } command)
+        {
+            Publish(command, _layouts.Current());
+        }
+
+        if (decision.Action == InterceptAction.Swallow)
+        {
+            _swallowedKeys[data->vkCode & 0xFF] = true;
+            return true;
+        }
+
+        OnKeyDown(data, publish: true);
+        return false;
     }
 
     private void OnKeyDown(KBDLLHOOKSTRUCT* data, bool publish)
@@ -373,10 +460,17 @@ public sealed unsafe class InputHookService : IDisposable
             {
                 Volatile.Write(ref _lastHookTick, (uint)Environment.TickCount);
                 var message = (uint)wParam.Value;
-                if (message is PInvoke.WM_LBUTTONDOWN or PInvoke.WM_RBUTTONDOWN or PInvoke.WM_MBUTTONDOWN or PInvoke.WM_XBUTTONDOWN)
+                if (_enabled && message is PInvoke.WM_LBUTTONDOWN or PInvoke.WM_RBUTTONDOWN or PInvoke.WM_MBUTTONDOWN or PInvoke.WM_XBUTTONDOWN)
                 {
-                    Diagnostics.MouseClicks++;
-                    Publish(InputEvent.Of(InputEventKind.MouseClick), _layouts.Current());
+                    // A click on the suggestion bar is handled by the bar (accepts a word); the
+                    // caret in the app does not move, so it is not a context change.
+                    var point = ((MSLLHOOKSTRUCT*)lParam.Value)->pt;
+                    var bar = _popup.Current;
+                    if (!(bar.IsVisible && bar.Bounds.Contains(point.X, point.Y)))
+                    {
+                        Diagnostics.MouseClicks++;
+                        Publish(InputEvent.Of(InputEventKind.MouseClick), _layouts.Current());
+                    }
                 }
             }
             catch (Exception)
@@ -392,6 +486,11 @@ public sealed unsafe class InputHookService : IDisposable
     {
         try
         {
+            if (!_enabled)
+            {
+                return;
+            }
+
             InputEventKind kind;
             if (eventType == PInvoke.EVENT_SYSTEM_FOREGROUND)
             {

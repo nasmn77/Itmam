@@ -51,6 +51,15 @@ internal sealed record PopupColors(Color Background, Color Text, Color Border, C
         _ => SystemUsesLightTheme() ? Light : Dark,
     };
 
+    /// <summary>Windows accent color (Settings → Personalization → Colors), for the navigation selection.</summary>
+    public static Color AccentColor()
+    {
+        using var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\DWM");
+        return key?.GetValue("AccentColor") is int abgr
+            ? Color.FromArgb(abgr & 0xFF, (abgr >> 8) & 0xFF, (abgr >> 16) & 0xFF)
+            : Color.FromArgb(0x00, 0x78, 0xD4); // Windows default blue
+    }
+
     /// <summary>Windows "app mode" (Settings → Personalization → Colors).</summary>
     public static bool SystemUsesLightTheme()
     {

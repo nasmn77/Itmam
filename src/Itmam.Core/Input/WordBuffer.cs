@@ -67,8 +67,29 @@ public sealed class WordBuffer
         InputEventKind.Character => ApplyCharacter(input.Character),
         InputEventKind.Backspace => ApplyBackspace(),
         InputEventKind.Escape => Reset(),
-        _ => Detach(), // the caret may have moved anywhere
+
+        // Handled by InputPipeline; the word itself is unchanged.
+        InputEventKind.AcceptSuggestion or InputEventKind.DismissSuggestions or InputEventKind.NavigationSelect => BufferResult.None,
+        _ => Detach(), // the caret may have moved anywhere (toggling off/on included)
     };
+
+    /// <summary>
+    /// The accepted suggestion was typed into the app: the word is committed (counts as used for
+    /// learning). With a trailing space the next word starts empty; without one the caret is right
+    /// after the accepted word, which becomes the current word.
+    /// </summary>
+    public BufferResult AcceptWord(string word, bool appendedSpace)
+    {
+        var committed = ArabicText.StripIgnorable(word);
+        Reset();
+        if (!appendedSpace)
+        {
+            _text.Append(committed);
+            LetterCount = committed.Count(ArabicText.IsArabicLetter);
+        }
+
+        return new BufferResult(BufferOutcome.Committed, committed);
+    }
 
     /// <summary>
     /// Resumes tracking with an empty word when the text before the caret cannot be read, unless

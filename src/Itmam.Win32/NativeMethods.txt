@@ -79,3 +79,7 @@ DwmExtendFrameIntoClientArea
 DWMWINDOWATTRIBUTE
 DWM_WINDOW_CORNER_PREFERENCE
 SafeArrayDestroy
+
+// Text insertion (Phase 4).
+SendInput
+INPUT

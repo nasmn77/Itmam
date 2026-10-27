@@ -4,8 +4,14 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
 `PROMPT.md` is the full brief and the source of truth; this file is the short rule set. Read both at the start of a session.
 
 ## Current status
-- **Current phase:** 4 — hotkey interception + text insertion (branch `phase-4-insert`). Phase 3 approved and merged into `main`.
-- **Next phase:** 4 — hotkey interception + text insertion.
+- **Current phase:** 5 — learning + persistence (SQLite, approved) + password/elevated/excluded guards. Not started yet;
+  create branch `phase-5-learning` from `main`. Phases 0–4 approved and merged into `main`.
+- **Pending:** `main` has phases 3 and 4 merged locally but is **NOT pushed** — ask the user before pushing.
+- Phase 4 (approved after the user's tests in Notepad; other apps not tested yet): `HotkeyInterceptor` (Core) decides in the hook
+  from `PopupState`; Tab/Ctrl+N/Esc only while the bar is visible, Ctrl+Alt+P always; `SendInputInjector` releases a held Ctrl,
+  sends backspaces + Delete + unicode in one batch. Native navigation (Up/Left/Right/Enter/Esc) ON by default (user decision).
+  No suggestions while text is selected (Shift+arrows, Ctrl+A, mouse drag). Accepting mid-line never doubles a space: the char
+  after the caret is read with the context (space → Delete + word + space; punctuation → no space).
 - Phase 3 decisions: bar look measured from the user's screenshot (no dividers, 35 px, 14 px Segoe UI, `#2C2C2C`/white dark,
   grayscale text AA, hints off, subtle first-item highlight with a setting to turn it off). Placement mirrors the native bar:
   right edge at the caret for Arabic. Debug builds: `Itmam.exe --demo-popup <x> <y> [light|dark] [nohighlight] [hints]`.

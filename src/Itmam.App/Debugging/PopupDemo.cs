@@ -9,7 +9,7 @@ internal static class PopupDemo
     public static void Run(int caretX, int caretY, string[] options)
     {
         var theme = options.Contains("light") ? ThemeMode.Light : options.Contains("dark") ? ThemeMode.Dark : ThemeMode.System;
-        using var popup = new SuggestionPopup
+        using var popup = new SuggestionPopup(new Core.Presentation.PopupState())
         {
             Appearance = new PopupAppearance { Theme = theme, HighlightFirst = !options.Contains("nohighlight"), ShowHotkeyHints = options.Contains("hints") },
         };

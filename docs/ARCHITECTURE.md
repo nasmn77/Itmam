@@ -82,7 +82,10 @@ process that owns the focused UI Automation element right before reading.
 `WordBuffer.ResumeFromContext` keeps only the trailing Arabic word of that text (the word the
 caret is in) as the current word, or resumes with an empty word if a boundary or the start of the
 field precedes the caret. The rest of the text is discarded immediately; nothing is stored or
-logged. If keys arrive while reading, the result is discarded and the text is read again once
+logged. While text is selected — with the keyboard (Shift+navigation, Ctrl+Shift+arrows, Ctrl+A:
+a `Selection` event, after which nothing is read) or with the mouse (UI Automation reports a
+non-empty selection) — nothing is tracked or suggested, because typing replaces the selection;
+the next plain caret move, click or boundary resumes. If keys arrive while reading, the result is discarded and the text is read again once
 they settle (it then includes them). If the app has no UI Automation text support (the call fails
 or times out after 250 ms, on a dedicated thread, and once more after 100 ms): after a caret move,
 tracking resumes with an empty word if no letter was typed meanwhile; after Backspace, or if
@@ -141,6 +144,40 @@ UI Automation cost in Chromium (measured on an isolated Chrome instance with a s
 the first request finds no TextPattern while Chrome enables its accessibility tree, the second
 (100 ms later) succeeds; private memory 370 → 354 MB and idle CPU 1.9 % → 0.1 % (no measurable
 increase; numbers dominated by Chrome finishing start-up). Large pages build larger trees.
+
+## Accepting a suggestion (Phase 4)
+
+```
+ key-down in KeyboardProc (hook thread)
+        │  HotkeyInterceptor.OnKeyDown(vk, modifiers, PopupState.Current)   (Core, pure)
+        │    bar hidden            → Pass (every key reaches the app untouched)
+        │    Tab                   → Swallow + AcceptSuggestion(0, word)
+        │    Ctrl+1…9 (≤ shown)    → Swallow + AcceptSuggestion(n, word)
+        │    Esc                   → Swallow + DismissSuggestions
+        │    Ctrl+Alt+P (always)   → Swallow + ToggleEnabled
+        │    native navigation (setting, off): Up enters, ←/→ select, Enter accepts, Esc/↓ leave
+        │  a swallowed key's key-up is swallowed too
+        ▼
+ Channel<InputRecord> → InputPipeline (pipeline thread)
+        AcceptSuggestion: TextEdit.Compute(typed, word, appendSpace) → ITextInjector.Send
+                          → WordBuffer.AcceptWord (Committed: counts as used for learning)
+        DismissSuggestions: suggestions suppressed until the word ends
+        ▼
+ SendInputInjector: one SendInput batch — Ctrl key-up if Ctrl is physically held (Ctrl+N),
+ n × VK_BACK, then each UTF-16 unit as KEYEVENTF_UNICODE (+ space). Injected events carry
+ LLKHF_INJECTED, so our hook ignores them.
+```
+
+Spaces: the caret-context read also returns the one character after the caret. It stays valid
+while typing (text is inserted before it) and becomes unknown when the caret moves. On accept,
+a following space is replaced (Delete, then word + space) so there are never two spaces, following
+punctuation gets no space before it, and otherwise a space is appended.
+
+The word in `AcceptSuggestion` is captured from the bar snapshot the hook saw, so exactly the
+word on screen is inserted. `PopupState` is published by the UI thread on every show/hide and
+read lock-free by the hook. Clicking a word on the bar posts the same event; clicks inside the
+bar's bounds are not treated as caret moves. While disabled (Ctrl+Alt+P), the hooks publish
+nothing and swallow nothing except the toggle key.
 
 ## Privacy guarantees in the code
 

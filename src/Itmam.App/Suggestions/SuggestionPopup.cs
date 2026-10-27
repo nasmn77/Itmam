@@ -25,14 +25,20 @@ internal sealed class SuggestionPopup : Form
 
     private static readonly SuggestionBarMetrics BaseMetrics = new();
     private readonly Dictionary<float, Font> _fonts = [];
+    private readonly PopupState _state;
     private IReadOnlyList<string> _words = [];
     private SuggestionBarLayout? _layout;
     private SuggestionBarMetrics _metrics = BaseMetrics;
     private PopupColors _colors = PopupColors.Dark;
+    private Color _accent = PopupColors.AccentColor();
     private bool _rightToLeft = true;
+    private int _selected = -1;
+    private int _hovered = -1;
 
-    public SuggestionPopup()
+    /// <param name="state">Published on every show/hide so the keyboard hook knows what is on screen.</param>
+    public SuggestionPopup(PopupState state)
     {
+        _state = state;
         FormBorderStyle = FormBorderStyle.None;
         ShowInTaskbar = false;
         StartPosition = FormStartPosition.Manual;
@@ -45,6 +51,9 @@ internal sealed class SuggestionPopup : Form
 
     [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
     public PopupAppearance Appearance { get; set; } = new();
+
+    /// <summary>A suggestion was clicked: (index, word). Raised on the UI thread.</summary>
+    public event Action<int, string>? SuggestionClicked;
 
     protected override bool ShowWithoutActivation => true;
 
@@ -81,9 +90,23 @@ internal sealed class SuggestionPopup : Form
         }
 
         var position = PopupPlacement.Place(caret, _layout.Size, monitor.WorkArea, rightToLeft, _metrics.CaretGap, belowPointer);
-        PopupWindows.ShowWithoutActivation(Handle, new Rectangle(position, _layout.Size));
+        var bounds = new Rectangle(position, _layout.Size);
+        _selected = -1;
+        _hovered = -1;
+        PopupWindows.ShowWithoutActivation(Handle, bounds);
         IsShowing = true;
+        _state.Show(words, bounds);
         Invalidate();
+    }
+
+    /// <summary>Native navigation selection (-1: none), painted with the Windows accent color.</summary>
+    public void SetSelected(int index)
+    {
+        if (_selected != index)
+        {
+            _selected = index;
+            Invalidate();
+        }
     }
 
     /// <summary>
@@ -94,11 +117,58 @@ internal sealed class SuggestionPopup : Form
 
     public void HideSuggestions()
     {
+        _state.Hide();
         if (IsHandleCreated && IsShowing)
         {
             PopupWindows.Hide(Handle);
             IsShowing = false;
         }
+    }
+
+    protected override void OnMouseMove(MouseEventArgs e)
+    {
+        base.OnMouseMove(e);
+        var item = ItemAt(e.Location);
+        if (item != _hovered)
+        {
+            _hovered = item;
+            Invalidate();
+        }
+    }
+
+    protected override void OnMouseLeave(EventArgs e)
+    {
+        base.OnMouseLeave(e);
+        _hovered = -1;
+        Invalidate();
+    }
+
+    // The click never activates the bar (MA_NOACTIVATE): the app keeps focus and receives the word.
+    protected override void OnMouseDown(MouseEventArgs e)
+    {
+        base.OnMouseDown(e);
+        if (e.Button == MouseButtons.Left && ItemAt(e.Location) is var index and >= 0)
+        {
+            SuggestionClicked?.Invoke(index, _words[index]);
+        }
+    }
+
+    private int ItemAt(Point point)
+    {
+        if (_layout is null)
+        {
+            return -1;
+        }
+
+        for (var i = 0; i < _layout.Items.Count && i < _words.Count; i++)
+        {
+            if (_layout.Items[i].Contains(point))
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     protected override void OnHandleCreated(EventArgs e)
@@ -138,9 +208,13 @@ internal sealed class SuggestionPopup : Form
         for (var i = 0; i < _words.Count; i++)
         {
             var item = _layout.Items[i];
-            if (i == 0 && Appearance.HighlightFirst && _words.Count > 1)
+            if (i == _selected)
             {
-                FillHighlight(g, item);
+                FillHighlight(g, item, Color.FromArgb(0x60, _accent));
+            }
+            else if (i == _hovered || (i == 0 && _selected < 0 && Appearance.HighlightFirst && _words.Count > 1))
+            {
+                FillHighlight(g, item, _colors.FirstHighlight);
             }
 
             g.DrawString(_words[i], font, textBrush, item, format);
@@ -187,7 +261,7 @@ internal sealed class SuggestionPopup : Form
         base.Dispose(disposing);
     }
 
-    private void FillHighlight(Graphics g, Rectangle item)
+    private void FillHighlight(Graphics g, Rectangle item, Color color)
     {
         var inset = _metrics.HighlightInset;
         var area = Rectangle.Inflate(item, -inset / 2, -inset);
@@ -199,7 +273,7 @@ internal sealed class SuggestionPopup : Form
         path.AddArc(area.Left, area.Bottom - radius, radius, radius, 90, 90);
         path.CloseFigure();
         g.SmoothingMode = SmoothingMode.AntiAlias;
-        using var brush = new SolidBrush(_colors.FirstHighlight);
+        using var brush = new SolidBrush(color);
         g.FillPath(brush, path);
         g.SmoothingMode = SmoothingMode.Default;
     }
@@ -218,6 +292,7 @@ internal sealed class SuggestionPopup : Form
     private void ApplyTheme()
     {
         _colors = PopupColors.For(Appearance.Theme);
+        _accent = PopupColors.AccentColor();
         if (IsHandleCreated)
         {
             PopupWindows.ApplyWindows11Style(Handle, _colors.Border);

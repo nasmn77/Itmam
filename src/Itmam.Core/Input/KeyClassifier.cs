@@ -37,6 +37,7 @@ public static class KeyClassifier
     private const int Insert = 0x2D;
     private const int Delete = 0x2E;
     private const int KeyV = 0x56;
+    private const int KeyA = 0x41;
     private const int ProcessKey = 0xE5; // IME is processing the key
     private const int Packet = 0xE7;     // Unicode character injected as a key
 
@@ -63,6 +64,13 @@ public static class KeyClassifier
         if ((ctrl && !alt && virtualKey == KeyV) || (modifiers == KeyModifiers.Shift && virtualKey == Insert))
         {
             return Event(InputEventKind.Paste);
+        }
+
+        // Selecting text: typing would replace the selection, so no word is tracked or suggested.
+        var shiftOrCtrlShift = modifiers is KeyModifiers.Shift or (KeyModifiers.Shift | KeyModifiers.Ctrl);
+        if ((shiftOrCtrlShift && virtualKey is >= PageUp and <= Down) || (modifiers == KeyModifiers.Ctrl && virtualKey == KeyA))
+        {
+            return Event(InputEventKind.Selection);
         }
 
         if (modifiers.HasFlag(KeyModifiers.Win) || ((ctrl || alt) && !altGr))
