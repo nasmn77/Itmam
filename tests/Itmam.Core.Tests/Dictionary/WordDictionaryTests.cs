@@ -25,19 +25,68 @@ public class WordDictionaryTests
     {
         KeysInRange(Sample, "كت").ShouldBe(["كتاب", "كتابه", "كتب"]);
         KeysInRange(Sample, "ك").Length.ShouldBe(4);
+        KeysInRange(Sample, "احمد").ShouldBe(["احمد", "احمد"]);
         KeysInRange(Sample, "كتابه").ShouldBe(["كتابه"]);
         KeysInRange(Sample, "ز").ShouldBeEmpty();
         KeysInRange(Sample, "كتابات").ShouldBeEmpty();
     }
 
     [Fact]
-    public void Spelling_variants_merge_and_keep_the_most_frequent_spelling()
+    public void Distinct_spellings_of_one_key_are_kept_with_their_own_frequency_most_frequent_first()
     {
-        var index = Sample.IndexOfKey("احمد");
+        var dictionary = TestDictionaries.Of(("إن", 300), ("أن", 1000), ("ان", 60));
 
-        index.ShouldBeGreaterThanOrEqualTo(0);
-        Sample.GetDisplay(index).ToString().ShouldBe("أحمد");
-        FrequencyScale.ToPerMillion(Sample.GetFrequency(index)).ShouldBe(45);
+        var (start, end) = dictionary.FindPrefixRange("ان");
+        var entries = Enumerable.Range(start, end - start)
+            .Select(i => (dictionary.GetDisplay(i).ToString(), FrequencyScale.ToPerMillion(dictionary.GetFrequency(i))))
+            .ToArray();
+
+        entries.ShouldBe([("أن", 1000.0), ("إن", 300.0), ("ان", 60.0)]);
+    }
+
+    [Fact]
+    public void Spellings_under_5_percent_of_the_top_spelling_are_dropped()
+    {
+        var dictionary = TestDictionaries.Of(("أنا", 1000), ("انا", 49), ("أنى", 50));
+
+        dictionary.IndexOfWord("أنا").ShouldBeGreaterThanOrEqualTo(0);
+        dictionary.IndexOfWord("أنى").ShouldBeGreaterThanOrEqualTo(0);
+        dictionary.IndexOfWord("انا").ShouldBe(-1);
+    }
+
+    [Fact]
+    public void Bare_alef_variants_of_a_more_frequent_spelling_are_dropped_when_enabled()
+    {
+        WeightedWord[] words = [new("أن", 1000), new("إن", 100), new("ان", 300), new("على", 500), new("علي", 50), new("انتظار", 80), new("إنتظار", 5)];
+
+        var dictionary = WordDictionary.Build(words, dropBareAlefVariants: true);
+
+        dictionary.IndexOfWord("ان").ShouldBe(-1);
+        dictionary.IndexOfWord("أن").ShouldBeGreaterThanOrEqualTo(0);
+        dictionary.IndexOfWord("إن").ShouldBeGreaterThanOrEqualTo(0);
+        dictionary.IndexOfWord("على").ShouldBeGreaterThanOrEqualTo(0);
+        dictionary.IndexOfWord("علي").ShouldBeGreaterThanOrEqualTo(0);
+        dictionary.IndexOfWord("انتظار").ShouldBeGreaterThanOrEqualTo(0);
+        dictionary.IndexOfWord("إنتظار").ShouldBeGreaterThanOrEqualTo(0);
+        WordDictionary.Build(words).IndexOfWord("ان").ShouldBeGreaterThanOrEqualTo(0);
+    }
+
+    [Fact]
+    public void At_most_four_spellings_are_kept_per_key()
+    {
+        var dictionary = TestDictionaries.Of(("أن", 100), ("إن", 90), ("ان", 80), ("آن", 70), ("ٱن", 60));
+
+        dictionary.Count.ShouldBe(WordDictionary.MaxSpellingsPerKey);
+        dictionary.IndexOfWord("ٱن").ShouldBe(-1);
+    }
+
+    [Fact]
+    public void Identical_spellings_differing_only_in_tashkeel_are_summed()
+    {
+        var dictionary = TestDictionaries.Of(("كِتاب", 10), ("كتاب", 5));
+
+        dictionary.Count.ShouldBe(1);
+        FrequencyScale.ToPerMillion(dictionary.GetFrequency(0)).ShouldBe(15);
     }
 
     [Fact]
@@ -53,7 +102,8 @@ public class WordDictionaryTests
     {
         Sample.IndexOfWord("أحمد").ShouldBeGreaterThanOrEqualTo(0);
         Sample.IndexOfWord("أَحمد").ShouldBeGreaterThanOrEqualTo(0);
-        Sample.IndexOfWord("احمد").ShouldBe(-1);
+        Sample.IndexOfWord("احمد").ShouldBeGreaterThanOrEqualTo(0);
+        Sample.IndexOfWord("إحمد").ShouldBe(-1);
         Sample.IndexOfWord("قلم").ShouldBe(-1);
     }
 

@@ -11,8 +11,9 @@ public sealed record DictionarySource(string Name, string License, string Url);
 
 /// <summary>
 /// Read-only dictionary held in flat arrays sorted by normalized key, so a prefix maps to one
-/// contiguous index range found with two binary searches. One entry per normalized key; the entry
-/// keeps the most frequent original spelling for display.
+/// contiguous index range found with two binary searches. A key can have several entries, one per
+/// original spelling (أن / إن, على / علي), each with its own frequency; within a key, entries are
+/// ordered by descending frequency.
 /// </summary>
 /// <remarks>
 /// Flat char pools plus offset arrays instead of an object trie keep 500k words in roughly 25 MB
@@ -67,47 +68,93 @@ public sealed class WordDictionary
     /// <summary>Precomputed <c>log(perMillion + 1)</c>.</summary>
     public float GetBaseScore(int index) => _baseScores[index];
 
+    /// <summary>Most spellings kept for one normalized key.</summary>
+    public const int MaxSpellingsPerKey = 4;
+
     /// <summary>
-    /// Builds a dictionary from words with their frequencies: words are normalized, grouped by key
-    /// (frequencies summed) and each group keeps its most frequent spelling.
+    /// A spelling less frequent than this share of its key's most frequent spelling is dropped:
+    /// this removes common misspellings (انا for أنا) while keeping real distinct words (إن beside أن).
     /// </summary>
-    public static WordDictionary Build(IEnumerable<WeightedWord> words, IReadOnlyList<DictionarySource>? sources = null)
+    public const double MinSpellingShare = 0.05;
+
+    /// <summary>
+    /// Builds a dictionary from words with their frequencies. Tashkeel is stripped (identical
+    /// spellings are summed), spellings are grouped by normalized key, and each key keeps up to
+    /// <see cref="MaxSpellingsPerKey"/> spellings whose frequency is at least
+    /// <see cref="MinSpellingShare"/> of the key's most frequent spelling.
+    /// </summary>
+    /// <param name="words">Words with their frequencies.</param>
+    /// <param name="sources">Attribution stored with the dictionary.</param>
+    /// <param name="dropBareAlefVariants">
+    /// Also drop a spelling that is exactly a more frequent spelling of the same key with the hamza
+    /// left off its alef (ان for أن, انا for أنا, الى for إلى). Distinct words such as إن / أن or
+    /// على / علي are unaffected because they do not differ only by a missing hamza.
+    /// </param>
+    public static WordDictionary Build(
+        IEnumerable<WeightedWord> words,
+        IReadOnlyList<DictionarySource>? sources = null,
+        bool dropBareAlefVariants = false)
     {
-        var groups = new Dictionary<string, (string Display, double DisplayFrequency, double Total)>(StringComparer.Ordinal);
+        var spellings = new Dictionary<string, double>(StringComparer.Ordinal);
         foreach (var (word, perMillion) in words)
         {
             var display = ArabicText.StripIgnorable(word);
-            if (display.Length == 0 || perMillion <= 0)
+            if (display.Length > 0 && perMillion > 0)
             {
-                continue;
-            }
-
-            var key = ArabicNormalizer.Normalize(display);
-            if (groups.TryGetValue(key, out var group))
-            {
-                var keepDisplay = perMillion > group.DisplayFrequency
-                    || (perMillion == group.DisplayFrequency && string.CompareOrdinal(display, group.Display) < 0);
-                groups[key] = keepDisplay
-                    ? (display, perMillion, group.Total + perMillion)
-                    : (group.Display, group.DisplayFrequency, group.Total + perMillion);
-            }
-            else
-            {
-                groups[key] = (display, perMillion, perMillion);
+                spellings[display] = spellings.GetValueOrDefault(display) + perMillion;
             }
         }
 
-        var keys = groups.Keys.ToArray();
-        Array.Sort(keys, StringComparer.Ordinal);
+        var groups = spellings
+            .GroupBy(pair => ArabicNormalizer.Normalize(pair.Key), StringComparer.Ordinal)
+            .OrderBy(group => group.Key, StringComparer.Ordinal);
 
-        var builder = new Builder(keys.Length);
-        foreach (var key in keys)
+        var builder = new Builder(spellings.Count);
+        foreach (var group in groups)
         {
-            var group = groups[key];
-            builder.Add(key, group.Display, FrequencyScale.FromPerMillion(group.Total));
+            var ranked = group
+                .OrderByDescending(pair => pair.Value)
+                .ThenBy(pair => pair.Key, StringComparer.Ordinal)
+                .ToArray();
+            var threshold = ranked[0].Value * MinSpellingShare;
+            var kept = new List<string>(MaxSpellingsPerKey);
+            foreach (var (display, perMillion) in ranked)
+            {
+                if (kept.Count == MaxSpellingsPerKey || perMillion < threshold)
+                {
+                    break;
+                }
+
+                if (dropBareAlefVariants && kept.Any(better => IsBareAlefVariant(display, better)))
+                {
+                    continue;
+                }
+
+                kept.Add(display);
+                builder.Add(group.Key, display, FrequencyScale.FromPerMillion(perMillion));
+            }
         }
 
         return builder.ToDictionary(sources ?? []);
+    }
+
+    // True when candidate equals spelling except that some أ/إ/آ in spelling are a bare ا in candidate.
+    private static bool IsBareAlefVariant(string candidate, string spelling)
+    {
+        if (candidate.Length != spelling.Length || candidate == spelling)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < candidate.Length; i++)
+        {
+            if (candidate[i] != spelling[i] && !(candidate[i] == 'ا' && spelling[i] is 'أ' or 'إ' or 'آ'))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>Index range [start, end) of all entries whose key starts with <paramref name="keyPrefix"/>.</summary>
@@ -118,7 +165,7 @@ public sealed class WordDictionary
         return (start, end);
     }
 
-    /// <summary>Index of the entry whose key equals <paramref name="key"/>, or -1.</summary>
+    /// <summary>Index of the first (most frequent) entry whose key equals <paramref name="key"/>, or -1.</summary>
     public int IndexOfKey(ReadOnlySpan<char> key)
     {
         var (start, end) = FindPrefixRange(key);
@@ -129,8 +176,22 @@ public sealed class WordDictionary
     public int IndexOfWord(ReadOnlySpan<char> word)
     {
         var display = ArabicText.StripIgnorable(word);
-        var index = IndexOfKey(ArabicNormalizer.Normalize(display));
-        return index >= 0 && GetDisplay(index).SequenceEqual(display) ? index : -1;
+        var key = ArabicNormalizer.Normalize(display);
+        var index = IndexOfKey(key);
+        if (index < 0)
+        {
+            return -1;
+        }
+
+        for (; index < Count && GetKey(index).SequenceEqual(key); index++)
+        {
+            if (GetDisplay(index).SequenceEqual(display))
+            {
+                return index;
+            }
+        }
+
+        return -1;
     }
 
     // First index whose key is >= prefix (matchCountsAsGreater) or > every key starting with prefix.

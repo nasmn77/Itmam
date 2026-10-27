@@ -73,14 +73,16 @@ public class DictionaryBuildPipelineTests
     }
 
     [Fact]
-    public void Spelling_variants_dedupe_to_most_frequent_spelling()
+    public void Distinct_spellings_survive_and_rare_misspellings_are_dropped()
     {
         var (dictionary, _) = DictionaryBuildPipeline.Build(
-            [new SourceInput(SourceA, [("إلى", 90), ("الى", 10), ("إِلَى", 5)])],
+            [new SourceInput(SourceA, [("إلى", 990), ("إِلَى", 10), ("إلي", 100), ("الى", 40)])],
             Blocklist.Empty);
 
-        dictionary.Count.ShouldBe(1);
-        dictionary.GetDisplay(0).ToString().ShouldBe("إلى");
+        dictionary.Count.ShouldBe(2);
+        PerMillion(dictionary, "إلى").ShouldBe(1_000_000.0 * 1000 / 1140, tolerance: 0.001);
+        dictionary.IndexOfWord("إلي").ShouldBeGreaterThanOrEqualTo(0);
+        dictionary.IndexOfWord("الى").ShouldBe(-1);
     }
 
     [Fact]

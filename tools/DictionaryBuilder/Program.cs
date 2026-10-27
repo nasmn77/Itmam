@@ -9,7 +9,7 @@ using Itmam.Core.Dictionary.Building;
 //
 //   DictionaryBuilder --source frequencywords=data/raw/frequencywords-ar_full.txt
 //                     [--weight frequencywords=1.0] [--min-count frequencywords=5]
-//                     [--blocklist data/blocklist.txt] [--max-words 600000]
+//                     [--blocklist data/blocklist.txt] [--max-words 600000] [--drop-bare-alef-variants]
 //                     --output data/itmam-ar.dict
 
 // Attribution for every source the builder accepts; unknown source names are rejected so the
@@ -27,7 +27,7 @@ try
     var options = Options.Parse(args);
     if (options.Sources.Count == 0 || options.Output is null)
     {
-        Console.Error.WriteLine("Usage: DictionaryBuilder --source <name>=<path> [--weight <name>=<w>] [--min-count <name>=<n>] [--blocklist <path>] [--max-words <n>] --output <path>");
+        Console.Error.WriteLine("Usage: DictionaryBuilder --source <name>=<path> [--weight <name>=<w>] [--min-count <name>=<n>] [--blocklist <path>] [--max-words <n>] [--drop-bare-alef-variants] --output <path>");
         Console.Error.WriteLine($"Known sources: {string.Join(", ", knownSources.Keys)}");
         return 2;
     }
@@ -58,7 +58,7 @@ try
         blocklist = Blocklist.Read(reader);
     }
 
-    var (dictionary, stats) = DictionaryBuildPipeline.Build(inputs, blocklist, options.MaxWords);
+    var (dictionary, stats) = DictionaryBuildPipeline.Build(inputs, blocklist, options.MaxWords, options.DropBareAlefVariants);
     readers.ForEach(r => r.Dispose());
 
     Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(options.Output))!);
@@ -96,11 +96,19 @@ internal sealed class Options
 
     public int? MaxWords { get; private set; }
 
+    public bool DropBareAlefVariants { get; private set; }
+
     public static Options Parse(string[] args)
     {
         var options = new Options();
         for (var i = 0; i < args.Length; i++)
         {
+            if (args[i] == "--drop-bare-alef-variants")
+            {
+                options.DropBareAlefVariants = true;
+                continue;
+            }
+
             var value = i + 1 < args.Length ? args[i + 1] : throw new ArgumentException($"Missing value for {args[i]}.");
             switch (args[i])
             {

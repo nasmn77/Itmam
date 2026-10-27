@@ -18,7 +18,8 @@ public static class DictionaryBuildPipeline
     public static (WordDictionary Dictionary, BuildStatistics Statistics) Build(
         IReadOnlyList<SourceInput> inputs,
         Blocklist blocklist,
-        int? maxEntries = null)
+        int? maxEntries = null,
+        bool dropBareAlefVariants = false)
     {
         int tokens = 0, accepted = 0, rejected = 0, belowMin = 0, blocked = 0;
         var merged = new Dictionary<string, double>(StringComparer.Ordinal);
@@ -69,22 +70,23 @@ public static class DictionaryBuildPipeline
 
         var dictionary = WordDictionary.Build(
             merged.Select(pair => new WeightedWord(pair.Key, pair.Value)),
-            inputs.Select(i => i.Source).ToArray());
+            inputs.Select(i => i.Source).ToArray(),
+            dropBareAlefVariants);
 
         if (maxEntries is { } max && dictionary.Count > max)
         {
-            dictionary = KeepMostFrequent(dictionary, max);
+            dictionary = KeepMostFrequent(dictionary, max, dropBareAlefVariants);
         }
 
         return (dictionary, new BuildStatistics(tokens, accepted, rejected, belowMin, blocked, dictionary.Count));
     }
 
-    private static WordDictionary KeepMostFrequent(WordDictionary dictionary, int max)
+    private static WordDictionary KeepMostFrequent(WordDictionary dictionary, int max, bool dropBareAlefVariants)
     {
         var top = Enumerable.Range(0, dictionary.Count)
             .OrderByDescending(dictionary.GetFrequency)
             .Take(max)
             .Select(i => new WeightedWord(dictionary.GetDisplay(i).ToString(), FrequencyScale.ToPerMillion(dictionary.GetFrequency(i))));
-        return WordDictionary.Build(top, dictionary.Sources);
+        return WordDictionary.Build(top, dictionary.Sources, dropBareAlefVariants);
     }
 }
