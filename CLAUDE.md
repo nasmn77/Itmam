@@ -5,7 +5,11 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
 
 ## Current status
 - **Current phase:** 4 — hotkey interception + text insertion (branch `phase-4-insert`). Phase 3 approved and merged into `main`.
-- **Next phase:** 4 — hotkey interception + text insertion.
+- **Next phase:** 5 — learning + persistence (SQLite) + password/elevated/excluded guards.
+- Phase 4 (awaiting the user's typing test): `HotkeyInterceptor` (Core) decides in the hook from `PopupState`; Tab/Ctrl+N/Esc
+  only while the bar is visible, Ctrl+Alt+P always; `SendInputInjector` releases a held Ctrl, sends backspaces + unicode in one
+  batch (verified in a real TextBox: مدرسه→مدرسة, احم→أحمد, مدر→مدرسة). Native navigation implemented, off by default.
+  Main with phase 3 merged is NOT pushed yet (ask the user).
 - Phase 3 decisions: bar look measured from the user's screenshot (no dividers, 35 px, 14 px Segoe UI, `#2C2C2C`/white dark,
   grayscale text AA, hints off, subtle first-item highlight with a setting to turn it off). Placement mirrors the native bar:
   right edge at the caret for Arabic. Debug builds: `Itmam.exe --demo-popup <x> <y> [light|dark] [nohighlight] [hints]`.

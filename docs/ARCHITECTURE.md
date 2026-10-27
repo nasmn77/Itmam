@@ -142,6 +142,35 @@ the first request finds no TextPattern while Chrome enables its accessibility tr
 (100 ms later) succeeds; private memory 370 → 354 MB and idle CPU 1.9 % → 0.1 % (no measurable
 increase; numbers dominated by Chrome finishing start-up). Large pages build larger trees.
 
+## Accepting a suggestion (Phase 4)
+
+```
+ key-down in KeyboardProc (hook thread)
+        │  HotkeyInterceptor.OnKeyDown(vk, modifiers, PopupState.Current)   (Core, pure)
+        │    bar hidden            → Pass (every key reaches the app untouched)
+        │    Tab                   → Swallow + AcceptSuggestion(0, word)
+        │    Ctrl+1…9 (≤ shown)    → Swallow + AcceptSuggestion(n, word)
+        │    Esc                   → Swallow + DismissSuggestions
+        │    Ctrl+Alt+P (always)   → Swallow + ToggleEnabled
+        │    native navigation (setting, off): Up enters, ←/→ select, Enter accepts, Esc/↓ leave
+        │  a swallowed key's key-up is swallowed too
+        ▼
+ Channel<InputRecord> → InputPipeline (pipeline thread)
+        AcceptSuggestion: TextEdit.Compute(typed, word, appendSpace) → ITextInjector.Send
+                          → WordBuffer.AcceptWord (Committed: counts as used for learning)
+        DismissSuggestions: suggestions suppressed until the word ends
+        ▼
+ SendInputInjector: one SendInput batch — Ctrl key-up if Ctrl is physically held (Ctrl+N),
+ n × VK_BACK, then each UTF-16 unit as KEYEVENTF_UNICODE (+ space). Injected events carry
+ LLKHF_INJECTED, so our hook ignores them.
+```
+
+The word in `AcceptSuggestion` is captured from the bar snapshot the hook saw, so exactly the
+word on screen is inserted. `PopupState` is published by the UI thread on every show/hide and
+read lock-free by the hook. Clicking a word on the bar posts the same event; clicks inside the
+bar's bounds are not treated as caret moves. While disabled (Ctrl+Alt+P), the hooks publish
+nothing and swallow nothing except the toggle key.
+
 ## Privacy guarantees in the code
 
 - Typed characters exist only in memory: in the channel, in `WordBuffer`, and on screen.
