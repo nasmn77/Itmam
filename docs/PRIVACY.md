@@ -9,7 +9,7 @@
 
 ### ما الذي يقرؤه التطبيق
 - **ضغطات لوحة المفاتيح** أثناء الكتابة بتخطيط عربي فقط، لمعرفة الكلمة التي تكتبها الآن واقتراح إكمالها. الكتابة بأي تخطيط آخر (مثل الإنجليزية) لا تُتتبع.
-- **الكلمة الحالية قبل المؤشر فقط:** عندما تضغط Backspace فيعود المؤشر إلى نص سابق، يقرأ التطبيق عبر UI Automation في Windows ما لا يزيد عن 49 حرفًا قبل المؤشر، ويحتفظ في الذاكرة بالكلمة التي يقف فيها المؤشر فقط ويتجاهل الباقي فورًا. لا يُقرأ أي شيء من حقول كلمات المرور.
+- **الكلمة الحالية قبل المؤشر فقط:** عندما ينتقل المؤشر إلى نص موجود (Backspace، أو نقرة بالفأرة، أو الأسهم، أو الانتقال إلى حقل أو نافذة أخرى)، يقرأ التطبيق عبر UI Automation في Windows ما لا يزيد عن 49 حرفًا قبل المؤشر، ليكمل الكلمة التي يقف فيها المؤشر. يحتفظ في الذاكرة بهذه الكلمة فقط ويتجاهل الباقي فورًا. لا يُقرأ أي شيء من حقول كلمات المرور ولا من التطبيقات المستثناة.
 
 ### ما الذي لا يفعله
 - لا يحفظ ما تكتبه، ولا الجمل، ولا ترتيب الكلمات، ولا يكتبه في أي سجل.
@@ -24,7 +24,7 @@
 
 ### What the app reads
 - **Keystrokes**, only while you type with an Arabic keyboard layout, to know the word you are typing and suggest completions. Typing with any other layout (e.g. English) is not tracked.
-- **Only the current word before the caret:** when Backspace moves the caret back into existing text, the app uses Windows UI Automation to read at most 49 characters before the caret, keeps only the word the caret is in (in memory) and discards the rest immediately. Nothing is ever read from password fields.
+- **Only the current word before the caret:** when the caret moves into existing text (Backspace, a mouse click, arrow keys, or switching to another field or window), the app uses Windows UI Automation to read at most 49 characters before the caret so it can continue the word the caret is in. It keeps only that word (in memory) and discards the rest immediately. Nothing is ever read from password fields or excluded apps.
 
 ### What it does not do
 - It does not save what you type, sentences or word order, and never writes it to any log.

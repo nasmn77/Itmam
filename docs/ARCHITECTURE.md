@@ -59,15 +59,16 @@ while the layout is not Arabic (primary language `0x01` of the HKL low word), so
 never buffered. `WordBuffer` applies the rules in `PROMPT.md` §4 and emits *Committed* only on a
 word boundary.
 
-### Caret context (Backspace into existing text)
+### Caret context (caret moved into existing text)
 
-Backspace on an empty word moves the caret into text the app did not see typed (the previous
-word, or text that existed before). `WordBuffer` then becomes *detached*: letters are ignored, so
-no wrong suggestions are made from a half-seen word.
+Whenever the caret may now be inside text the app did not see typed — Backspace on an empty
+word, a mouse click, arrows/Home/End/Delete, a focus, foreground or layout change, paste or a
+shortcut — `WordBuffer` becomes *detached*: letters are ignored, so no wrong suggestions are made
+from a half-seen word.
 
-To resume quickly, `InputPipeline` waits 40 ms after the last such Backspace (so the app has
-applied it; holding Backspace probes only once) and asks `UiaCaretContextSource` for the text
-before the caret:
+To resume quickly, `InputPipeline` waits 40 ms after the last such event (so the app has applied
+it; holding a key probes only once) and asks `UiaCaretContextSource` for the text before the
+caret:
 
 1. `IUIAutomation.GetFocusedElement()`; if `CurrentIsPassword` → nothing is read.
 2. Caret range from `TextPattern2.GetCaretRange`, or the (empty) selection from `TextPattern`.
@@ -81,10 +82,11 @@ process that owns the focused UI Automation element right before reading.
 `WordBuffer.ResumeFromContext` keeps only the trailing Arabic word of that text (the word the
 caret is in) as the current word, or resumes with an empty word if a boundary or the start of the
 field precedes the caret. The rest of the text is discarded immediately; nothing is stored or
-logged. If keys arrive while reading, the result is discarded. If the app has no UI Automation
-text support, the call times out (250 ms, on a dedicated MTA thread) or fails, tracking stays
-paused and resumes at the next boundary, click, navigation key, shortcut (e.g. Ctrl+A) or focus
-change.
+logged. If keys arrive while reading, the result is discarded and the text is read again once
+they settle (it then includes them). If the app has no UI Automation text support (the call fails
+or times out after 250 ms, on a dedicated thread, and once more after 100 ms): after a caret move,
+tracking resumes with an empty word if no letter was typed meanwhile; after Backspace, or if
+letters were typed, it waits for the next boundary.
 
 ### Robustness
 
@@ -107,11 +109,44 @@ change.
   `GCLatencyMode.SustainedLowLatency` and the worker avoids per-event allocations; the debug
   window reports callbacks slower than 500 µs and how many of them overlapped a GC.
 
+## Suggestion bar (Phase 3: display only)
+
+```
+ InputPipeline.Updated (pipeline thread)
+        │  Arabic layout, not detached, ≥ MinChars letters, foreground app not excluded
+        ▼
+ SuggestionEngine.Suggest(word)            (Core; < 0.1 ms with the prefix cache)
+        │
+        ▼
+ SuggestionController (one request at a time; stale keystrokes are dropped)
+        │  CaretLocator.LocateAsync:
+        │    1. GetGUIThreadInfo → rcCaret + ClientToScreen          (caller thread)
+        │    2. UI Automation caret range → GetBoundingRectangles    (UiaWorker, 150 ms timeout)
+        │       empty range → rectangle of the previous character (caret on its left in RTL)
+        │    3. MSAA AccessibleObjectFromWindow(OBJID_CARET).accLocation
+        │    4. mouse pointer (bar shown below it)
+        ▼
+ SuggestionPopup (UI thread)
+    PopupPlacement: above the caret, right edge at the caret (RTL), below if no room,
+    clamped to the caret monitor's work area; sizes scaled by that monitor's DPI.
+```
+
+The popup never takes focus: `ShowWithoutActivation`, `WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW |
+WS_EX_TOPMOST`, `WM_MOUSEACTIVATE → MA_NOACTIVATE`, shown with `SetWindowPos(SWP_NOACTIVATE)`.
+Its look (35 px high, 14 px Segoe UI, 15 px padding per word, no dividers, `#2C2C2C` / white in
+dark mode) was measured from a screenshot of the native Windows 11 bar; text uses grayscale
+antialiasing like the native bar. The bar only displays suggestions; nothing is inserted yet.
+
+UI Automation cost in Chromium (measured on an isolated Chrome instance with a small page):
+the first request finds no TextPattern while Chrome enables its accessibility tree, the second
+(100 ms later) succeeds; private memory 370 → 354 MB and idle CPU 1.9 % → 0.1 % (no measurable
+increase; numbers dominated by Chrome finishing start-up). Large pages build larger trees.
+
 ## Privacy guarantees in the code
 
 - Typed characters exist only in memory: in the channel, in `WordBuffer`, and on screen.
-- The only text read from other apps is ≤ 49 characters before the caret, after Backspace on an
-  empty word, never from password fields; only the current word is kept from it.
+- The only text read from other apps is ≤ 49 characters before the caret, after the caret moved
+  into existing text, never from password fields or excluded apps; only the current word is kept.
 - No code path writes characters to a log, file, or the network. The debug window's event list
   shows event *kinds* and latencies only (letters are shown as `Character (letter)`).
 - Hook diagnostics (`HookDiagnostics`) are counters and timings only.

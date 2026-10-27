@@ -4,8 +4,14 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
 `PROMPT.md` is the full brief and the source of truth; this file is the short rule set. Read both at the start of a session.
 
 ## Current status
-- **Current phase:** 2 — Win32 hooks (approved, merged into `main`).
-- **Next phase:** 3 — caret locator + suggestion popup (ask the user for a screenshot of the native Win11 suggestion bar first).
+- **Current phase:** 4 — hotkey interception + text insertion (branch `phase-4-insert`). Phase 3 approved and merged into `main`.
+- **Next phase:** 4 — hotkey interception + text insertion.
+- Phase 3 decisions: bar look measured from the user's screenshot (no dividers, 35 px, 14 px Segoe UI, `#2C2C2C`/white dark,
+  grayscale text AA, hints off, subtle first-item highlight with a setting to turn it off). Placement mirrors the native bar:
+  right edge at the caret for Arabic. Debug builds: `Itmam.exe --demo-popup <x> <y> [light|dark] [nohighlight] [hints]`.
+- Caret moves (click, arrows, focus/foreground/layout change, paste, shortcut, Ctrl+Backspace) also detach and read the
+  context (user decision after "مد" + click + "ر" started a new word). Without UIA: empty word assumed after a caret move only
+  if no letter was typed meanwhile. Esc resets without detaching.
 - Backspace on an empty word (user decision): buffer becomes *detached*; `InputPipeline` reads ≤ 49 chars before the caret via
   UI Automation (`UiaCaretContextSource`, never in password fields, nothing stored) and resumes with the word the caret is in,
   or empty. Without UIA: resume at boundary, click, navigation, shortcut (Ctrl+A) or focus change. Documented in PRIVACY.md.

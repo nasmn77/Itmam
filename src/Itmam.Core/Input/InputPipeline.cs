@@ -38,6 +38,12 @@ public enum ProbeOutcome
 
     /// <summary>The foreground app is excluded (or reading is not allowed): nothing was read.</summary>
     NotAllowed,
+
+    /// <summary>
+    /// After a caret move the context stayed unavailable and no letter was typed meanwhile:
+    /// tracking resumed as if the caret were at the start of a word.
+    /// </summary>
+    AssumedEmpty,
 }
 
 /// <summary>State after an event or a context probe, raised on the pipeline's thread.</summary>
@@ -73,10 +79,12 @@ public sealed record InputPipelineOptions
 }
 
 /// <summary>
-/// Single worker that applies input events to an <see cref="InputTracker"/>. When a Backspace on
-/// an empty word leaves the buffer detached (the caret moved into text we did not see typed), it
-/// reads the characters before the caret once the app has processed the key, and resumes tracking
-/// from them. Without that context, tracking resumes at the next boundary or context change.
+/// Single worker that applies input events to an <see cref="InputTracker"/>. Whenever the text
+/// before the caret becomes unknown (Backspace into existing text, a click, arrows, a focus,
+/// foreground or layout change, paste, a shortcut), the buffer is detached; once the app has
+/// processed the event, the characters before the caret are read and tracking resumes with the
+/// word the caret is in. Without that context: after a caret move, tracking resumes with an empty
+/// word if nothing was typed meanwhile; otherwise it waits for the next boundary.
 /// </summary>
 public sealed class InputPipeline(ChannelReader<InputRecord> input, ICaretContextSource context, InputPipelineOptions? options = null)
 {
@@ -91,6 +99,7 @@ public sealed class InputPipeline(ChannelReader<InputRecord> input, ICaretContex
     {
         long? probeDue = null;
         var retried = false;
+        var detachedByBackspace = false;
         Task<bool>? waitForInput = null;
         while (!cancellation.IsCancellationRequested)
         {
@@ -107,8 +116,13 @@ public sealed class InputPipeline(ChannelReader<InputRecord> input, ICaretContex
                     if (await Task.WhenAny(waitForInput, delay).ConfigureAwait(false) == delay)
                     {
                         probeDue = null;
-                        var outcome = await ProbeAsync(cancellation).ConfigureAwait(false);
-                        if (outcome == ProbeOutcome.Unavailable && !retried)
+                        var outcome = await ProbeAsync(isRetry: retried, afterCaretMove: !detachedByBackspace, cancellation).ConfigureAwait(false);
+                        if (outcome == ProbeOutcome.Discarded)
+                        {
+                            // Keys arrived: read again once they settle (the text will include them).
+                            probeDue = DateTime.UtcNow.Ticks + _options.ProbeDelay.Ticks;
+                        }
+                        else if (outcome == ProbeOutcome.Unavailable && !retried)
                         {
                             retried = true;
                             probeDue = DateTime.UtcNow.Ticks + _options.RetryUnavailableAfter.Ticks;
@@ -146,12 +160,14 @@ public sealed class InputPipeline(ChannelReader<InputRecord> input, ICaretContex
                 var result = Tracker.Process(record.Input, record.KeyboardLayout);
                 Raise(record, result, probe: null);
 
-                // Every Backspace while detached restarts the delay (and the retry allowance),
-                // so holding Backspace probes once.
-                if (Tracker.Buffer.IsDetached && Tracker.IsArabicLayout && record.Input.Kind == InputEventKind.Backspace)
+                // Every non-character event that leaves the context unknown (Backspace into a word,
+                // click, arrows, focus/foreground/layout change, paste, shortcut) restarts the delay
+                // and the retry allowance, so holding a key probes once.
+                if (Tracker.Buffer.IsDetached && Tracker.IsArabicLayout && record.Input.Kind != InputEventKind.Character)
                 {
                     probeDue = DateTime.UtcNow.Ticks + _options.ProbeDelay.Ticks;
                     retried = false;
+                    detachedByBackspace = record.Input.Kind == InputEventKind.Backspace;
                 }
                 else if (!Tracker.Buffer.IsDetached)
                 {
@@ -161,11 +177,23 @@ public sealed class InputPipeline(ChannelReader<InputRecord> input, ICaretContex
         }
     }
 
-    private async Task<ProbeOutcome?> ProbeAsync(CancellationToken cancellation)
+    /// <param name="isRetry">This is the last attempt (after an Unavailable one).</param>
+    /// <param name="afterCaretMove">
+    /// Detached by a click, arrow, focus change… rather than Backspace: if the context stays
+    /// unavailable, assume an empty word (as if the caret were at a word start), unless letters were
+    /// typed meanwhile. After Backspace the caret is known to be inside a word, so tracking waits.
+    /// </param>
+    /// <param name="cancellation">Stops the read.</param>
+    private async Task<ProbeOutcome?> ProbeAsync(bool isRetry, bool afterCaretMove, CancellationToken cancellation)
     {
-        if (!Tracker.Buffer.IsDetached || HasPendingInput())
+        if (!Tracker.Buffer.IsDetached)
         {
             return null;
+        }
+
+        if (HasPendingInput())
+        {
+            return ProbeOutcome.Discarded;
         }
 
         if (!_options.CanReadContext())
@@ -185,6 +213,14 @@ public sealed class InputPipeline(ChannelReader<InputRecord> input, ICaretContex
         else if (text is null)
         {
             outcome = ProbeOutcome.Unavailable;
+            if (isRetry && afterCaretMove)
+            {
+                result = Tracker.Buffer.ResumeEmpty();
+                if (result.Outcome == BufferOutcome.Reset)
+                {
+                    outcome = ProbeOutcome.AssumedEmpty;
+                }
+            }
         }
         else
         {

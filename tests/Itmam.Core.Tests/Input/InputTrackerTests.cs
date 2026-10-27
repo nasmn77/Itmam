@@ -64,15 +64,18 @@ public class InputTrackerTests
     {
         Type("كتا", ArabicSaudi);
 
-        _tracker.Process(InputEvent.Char('ب'), ArabicEgypt).Outcome.ShouldBe(BufferOutcome.Updated);
-        _tracker.Buffer.Text.ShouldBe("ب");
+        _tracker.Process(InputEvent.Char('ب'), ArabicEgypt).ShouldBe(new BufferResult(BufferOutcome.Reset));
+        _tracker.Buffer.IsEmpty.ShouldBeTrue();
+        _tracker.Buffer.IsDetached.ShouldBeTrue(); // the caret may be mid-word: the context is read next
     }
 
     [Fact]
-    public void Returning_to_arabic_starts_a_fresh_word()
+    public void Returning_to_arabic_waits_for_the_context_then_tracks()
     {
         Type("كتا", ArabicSaudi);
         Type("ab", EnglishUs);
+        _tracker.Process(InputEvent.Of(InputEventKind.MouseClick), ArabicSaudi);
+        _tracker.Buffer.ResumeEmpty();
 
         Type("قلم ", ArabicSaudi).ShouldBe(new BufferResult(BufferOutcome.Committed, "قلم"));
     }
