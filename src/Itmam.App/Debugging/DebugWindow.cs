@@ -15,7 +15,7 @@ internal sealed class DebugWindow : Form
     private const int MaxLogLines = 200;
 
     private readonly InputHookService _hooks;
-    private readonly InputTracker _tracker = new();
+    private readonly InputPipeline _pipeline;
     private readonly CancellationTokenSource _stop = new();
     private readonly Label _word = new() { Dock = DockStyle.Top, Height = 70, Font = new Font("Segoe UI", 28f), TextAlign = ContentAlignment.MiddleRight, RightToLeft = RightToLeft.Yes };
     private readonly Label _state = new() { Dock = DockStyle.Top, Height = 48, Font = new Font("Segoe UI", 10f) };
@@ -24,9 +24,11 @@ internal sealed class DebugWindow : Form
     private readonly System.Windows.Forms.Timer _healthTimer = new() { Interval = 500 };
     private int _commits;
 
-    public DebugWindow(InputHookService hooks)
+    public DebugWindow(InputHookService hooks, ICaretContextSource caretContext)
     {
         _hooks = hooks;
+        _pipeline = new InputPipeline(hooks.Events, caretContext);
+        _pipeline.Updated += OnPipelineUpdated;
         Text = "Itmam — debug (Phase 2)";
         ShowInTaskbar = false;
         TopMost = true;
@@ -47,7 +49,7 @@ internal sealed class DebugWindow : Form
     {
         base.OnLoad(e);
         _healthTimer.Start();
-        _ = Task.Run(() => ReadEventsAsync(_stop.Token));
+        _ = Task.Run(() => _pipeline.RunAsync(_stop.Token));
     }
 
     protected override void OnFormClosed(FormClosedEventArgs e)
@@ -57,41 +59,36 @@ internal sealed class DebugWindow : Form
         base.OnFormClosed(e);
     }
 
-    // Worker thread: owns the tracker; only snapshots cross to the UI thread.
-    private async Task ReadEventsAsync(CancellationToken cancellation)
+    // Pipeline thread: only the snapshot crosses to the UI thread.
+    private void OnPipelineUpdated(PipelineUpdate update)
     {
-        try
+        var what = update.Input is { } record
+            ? $"{Describe(record.Input),-22} → {update.Result.Outcome,-9} {Stopwatch.GetElapsedTime(record.Timestamp).TotalMilliseconds,6:F2} ms"
+            : $"{"Context probe",-22} → {update.Probe} ({update.Letters} letters)";
+        var line = $"{DateTime.Now:HH:mm:ss.fff}  {what}";
+        if (!IsDisposed)
         {
-            await foreach (var hookEvent in _hooks.Events.ReadAllAsync(cancellation))
-            {
-                var result = _tracker.Process(hookEvent.Input, hookEvent.KeyboardLayout);
-                var latency = Stopwatch.GetElapsedTime(hookEvent.Timestamp);
-                var line = $"{DateTime.Now:HH:mm:ss.fff}  {Describe(hookEvent.Input),-22} → {result.Outcome,-9} {latency.TotalMilliseconds,6:F2} ms";
-                var snapshot = (Text: _tracker.Buffer.Text, Letters: _tracker.Buffer.LetterCount, Arabic: _tracker.IsArabicLayout, Layout: _tracker.Layout, Result: result);
-                BeginInvoke(() => Render(snapshot, line));
-            }
-        }
-        catch (OperationCanceledException)
-        {
+            BeginInvoke(() => Render(update, line));
         }
     }
 
-    private void Render((string Text, int Letters, bool Arabic, nint Layout, BufferResult Result) snapshot, string line)
+    private void Render(PipelineUpdate update, string line)
     {
         if (IsDisposed)
         {
             return;
         }
 
-        _word.Text = snapshot.Text.Length == 0 ? "—" : snapshot.Text;
-        if (snapshot.Result.Outcome == BufferOutcome.Committed)
+        _word.Text = update.Word.Length == 0 ? "—" : update.Word;
+        if (update.Result.Outcome == BufferOutcome.Committed)
         {
             _commits++;
         }
 
         _state.Text =
-            $"Layout: {(snapshot.Arabic ? "Arabic" : "other (silent)")}  0x{snapshot.Layout:X8}\n" +
-            $"Letters: {snapshot.Letters}   Last: {snapshot.Result.Outcome}   Commits: {_commits}";
+            $"Layout: {(update.IsArabicLayout ? "Arabic" : "other (silent)")}  0x{update.Layout:X8}\n" +
+            $"Letters: {update.Letters}   Last: {update.Result.Outcome}   Commits: {_commits}" +
+            (update.IsDetached ? "   [paused: caret inside an unseen word]" : string.Empty);
 
         _log.Items.Insert(0, line);
         if (_log.Items.Count > MaxLogLines)
@@ -101,7 +98,7 @@ internal sealed class DebugWindow : Form
     }
 
     private void RenderState(BufferResult result) =>
-        Render((string.Empty, 0, false, 0, result), $"{DateTime.Now:HH:mm:ss.fff}  started");
+        Render(new PipelineUpdate(null, result, null, string.Empty, 0, false, 0, false), $"{DateTime.Now:HH:mm:ss.fff}  started");
 
     private void ShowHealth()
     {

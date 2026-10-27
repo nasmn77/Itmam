@@ -41,3 +41,14 @@ EVENT_SYSTEM_FOREGROUND
 EVENT_OBJECT_FOCUS
 WINEVENT_OUTOFCONTEXT
 WINEVENT_SKIPOWNPROCESS
+
+// UI Automation: text before the caret (context probe; later the caret locator and password check).
+CUIAutomation8
+IUIAutomation
+IUIAutomationElement
+IUIAutomationTextPattern
+IUIAutomationTextPattern2
+IUIAutomationTextRange
+IUIAutomationTextRangeArray
+UIA_PATTERN_ID
+CoCreateInstance

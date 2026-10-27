@@ -10,11 +10,6 @@ using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace Itmam.Win32;
 
-/// <summary>An input event from the hooks, with the foreground keyboard layout at that moment.</summary>
-/// <param name="Input">What the event means for the word being typed. Never logged.</param>
-/// <param name="KeyboardLayout">HKL of the window receiving keyboard input.</param>
-/// <param name="Timestamp"><see cref="Stopwatch.GetTimestamp"/> when the hook saw the event.</param>
-public readonly record struct HookEvent(InputEvent Input, nint KeyboardLayout, long Timestamp);
 
 /// <summary>
 /// Global keyboard and mouse low-level hooks plus foreground/focus WinEvent hooks, running on a
@@ -35,8 +30,8 @@ public sealed unsafe class InputHookService : IDisposable
     private const uint MissedInputThresholdMs = 1500;
     private const long ReinstallCooldownMs = 10_000;
 
-    private readonly Channel<HookEvent> _channel =
-        Channel.CreateUnbounded<HookEvent>(new UnboundedChannelOptions { SingleReader = true, SingleWriter = true });
+    private readonly Channel<InputRecord> _channel =
+        Channel.CreateUnbounded<InputRecord>(new UnboundedChannelOptions { SingleReader = true, SingleWriter = true });
 
     // Delegates must stay referenced for as long as the hooks are installed.
     private readonly HOOKPROC _keyboardProc;
@@ -66,7 +61,7 @@ public sealed unsafe class InputHookService : IDisposable
         _winEventProc = WinEventProc;
     }
 
-    public ChannelReader<HookEvent> Events => _channel.Reader;
+    public ChannelReader<InputRecord> Events => _channel.Reader;
 
     public HookDiagnostics Diagnostics { get; } = new();
 
@@ -164,9 +159,9 @@ public sealed unsafe class InputHookService : IDisposable
         OnKeyDown(&backspace, publish: false);
         OnKeyDown(&shift, publish: false);
 
-        // Channel write/read code for HookEvent, on a throwaway channel so no fake event is published.
-        var probe = Channel.CreateUnbounded<HookEvent>(new UnboundedChannelOptions { SingleReader = true, SingleWriter = true });
-        probe.Writer.TryWrite(new HookEvent(InputEvent.Char('ا'), KeyboardLayouts.ForegroundLayout(), Stopwatch.GetTimestamp()));
+        // Channel write/read code for InputRecord, on a throwaway channel so no fake event is published.
+        var probe = Channel.CreateUnbounded<InputRecord>(new UnboundedChannelOptions { SingleReader = true, SingleWriter = true });
+        probe.Writer.TryWrite(new InputRecord(InputEvent.Char('ا'), KeyboardLayouts.ForegroundLayout(), Stopwatch.GetTimestamp()));
         probe.Reader.TryRead(out _);
 
         Diagnostics.RecordCallback(Stopwatch.GetElapsedTime(Stopwatch.GetTimestamp()));
@@ -427,5 +422,5 @@ public sealed unsafe class InputHookService : IDisposable
     }
 
     private void Publish(InputEvent input, nint layout) =>
-        _channel.Writer.TryWrite(new HookEvent(input, layout, Stopwatch.GetTimestamp()));
+        _channel.Writer.TryWrite(new InputRecord(input, layout, Stopwatch.GetTimestamp()));
 }

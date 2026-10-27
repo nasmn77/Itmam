@@ -12,7 +12,8 @@ internal static class Program
 
         // Phase 2: hooks + temporary debug window. The tray ApplicationContext replaces this in Phase 6.
         using var hooks = new InputHookService();
+        using var caretContext = new UiaCaretContextSource();
         hooks.Start();
-        Application.Run(new DebugWindow(hooks));
+        Application.Run(new DebugWindow(hooks, caretContext));
     }
 }
