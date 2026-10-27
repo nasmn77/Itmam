@@ -25,6 +25,12 @@ public sealed record SuggestionOptions
     /// </summary>
     public double LiteralMatchBonus { get; init; } = Math.Log(10);
 
+    /// <summary>
+    /// Score added to spellings whose normalized form equals what was typed: when the typed letters
+    /// already form a word (ان), its correctly spelled forms (أن, إن) are the likeliest intent.
+    /// </summary>
+    public double CompleteWordBonus { get; init; } = Math.Log(10);
+
     /// <summary>Try stripping attached prefixes (و ف ب ك ل ال …) when direct matches are few.</summary>
     public bool CliticAware { get; init; } = true;
 

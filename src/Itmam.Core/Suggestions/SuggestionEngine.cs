@@ -110,6 +110,7 @@ public sealed class SuggestionEngine(
         var pool = new CandidatePool(Options.CandidatePoolSize);
         var literalBonus = (float)KindBonus(literalKind);
         var otherBonus = (float)KindBonus(otherKind);
+        var completeWordBonus = (float)Options.CompleteWordBonus;
         var (start, end) = dictionary.FindPrefixRange(keyPrefix);
         for (var i = start; i < end; i++)
         {
@@ -117,6 +118,10 @@ public sealed class SuggestionEngine(
             var isLiteral = display.StartsWith(literalPrefix);
             var kind = isLiteral ? literalKind : otherKind;
             var score = dictionary.GetBaseScore(i) + (isLiteral ? literalBonus : otherBonus);
+            if (completeWordBonus > 0 && dictionary.GetKey(i).Length == keyPrefix.Length)
+            {
+                score += completeWordBonus;
+            }
             if (!pool.WouldAccept(Tier(kind), score)
                 || display.SequenceEqual(literalPrefix)
                 || (skipStemsWithAl && display.StartsWith("ال"))
@@ -157,7 +162,9 @@ public sealed class SuggestionEngine(
             context.Add(
                 attachedPrefix + user.Word,
                 kind,
-                Ranking.Score(baseScore, user.Count, user.LastUsed, context.Now, Options) + KindBonus(kind));
+                Ranking.Score(baseScore, user.Count, user.LastUsed, context.Now, Options)
+                    + KindBonus(kind)
+                    + (user.Key.Length == keyPrefix.Length ? Options.CompleteWordBonus : 0));
         }
     }
 

@@ -64,6 +64,16 @@ public class SuggestionEngineTests
     }
 
     [Fact]
+    public void Spellings_of_the_typed_word_get_the_complete_word_bonus()
+    {
+        var dictionary = TestDictionaries.Of(("أن", 100), ("إن", 30), ("أنا", 200), ("أنت", 150));
+
+        Words(Engine(dictionary).Suggest("ان")).ShouldBe(["أن", "إن", "أنا"]);
+        Words(Engine(dictionary, new SuggestionOptions { CompleteWordBonus = 0 }).Suggest("ان"))
+            .ShouldBe(["أنا", "أنت", "أن"]);
+    }
+
+    [Fact]
     public void Normalized_match_restores_hamza_and_ta_marbuta_spelling()
     {
         var engine = Engine(TestDictionaries.Of(("أحمد", 100), ("مدرسة", 50)));
