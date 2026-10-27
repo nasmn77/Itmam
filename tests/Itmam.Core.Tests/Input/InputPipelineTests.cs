@@ -127,19 +127,66 @@ public sealed class InputPipelineTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task Without_ui_automation_tracking_resumes_on_a_click()
+    public async Task Without_ui_automation_a_click_resumes_with_an_empty_word()
     {
         Type("قديم ");
-        Backspace();
         _context.Next = null; // unsupported app
+        Backspace();
 
-        (await WaitForProbeAsync()).Probe.ShouldBe(ProbeOutcome.Unavailable);
+        await WaitForAsync(_ => _updates.Count(u => u.Probe == ProbeOutcome.Unavailable) == 2);
         Type("تكملة");                            // continues an unseen word: not tracked
         Send(InputEvent.Of(InputEventKind.MouseClick));
+
+        (await WaitForAsync(u => u.Probe == ProbeOutcome.AssumedEmpty)).IsDetached.ShouldBeFalse();
         Type("كتاب ");
         await DrainAsync();
 
         Commits().ShouldBe(["قديم", "كتاب"]);
+    }
+
+    [Fact]
+    public async Task Clicking_after_an_existing_word_continues_it()
+    {
+        _context.Next = "نص سابق مد";             // the user clicked right after "مد"
+        Send(InputEvent.Of(InputEventKind.MouseClick));
+
+        var probe = await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedWithWord);
+        probe.Word.ShouldBe("مد");
+
+        Type("رسة ");
+        await DrainAsync();
+        Commits().ShouldBe(["مدرسة"]);
+    }
+
+    [Theory]
+    [InlineData(InputEventKind.Navigation)]
+    [InlineData(InputEventKind.FocusChanged)]
+    [InlineData(InputEventKind.ForegroundChanged)]
+    public async Task Any_caret_move_reads_the_context(InputEventKind kind)
+    {
+        _context.Next = "ذهبت إلى المدر";
+        Send(InputEvent.Of(kind));
+
+        (await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedWithWord)).Word.ShouldBe("المدر");
+    }
+
+    [Fact]
+    public async Task Without_ui_automation_letters_typed_before_resuming_are_never_tracked()
+    {
+        _context.Next = null;
+        _context.Delay = TimeSpan.FromMilliseconds(30);
+        Send(InputEvent.Of(InputEventKind.MouseClick));
+        await WaitForAsync(_ => _context.Calls == 1);
+        Type("مد");                               // typed while the context is still unknown
+
+        await WaitForAsync(_ => _updates.Count(u => u.Probe is ProbeOutcome.Unavailable) >= 2);
+        await DrainAsync();
+
+        _updates.ShouldNotContain(u => u.Probe == ProbeOutcome.AssumedEmpty);
+        Type(" ");
+        Type("قلم ");
+        await DrainAsync();
+        Commits().ShouldBe(["قلم"]);
     }
 
     [Fact]

@@ -138,15 +138,52 @@ public class WordBufferTests
     [InlineData(InputEventKind.MouseClick)]
     [InlineData(InputEventKind.Navigation)]
     [InlineData(InputEventKind.Shortcut)]      // e.g. Ctrl+A
+    [InlineData(InputEventKind.Paste)]
+    [InlineData(InputEventKind.CtrlBackspace)]
     [InlineData(InputEventKind.FocusChanged)]
     [InlineData(InputEventKind.ForegroundChanged)]
-    public void Context_change_after_detaching_starts_tracking_again(InputEventKind kind)
+    [InlineData(InputEventKind.LayoutChanged)]
+    public void Caret_moves_leave_the_context_unknown_until_it_is_resolved(InputEventKind kind)
     {
-        Type("كتاب ");
-        Send(InputEventKind.Backspace);
-        Send(kind);
+        Type("كتاب");
+        Send(kind).ShouldBe(new BufferResult(BufferOutcome.Reset));
+        _buffer.IsDetached.ShouldBeTrue();
 
+        _buffer.ResumeEmpty().ShouldBe(new BufferResult(BufferOutcome.Reset));
         Type("قلم ").ShouldBe(new BufferResult(BufferOutcome.Committed, "قلم"));
+    }
+
+    [Fact]
+    public void Click_after_an_existing_word_continues_it_once_the_context_is_read()
+    {
+        Send(InputEventKind.MouseClick);              // caret placed right after "مد"
+
+        _buffer.ResumeFromContext("مد", maxRead: 49).Outcome.ShouldBe(BufferOutcome.Updated);
+        Type("ر");
+
+        _buffer.Text.ShouldBe("مدر");
+    }
+
+    [Fact]
+    public void Empty_context_is_not_assumed_when_letters_were_typed_while_unknown()
+    {
+        Send(InputEventKind.MouseClick);
+        Type("مد");                                    // typed before the context was known
+
+        _buffer.ResumeEmpty().ShouldBe(BufferResult.None);
+        _buffer.IsDetached.ShouldBeTrue();
+        Type(" ").ShouldBe(BufferResult.None);        // the half-seen word is never committed
+        Type("قلم ").ShouldBe(new BufferResult(BufferOutcome.Committed, "قلم"));
+    }
+
+    [Fact]
+    public void Escape_resets_without_making_the_context_unknown()
+    {
+        Type("كتا");
+        Send(InputEventKind.Escape);
+
+        _buffer.IsDetached.ShouldBeFalse();
+        Type("ب").Outcome.ShouldBe(BufferOutcome.Updated);
     }
 
     [Theory]
@@ -277,6 +314,7 @@ public class WordBufferTests
         }
 
         Run(InputEvent.Of(InputEventKind.FocusChanged));
+        _buffer.ResumeFromContext("", maxRead: 49);   // the newly focused field is empty
         foreach (var c in "البيت؟")
         {
             Run(InputEvent.Char(c));

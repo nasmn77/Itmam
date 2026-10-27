@@ -28,8 +28,11 @@ public readonly record struct BufferResult(BufferOutcome Outcome, string? Commit
 /// </summary>
 /// <remarks>
 /// Rules: Arabic letters append; tashkeel/tatweel append (inside a word) but are ignored for matching;
-/// whitespace, digits and punctuation commit; Ctrl+Backspace, navigation, shortcuts, paste, focus,
-/// foreground, mouse and layout changes reset without committing; other letters (e.g. Latin) reset.
+/// whitespace, digits and punctuation commit; other letters (e.g. Latin) and Esc reset.
+/// Events that may move the caret anywhere — Ctrl+Backspace, navigation, shortcuts, paste, focus,
+/// foreground, mouse and layout changes — discard the word without committing it and leave the
+/// buffer <see cref="IsDetached">detached</see>: the text before the caret is unknown until it is
+/// read (<see cref="ResumeFromContext"/>) or assumed empty (<see cref="ResumeEmpty"/>).
 /// Auto-repeated keys simply arrive as repeated events.
 /// </remarks>
 public sealed class WordBuffer
@@ -39,9 +42,12 @@ public sealed class WordBuffer
 
     private readonly StringBuilder _text = new(MaxLength);
 
-    // True when the caret is inside a word whose start we did not see (Backspace into the previous
-    // word, or a run longer than MaxLength). Letters are ignored until the next boundary or reset.
+    // True when the text before the caret is unknown (caret moved, or Backspace into a word we did
+    // not see typed, or a run longer than MaxLength). Letters are ignored until resumed or a boundary.
     private bool _detached;
+
+    // Letters typed while detached: they belong to a word whose start we did not see.
+    private int _ignoredLetters;
 
     /// <summary>The word as typed, including tashkeel and tatweel.</summary>
     public string Text => _text.ToString();
@@ -53,15 +59,33 @@ public sealed class WordBuffer
 
     public bool IsEmpty => _text.Length == 0;
 
-    /// <summary>The caret is inside a word whose start was not seen; nothing is tracked until a boundary.</summary>
+    /// <summary>The text before the caret is unknown; nothing is tracked until resumed or a boundary.</summary>
     public bool IsDetached => _detached;
 
     public BufferResult Apply(InputEvent input) => input.Kind switch
     {
         InputEventKind.Character => ApplyCharacter(input.Character),
         InputEventKind.Backspace => ApplyBackspace(),
-        _ => Reset(),
+        InputEventKind.Escape => Reset(),
+        _ => Detach(), // the caret may have moved anywhere
     };
+
+    /// <summary>
+    /// Resumes tracking with an empty word when the text before the caret cannot be read, unless
+    /// letters were typed while detached (then the current word started before we could see it and
+    /// tracking waits for the next boundary).
+    /// </summary>
+    /// <returns><see cref="BufferOutcome.Reset"/> when tracking resumed, otherwise <see cref="BufferResult.None"/>.</returns>
+    public BufferResult ResumeEmpty()
+    {
+        if (!_detached || _ignoredLetters > 0)
+        {
+            return BufferResult.None;
+        }
+
+        _detached = false;
+        return new BufferResult(BufferOutcome.Reset);
+    }
 
     /// <summary>
     /// Resumes tracking after <see cref="IsDetached"/>, using the text immediately before the caret
@@ -108,6 +132,7 @@ public sealed class WordBuffer
         }
 
         _detached = false;
+        _ignoredLetters = 0;
         _text.Clear();
         _text.Append(word);
         LetterCount = 0;
@@ -129,6 +154,7 @@ public sealed class WordBuffer
         _text.Clear();
         LetterCount = 0;
         _detached = false;
+        _ignoredLetters = 0;
         return hadContent ? new BufferResult(BufferOutcome.Reset) : BufferResult.None;
     }
 
@@ -141,6 +167,11 @@ public sealed class WordBuffer
 
         if (_detached)
         {
+            if (ArabicText.IsArabicLetter(c))
+            {
+                _ignoredLetters++;
+            }
+
             return BufferResult.None;
         }
 
