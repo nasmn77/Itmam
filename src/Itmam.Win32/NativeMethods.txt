@@ -57,3 +57,25 @@ IUIAutomationTextRange
 IUIAutomationTextRangeArray
 UIA_PATTERN_ID
 CoCreateInstance
+
+// Caret location (Phase 3).
+ClientToScreen
+GetCursorPos
+AccessibleObjectFromWindow
+IAccessible
+OBJECT_IDENTIFIER
+
+// Monitors and DPI.
+MonitorFromPoint
+GetMonitorInfo
+MONITORINFO
+GetDpiForMonitor
+
+// Suggestion popup window (no activation, rounded corners, shadow).
+SetWindowPos
+ShowWindow
+DwmSetWindowAttribute
+DwmExtendFrameIntoClientArea
+DWMWINDOWATTRIBUTE
+DWM_WINDOW_CORNER_PREFERENCE
+SafeArrayDestroy
