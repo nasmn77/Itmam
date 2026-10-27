@@ -55,17 +55,35 @@ public sealed class UiaCaretContextSource(UiaWorker worker, Func<string?, bool> 
         before.MoveEndpointByRange(TextPatternRangeEndpoint.TextPatternRangeEndpoint_End, caret, TextPatternRangeEndpoint.TextPatternRangeEndpoint_End);
         before.MoveEndpointByUnit(TextPatternRangeEndpoint.TextPatternRangeEndpoint_Start, TextUnit.TextUnit_Character, -maxChars);
 
-        var text = before.GetText(maxChars);
+        return CaretContext.Of(ReadText(before, maxChars), CharAfter(caret));
+    }
+
+    // The single character after the caret ('\0' at the end of the text): decides whether accepting
+    // a suggestion must add a space. Only this one character is read after the caret.
+    private static char? CharAfter(IUIAutomationTextRange caret)
+    {
+        var after = caret.Clone();
+        after.MoveEndpointByRange(TextPatternRangeEndpoint.TextPatternRangeEndpoint_Start, caret, TextPatternRangeEndpoint.TextPatternRangeEndpoint_End);
+        after.MoveEndpointByRange(TextPatternRangeEndpoint.TextPatternRangeEndpoint_End, caret, TextPatternRangeEndpoint.TextPatternRangeEndpoint_End);
+        if (after.MoveEndpointByUnit(TextPatternRangeEndpoint.TextPatternRangeEndpoint_End, TextUnit.TextUnit_Character, 1) == 0)
+        {
+            return '\0';
+        }
+
+        var text = ReadText(after, 1);
+        return text.Length > 0 ? text[0] : '\0';
+    }
+
+    private static unsafe string ReadText(IUIAutomationTextRange range, int maxChars)
+    {
+        var text = range.GetText(maxChars);
         try
         {
-            return CaretContext.Of(text.ToString() ?? string.Empty);
+            return text.ToString() ?? string.Empty;
         }
         finally
         {
-            unsafe
-            {
-                Marshal.FreeBSTR((nint)text.Value);
-            }
+            Marshal.FreeBSTR((nint)text.Value);
         }
     }
 }

@@ -322,6 +322,41 @@ public sealed class InputPipelineTests : IAsyncDisposable
         _updates.Last(u => u.Input?.Input.Kind == InputEventKind.Character).SuggestionsSuppressed.ShouldBeFalse();
     }
 
+    [Theory]
+    [InlineData(' ', 1, "سة ")]   // space after the caret: replaced, never doubled
+    [InlineData('،', 0, "سة")]    // punctuation: no space before it
+    [InlineData('\0', 0, "سة ")]  // end of the text: space added
+    public async Task Accepting_mid_line_respects_the_character_after_the_caret(char after, int deleteForward, string typed)
+    {
+        _context.Next = "ذهبت إلى ";
+        _context.CharAfter = after;
+        Send(InputEvent.Of(InputEventKind.MouseClick));     // clicked in the middle of a line
+        await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedEmpty);
+
+        Type("مدر");
+        Send(InputEvent.Accept(0, "مدرسة"));
+        await DrainAsync();
+
+        _injector.Edits.ShouldBe([new TextEdit(0, typed, deleteForward)]);
+        Commits().ShouldBe(["مدرسة"]);
+    }
+
+    [Fact]
+    public async Task What_follows_the_caret_stays_known_across_words_until_the_caret_moves()
+    {
+        _context.Next = "";
+        _context.CharAfter = ' ';
+        Send(InputEvent.Of(InputEventKind.MouseClick));
+        await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedEmpty);
+
+        Type("ذهبت مدر");                                   // typing inserts before the same space
+        Send(InputEvent.Accept(0, "مدرسة"));
+        Send(InputEvent.Of(InputEventKind.Escape));
+        await DrainAsync();
+
+        _injector.Edits.Single().DeleteForward.ShouldBe(1);
+    }
+
     [Fact]
     public async Task Keyboard_selection_hides_suggestions_without_reading_the_context()
     {
@@ -408,7 +443,10 @@ public sealed class InputPipelineTests : IAsyncDisposable
             }
 
             var text = Responses is { } responses ? responses(call) : Next;
-            return text is null ? CaretContext.Unavailable : CaretContext.Of(text);
+            return text is null ? CaretContext.Unavailable : CaretContext.Of(text, CharAfter);
         }
+
+        /// <summary>The character after the caret returned with the text.</summary>
+        public char? CharAfter { get; set; }
     }
 }

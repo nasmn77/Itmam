@@ -23,4 +23,26 @@ public class TextEditTests
     [Fact]
     public void Trailing_space_is_appended_when_requested() =>
         TextEdit.Compute("مدر", "مدرسة", appendSpace: true).ShouldBe(new TextEdit(0, "سة "));
+
+    [Fact]
+    public void Existing_space_after_the_caret_is_replaced_not_doubled() =>
+        TextEdit.Compute("مدر", "مدرسة", appendSpace: true, charAfterCaret: ' ').ShouldBe(new TextEdit(0, "سة ", DeleteForward: 1));
+
+    [Theory]
+    [InlineData('،')]
+    [InlineData('.')]
+    [InlineData('؟')]
+    public void No_space_is_added_before_punctuation(char next) =>
+        TextEdit.Compute("مدر", "مدرسة", appendSpace: true, charAfterCaret: next).ShouldBe(new TextEdit(0, "سة"));
+
+    [Theory]
+    [InlineData('\0')]   // end of the text
+    [InlineData('\r')]   // end of the line
+    [InlineData(null)]   // unknown
+    public void Space_is_appended_at_the_end_or_when_unknown(char? next) =>
+        TextEdit.Compute("مدر", "مدرسة", appendSpace: true, charAfterCaret: next).ShouldBe(new TextEdit(0, "سة "));
+
+    [Fact]
+    public void Setting_off_never_adds_or_deletes_spaces() =>
+        TextEdit.Compute("مدر", "مدرسة", appendSpace: false, charAfterCaret: ' ').ShouldBe(new TextEdit(0, "سة"));
 }

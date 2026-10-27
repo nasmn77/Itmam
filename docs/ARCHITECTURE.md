@@ -168,6 +168,11 @@ increase; numbers dominated by Chrome finishing start-up). Large pages build lar
  LLKHF_INJECTED, so our hook ignores them.
 ```
 
+Spaces: the caret-context read also returns the one character after the caret. It stays valid
+while typing (text is inserted before it) and becomes unknown when the caret moves. On accept,
+a following space is replaced (Delete, then word + space) so there are never two spaces, following
+punctuation gets no space before it, and otherwise a space is appended.
+
 The word in `AcceptSuggestion` is captured from the bar snapshot the hook saw, so exactly the
 word on screen is inserted. `PopupState` is published by the UI thread on every show/hide and
 read lock-free by the hook. Clicking a word on the bar posts the same event; clicks inside the

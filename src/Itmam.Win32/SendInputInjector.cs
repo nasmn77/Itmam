@@ -19,7 +19,7 @@ public sealed class SendInputInjector : ITextInjector
 {
     public unsafe bool Send(TextEdit edit)
     {
-        var inputs = new List<INPUT>((edit.Backspaces + edit.Text.Length + 2) * 2);
+        var inputs = new List<INPUT>((edit.Backspaces + edit.DeleteForward + edit.Text.Length + 2) * 2);
 
         foreach (var ctrl in new[] { VIRTUAL_KEY.VK_LCONTROL, VIRTUAL_KEY.VK_RCONTROL })
         {
@@ -33,6 +33,14 @@ public sealed class SendInputInjector : ITextInjector
         {
             inputs.Add(Key(VIRTUAL_KEY.VK_BACK, '\0', 0));
             inputs.Add(Key(VIRTUAL_KEY.VK_BACK, '\0', KEYBD_EVENT_FLAGS.KEYEVENTF_KEYUP));
+        }
+
+        // Delete is logical (the next character in reading order), so it works in RTL text too.
+        // KEYEVENTF_EXTENDEDKEY: the navigation-block Delete, not the numpad one.
+        for (var i = 0; i < edit.DeleteForward; i++)
+        {
+            inputs.Add(Key(VIRTUAL_KEY.VK_DELETE, '\0', KEYBD_EVENT_FLAGS.KEYEVENTF_EXTENDEDKEY));
+            inputs.Add(Key(VIRTUAL_KEY.VK_DELETE, '\0', KEYBD_EVENT_FLAGS.KEYEVENTF_EXTENDEDKEY | KEYBD_EVENT_FLAGS.KEYEVENTF_KEYUP));
         }
 
         foreach (var unit in edit.Text)

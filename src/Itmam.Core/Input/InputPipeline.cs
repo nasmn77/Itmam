@@ -32,13 +32,16 @@ public enum CaretContextStatus
 }
 
 /// <summary>Result of reading the caret context.</summary>
-public readonly record struct CaretContext(CaretContextStatus Status, string Text = "")
+/// <param name="Status">Whether text was read.</param>
+/// <param name="Text">Characters before the caret.</param>
+/// <param name="CharAfter">The character after the caret, '\0' at the end of the text, null if not read.</param>
+public readonly record struct CaretContext(CaretContextStatus Status, string Text = "", char? CharAfter = null)
 {
     public static CaretContext Unavailable => new(CaretContextStatus.Unavailable);
 
     public static CaretContext Selection => new(CaretContextStatus.Selection);
 
-    public static CaretContext Of(string text) => new(CaretContextStatus.Text, text);
+    public static CaretContext Of(string text, char? charAfter = null) => new(CaretContextStatus.Text, text, charAfter);
 }
 
 /// <summary>Types an edit into the focused app (SendInput in production). Returns false if it failed.</summary>
@@ -151,6 +154,10 @@ public sealed class InputPipeline(
 
     private Suppression _suppression;
 
+    // The character after the caret, read with the caret context ('\0' = end of text, null = unknown).
+    // Typing, Backspace and accepting insert/delete before it, so it stays valid until the caret moves.
+    private char? _charAfterCaret;
+
     public InputTracker Tracker { get; } = new();
 
     /// <summary>Raised on the pipeline thread after every event and probe.</summary>
@@ -258,6 +265,11 @@ public sealed class InputPipeline(
                 return BufferResult.None;
         }
 
+        if (record.Input.Kind is not (InputEventKind.Character or InputEventKind.Backspace or InputEventKind.Escape or InputEventKind.NavigationSelect))
+        {
+            _charAfterCaret = null; // the caret may have moved: what follows it is unknown
+        }
+
         var result = Tracker.Process(record.Input, record.KeyboardLayout);
         if (result.Outcome is BufferOutcome.Committed or BufferOutcome.Reset || buffer.IsDetached || buffer.IsEmpty)
         {
@@ -280,14 +292,14 @@ public sealed class InputPipeline(
             return BufferResult.None;
         }
 
-        var edit = TextEdit.Compute(buffer.Text, word, _options.AppendSpaceOnAccept);
+        var edit = TextEdit.Compute(buffer.Text, word, _options.AppendSpaceOnAccept, _charAfterCaret);
         if (!injector.Send(edit))
         {
             return BufferResult.None;
         }
 
-        _suppression = _options.AppendSpaceOnAccept ? Suppression.None : Suppression.UntilNextLetter;
-        return buffer.AcceptWord(word, _options.AppendSpaceOnAccept);
+        _suppression = edit.EndsWithSpace ? Suppression.None : Suppression.UntilNextLetter;
+        return buffer.AcceptWord(word, edit.EndsWithSpace);
     }
 
     /// <param name="isRetry">This is the last attempt (after an Unavailable one).</param>
@@ -342,6 +354,7 @@ public sealed class InputPipeline(
         else
         {
             result = Tracker.Buffer.ResumeFromContext(caret.Text, _options.ProbeChars);
+            _charAfterCaret = caret.CharAfter;
             outcome = result.Outcome switch
             {
                 BufferOutcome.Updated => ProbeOutcome.ResumedWithWord,
