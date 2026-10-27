@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Itmam.Core.Dictionary;
+using Itmam.Core.Dictionary.Building;
 using Itmam.Core.Learning;
 using Itmam.Core.Suggestions;
 
@@ -96,6 +97,34 @@ public class ShippedDictionaryTests(ITestOutputHelper output)
         output.WriteLine($"Compared {prefixes.Length:N0} prefixes; cache: {dictionary.Cache.PrefixCount:N0} prefixes, {dictionary.Cache.CandidateCount:N0} candidates");
         mismatches.ShouldBeEmpty();
     }
+
+    [Fact]
+    public void No_blocked_word_is_in_the_dictionary()
+    {
+        var blocklist = Blocklist.Load(TestDictionaries.ShippedBlocklistPath);
+        var dictionary = Shipped.Value;
+
+        var leaked = Enumerable.Range(0, dictionary.Count)
+            .Select(i => dictionary.GetDisplay(i).ToString())
+            .Where(blocklist.IsBlocked)
+            .ToArray();
+
+        blocklist.Count.ShouldBeGreaterThan(0);
+        leaked.ShouldBeEmpty();
+    }
+
+    [Theory]
+    [InlineData("أمك")]
+    [InlineData("أختك")]
+    [InlineData("فخرا")]
+    [InlineData("كسكس")]
+    [InlineData("آلامك")]
+    [InlineData("قضيب")]
+    [InlineData("اغتصاب")]
+    [InlineData("لواط")]
+    [InlineData("سحاق")]
+    public void Ordinary_words_near_blocked_ones_stay_in_the_dictionary(string word) =>
+        Shipped.Value.IndexOfWord(word).ShouldBeGreaterThanOrEqualTo(0);
 
     [Theory]
     [InlineData("أن")]
