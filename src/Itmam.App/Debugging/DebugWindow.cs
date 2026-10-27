@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Itmam.App.Suggestions;
 using Itmam.Core.Input;
 using Itmam.Core.Text;
 using Itmam.Win32;
@@ -15,24 +16,21 @@ internal sealed class DebugWindow : Form
     private const int MaxLogLines = 200;
 
     private readonly InputHookService _hooks;
-    private readonly InputPipeline _pipeline;
-    private readonly CancellationTokenSource _stop = new();
     private readonly Label _word = new() { Dock = DockStyle.Top, Height = 70, Font = new Font("Segoe UI", 28f), TextAlign = ContentAlignment.MiddleRight, RightToLeft = RightToLeft.Yes };
-    private readonly Label _state = new() { Dock = DockStyle.Top, Height = 48, Font = new Font("Segoe UI", 10f) };
+    private readonly Label _state = new() { Dock = DockStyle.Top, Height = 66, Font = new Font("Segoe UI", 10f) };
     private readonly Label _health = new() { Dock = DockStyle.Top, Height = 66, Font = new Font("Consolas", 9.5f) };
     private readonly ListBox _log = new() { Dock = DockStyle.Fill, Font = new Font("Consolas", 9.5f), IntegralHeight = false };
     private readonly System.Windows.Forms.Timer _healthTimer = new() { Interval = 500 };
     private int _commits;
+    private string _lastShown = "—";
 
-    public DebugWindow(InputHookService hooks, ICaretContextSource caretContext, ExcludedApps excludedApps)
+    public DebugWindow(InputHookService hooks, InputPipeline pipeline, SuggestionController suggestions)
     {
         _hooks = hooks;
-        _pipeline = new InputPipeline(
-            hooks.Events,
-            caretContext,
-            new InputPipelineOptions { CanReadContext = () => !excludedApps.IsExcluded(ProcessNames.ForegroundProcessName()) });
-        _pipeline.Updated += OnPipelineUpdated;
-        Text = "Itmam — debug (Phase 2)";
+        pipeline.Updated += OnPipelineUpdated;
+        suggestions.Shown += shown => _lastShown =
+            $"{shown.Count} suggestions, caret via {shown.Source}, {shown.Latency.TotalMilliseconds:F1} ms after the key";
+        Text = "Itmam — debug (Phase 3)";
         ShowInTaskbar = false;
         TopMost = true;
         StartPosition = FormStartPosition.Manual;
@@ -52,12 +50,10 @@ internal sealed class DebugWindow : Form
     {
         base.OnLoad(e);
         _healthTimer.Start();
-        _ = Task.Run(() => _pipeline.RunAsync(_stop.Token));
     }
 
     protected override void OnFormClosed(FormClosedEventArgs e)
     {
-        _stop.Cancel();
         _healthTimer.Dispose();
         base.OnFormClosed(e);
     }
@@ -91,7 +87,8 @@ internal sealed class DebugWindow : Form
         _state.Text =
             $"Layout: {(update.IsArabicLayout ? "Arabic" : "other (silent)")}  0x{update.Layout:X8}\n" +
             $"Letters: {update.Letters}   Last: {update.Result.Outcome}   Commits: {_commits}" +
-            (update.IsDetached ? "   [paused: caret inside an unseen word]" : string.Empty);
+            (update.IsDetached ? "   [paused: caret inside an unseen word]" : string.Empty) +
+            $"\nBar: {_lastShown}";
 
         _log.Items.Insert(0, line);
         if (_log.Items.Count > MaxLogLines)
