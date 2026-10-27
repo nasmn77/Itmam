@@ -6,6 +6,7 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
 ## Current status
 - **Current phase:** 0 — scaffolding (done, awaiting review).
 - **Next phase:** 1 — Core (normalization, dictionary builder, lookup, ranking, word-buffer state machine, tests).
+- **Open questions:** approval to download FrequencyWords `ar_full.txt` into `data/raw/` (git-ignored); MSIX tooling must be installed in Visual Studio before Phase 7.
 
 ## Build & test
 ```
@@ -35,6 +36,8 @@ Tests run on Microsoft.Testing.Platform (opted in via `global.json` → `test.ru
 ## Decisions made
 - User words: embedded SQLite at `%LOCALAPPDATA%\Itmam\user.db`.
 - Dictionary sources: **FrequencyWords `ar_full` first (Phase 1)**; Arabic Wikipedia counts added later once everything works. CC-BY-SA on the derived dictionary file is accepted. Verify each license and tell the user **before** downloading.
+  - FrequencyWords (github.com/hermitdave/FrequencyWords, `content/2018/ar/ar_full.txt`, ~42 MB): README states
+    "MIT License for code, CC-by-sa-4.0 for content"; data derived from OpenSubtitles 2018 (OPUS). Not downloaded yet.
 - Code license: MIT.
 - Terminals are excluded by default (user can re-enable in settings).
 - Lookup structure: sorted normalized-key array + front coding + varint frequencies (compressed via BCL), not an object trie, to meet the memory target.
