@@ -19,15 +19,18 @@ internal sealed class DebugWindow : Form
     private readonly CancellationTokenSource _stop = new();
     private readonly Label _word = new() { Dock = DockStyle.Top, Height = 70, Font = new Font("Segoe UI", 28f), TextAlign = ContentAlignment.MiddleRight, RightToLeft = RightToLeft.Yes };
     private readonly Label _state = new() { Dock = DockStyle.Top, Height = 48, Font = new Font("Segoe UI", 10f) };
-    private readonly Label _health = new() { Dock = DockStyle.Top, Height = 48, Font = new Font("Consolas", 9.5f) };
+    private readonly Label _health = new() { Dock = DockStyle.Top, Height = 66, Font = new Font("Consolas", 9.5f) };
     private readonly ListBox _log = new() { Dock = DockStyle.Fill, Font = new Font("Consolas", 9.5f), IntegralHeight = false };
     private readonly System.Windows.Forms.Timer _healthTimer = new() { Interval = 500 };
     private int _commits;
 
-    public DebugWindow(InputHookService hooks, ICaretContextSource caretContext)
+    public DebugWindow(InputHookService hooks, ICaretContextSource caretContext, ExcludedApps excludedApps)
     {
         _hooks = hooks;
-        _pipeline = new InputPipeline(hooks.Events, caretContext);
+        _pipeline = new InputPipeline(
+            hooks.Events,
+            caretContext,
+            new InputPipelineOptions { CanReadContext = () => !excludedApps.IsExcluded(ProcessNames.ForegroundProcessName()) });
         _pipeline.Updated += OnPipelineUpdated;
         Text = "Itmam — debug (Phase 2)";
         ShowInTaskbar = false;
@@ -106,7 +109,9 @@ internal sealed class DebugWindow : Form
         _health.Text =
             $"keys {d.KeyEvents}  clicks {d.MouseClicks}  focus {d.FocusEvents} (+{d.RepeatedFocusEvents} repeated, ignored)  reinstalls {d.Reinstalls}  errors {d.CallbackErrors}\n" +
             $"hook callback: last {d.LastCallback.TotalMicroseconds:F0} µs, max {d.MaxCallback.TotalMicroseconds:F0} µs, " +
-            $"max after first {HookDiagnostics.SteadyAfterKeys} keys {d.MaxCallbackSteady.TotalMicroseconds:F0} µs";
+            $"max after first {HookDiagnostics.SteadyAfterKeys} keys {d.MaxCallbackSteady.TotalMicroseconds:F0} µs\n" +
+            $"slow (> {HookDiagnostics.SlowThreshold.TotalMicroseconds:F0} µs): {d.SlowCallbacks}, of which during GC: {d.SlowCallbacksDuringGc}   " +
+            $"process GCs gen0/1/2: {GC.CollectionCount(0)}/{GC.CollectionCount(1)}/{GC.CollectionCount(2)}";
     }
 
     // Event kind only: letters are reported as a category, never as the character itself.

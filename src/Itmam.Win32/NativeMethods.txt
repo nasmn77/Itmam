@@ -6,6 +6,11 @@ GetWindowThreadProcessId
 GetKeyboardLayout
 GetGUIThreadInfo
 
+// Process of a window (excluded apps).
+OpenProcess
+QueryFullProcessImageName
+CloseHandle
+
 // Low-level keyboard/mouse hooks and their message loop thread.
 SetWindowsHookEx
 UnhookWindowsHookEx

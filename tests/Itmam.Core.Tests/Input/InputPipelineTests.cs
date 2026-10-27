@@ -15,10 +15,14 @@ public sealed class InputPipelineTests : IAsyncDisposable
     private readonly ConcurrentQueue<PipelineUpdate> _updates = new();
     private readonly CancellationTokenSource _stop = new();
     private readonly Task _run;
+    private volatile bool _foregroundExcluded;
 
     public InputPipelineTests()
     {
-        var pipeline = new InputPipeline(_channel.Reader, _context, new InputPipelineOptions { ProbeDelay = TimeSpan.FromMilliseconds(10) });
+        var pipeline = new InputPipeline(
+            _channel.Reader,
+            _context,
+            new InputPipelineOptions { ProbeDelay = TimeSpan.FromMilliseconds(10), CanReadContext = () => !_foregroundExcluded });
         pipeline.Updated += _updates.Enqueue;
         _run = Task.Run(() => pipeline.RunAsync(_stop.Token));
     }
@@ -165,6 +169,22 @@ public sealed class InputPipelineTests : IAsyncDisposable
         (await WaitForProbeAsync()).Probe.ShouldBe(ProbeOutcome.Discarded);
         await DrainAsync();
         _updates.Last(u => u.Input is not null).IsDetached.ShouldBeFalse(); // Escape reset it
+    }
+
+    [Fact]
+    public async Task Context_is_never_read_in_an_excluded_app()
+    {
+        _foregroundExcluded = true;
+        Type("كلمة ");
+        _context.Next = "secret text";
+        Backspace();
+
+        var probe = await WaitForProbeAsync();
+        await Task.Delay(30, TestContext.Current.CancellationToken);
+
+        probe.Probe.ShouldBe(ProbeOutcome.NotAllowed);
+        probe.IsDetached.ShouldBeTrue();
+        _context.Calls.ShouldBe(0);
     }
 
     private sealed class FakeCaretContext : ICaretContextSource

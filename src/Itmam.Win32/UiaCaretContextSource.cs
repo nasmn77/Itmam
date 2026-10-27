@@ -21,10 +21,17 @@ public sealed class UiaCaretContextSource : ICaretContextSource, IDisposable
     private readonly BlockingCollection<(int MaxChars, TaskCompletionSource<string?> Result)> _requests = new(boundedCapacity: 1);
     private readonly Thread _thread;
     private readonly TimeSpan _timeout;
+    private readonly Func<string?, bool> _isExcludedProcess;
     private int _busy;
 
-    public UiaCaretContextSource(TimeSpan? timeout = null)
+    /// <param name="isExcludedProcess">
+    /// Checked against the process that owns the focused element right before reading; excluded
+    /// apps are never read even if the foreground changed since the caller's own check.
+    /// </param>
+    /// <param name="timeout">How long the caller waits for UI Automation.</param>
+    public UiaCaretContextSource(Func<string?, bool> isExcludedProcess, TimeSpan? timeout = null)
     {
+        _isExcludedProcess = isExcludedProcess;
         _timeout = timeout ?? TimeSpan.FromMilliseconds(250);
         _thread = new Thread(Run) { IsBackground = true, Name = "Itmam UI Automation" };
         _thread.SetApartmentState(ApartmentState.MTA);
@@ -66,7 +73,7 @@ public sealed class UiaCaretContextSource : ICaretContextSource, IDisposable
             try
             {
                 automation ??= (IUIAutomation)new CUIAutomation8();
-                result.TrySetResult(Read(automation, maxChars));
+                result.TrySetResult(Read(automation, maxChars, _isExcludedProcess));
             }
             catch (Exception ex) when (ex is COMException or InvalidCastException or UnauthorizedAccessException)
             {
@@ -79,10 +86,12 @@ public sealed class UiaCaretContextSource : ICaretContextSource, IDisposable
         }
     }
 
-    private static unsafe string? Read(IUIAutomation automation, int maxChars)
+    private static unsafe string? Read(IUIAutomation automation, int maxChars, Func<string?, bool> isExcludedProcess)
     {
         var element = automation.GetFocusedElement();
-        if (element is null || element.CurrentIsPassword)
+        if (element is null
+            || isExcludedProcess(ProcessNames.Of((uint)element.CurrentProcessId))
+            || element.CurrentIsPassword)
         {
             return null;
         }
