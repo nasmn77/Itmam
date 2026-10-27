@@ -4,8 +4,12 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
 `PROMPT.md` is the full brief and the source of truth; this file is the short rule set. Read both at the start of a session.
 
 ## Current status
-- **Current phase:** 1 — Core (approved, merged into `main`).
-- **Next phase:** 2 — Win32 hook thread, layout detection, focus tracking, debug window.
+- **Current phase:** 2 — Win32 hooks (done on branch `phase-2-hook`, awaiting review + manual typing test).
+- **Next phase:** 3 — caret locator + suggestion popup (ask the user for a screenshot of the native Win11 suggestion bar first).
+- Phase 2 notes: input path documented in `docs/ARCHITECTURE.md`; `Program.cs` temporarily runs `DebugWindow` (replaced in
+  Phase 6). Key classification (`KeyClassifier`) and layout gating (`InputTracker`) live in Core and are unit-tested.
+- `gh` CLI token on this machine is invalid; read CI status from the public badge
+  (`https://github.com/nasmn77/Itmam/actions/workflows/build.yml/badge.svg?branch=main`) instead of polling the API.
 - **Open questions:** MSIX tooling must be installed in Visual Studio before Phase 7.
 
 ## Build & test
