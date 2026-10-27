@@ -36,7 +36,7 @@ internal sealed class DebugWindow : Form
         ShowInTaskbar = false;
         TopMost = true;
         StartPosition = FormStartPosition.Manual;
-        Size = new Size(560, 520);
+        Size = new Size(760, 520);
         Location = new Point(Screen.PrimaryScreen!.WorkingArea.Right - Width - 24, Screen.PrimaryScreen.WorkingArea.Top + 24);
 
         Controls.Add(_log);
@@ -108,11 +108,14 @@ internal sealed class DebugWindow : Form
         var d = _hooks.Diagnostics;
         _health.Text =
             $"keys {d.KeyEvents}  clicks {d.MouseClicks}  focus {d.FocusEvents} (+{d.RepeatedFocusEvents} repeated, ignored)  reinstalls {d.Reinstalls}  errors {d.CallbackErrors}\n" +
-            $"hook callback: last {d.LastCallback.TotalMicroseconds:F0} µs, max {d.MaxCallback.TotalMicroseconds:F0} µs, " +
-            $"max after first {HookDiagnostics.SteadyAfterKeys} keys {d.MaxCallbackSteady.TotalMicroseconds:F0} µs\n" +
+            $"hook callback: p99 {d.P99.TotalMicroseconds:F0} µs {Verdict(d.P99 < HookDiagnostics.P99Target)} (< {HookDiagnostics.P99Target.TotalMicroseconds:F0}), " +
+            $"max {d.MaxCallback.TotalMicroseconds:F0} µs {Verdict(d.MaxCallback < HookDiagnostics.MaxTarget)} (< {HookDiagnostics.MaxTarget.TotalMicroseconds:F0}), " +
+            $"last {d.LastCallback.TotalMicroseconds:F0} µs, max after {HookDiagnostics.SteadyAfterKeys} keys {d.MaxCallbackSteady.TotalMicroseconds:F0} µs\n" +
             $"slow (> {HookDiagnostics.SlowThreshold.TotalMicroseconds:F0} µs): {d.SlowCallbacks}, of which during GC: {d.SlowCallbacksDuringGc}   " +
             $"process GCs gen0/1/2: {GC.CollectionCount(0)}/{GC.CollectionCount(1)}/{GC.CollectionCount(2)}";
     }
+
+    private static string Verdict(bool ok) => ok ? "OK" : "OVER";
 
     // Event kind only: letters are reported as a category, never as the character itself.
     private static string Describe(InputEvent input) => input.Kind switch

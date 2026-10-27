@@ -34,6 +34,33 @@ public sealed class HookDiagnostics
     /// <summary>Slowest keyboard callback after the first <see cref="SteadyAfterKeys"/> key presses.</summary>
     public TimeSpan MaxCallbackSteady => TimeSpan.FromTicks(Volatile.Read(ref _maxSteadyTicks));
 
+    /// <summary>Latency targets: 99% of keyboard callbacks under 1 ms, none over 5 ms.</summary>
+    public static readonly TimeSpan P99Target = TimeSpan.FromMilliseconds(1);
+
+    public static readonly TimeSpan MaxTarget = TimeSpan.FromMilliseconds(5);
+
+    private const int RecentSize = 1024; // power of two
+    private readonly long[] _recentTicks = new long[RecentSize];
+    private long _recentWritten;
+
+    /// <summary>99th percentile of the most recent (up to 1024) keyboard callbacks.</summary>
+    public TimeSpan P99
+    {
+        get
+        {
+            var count = (int)Math.Min(Volatile.Read(ref _recentWritten), RecentSize);
+            if (count == 0)
+            {
+                return TimeSpan.Zero;
+            }
+
+            var copy = new long[count];
+            Array.Copy(_recentTicks, copy, count);
+            Array.Sort(copy);
+            return TimeSpan.FromTicks(copy[Math.Max(0, (int)Math.Ceiling(count * 0.99) - 1)]);
+        }
+    }
+
     /// <summary>Keyboard callbacks slower than this count as slow.</summary>
     public static readonly TimeSpan SlowThreshold = TimeSpan.FromMicroseconds(500);
 
@@ -53,6 +80,10 @@ public sealed class HookDiagnostics
     /// <param name="gcRan">A gen-0 collection completed while the callback ran.</param>
     internal void RecordKeyCallback(TimeSpan duration, bool gcRan)
     {
+        // Single writer (hook thread); no allocation.
+        _recentTicks[(int)(_recentWritten & (RecentSize - 1))] = duration.Ticks;
+        Volatile.Write(ref _recentWritten, _recentWritten + 1);
+
         if (duration > SlowThreshold)
         {
             SlowCallbacks++;

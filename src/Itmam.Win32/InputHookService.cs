@@ -49,6 +49,7 @@ public sealed unsafe class InputHookService : IDisposable
     private HHOOK _mouseHook;
     private HWINEVENTHOOK _foregroundHook;
     private HWINEVENTHOOK _focusHook;
+    private readonly ForegroundLayoutCache _layouts = new();
     private (HWND Window, int Object, int Child) _lastFocus;
     private uint _lastHookTick;
     private long _lastReinstallTick;
@@ -73,7 +74,7 @@ public sealed unsafe class InputHookService : IDisposable
             return;
         }
 
-        _thread = new Thread(Run) { IsBackground = true, Name = "Itmam input hooks" };
+        _thread = new Thread(Run) { IsBackground = true, Name = "Itmam input hooks", Priority = ThreadPriority.AboveNormal };
         _thread.Start();
         _started.Wait();
         if (_startError is not null)
@@ -279,7 +280,7 @@ public sealed unsafe class InputHookService : IDisposable
             return;
         }
 
-        var layout = KeyboardLayouts.ForegroundLayout();
+        var layout = _layouts.Current();
         if (classification.Action == KeyAction.Event)
         {
             if (publish)
@@ -375,7 +376,7 @@ public sealed unsafe class InputHookService : IDisposable
                 if (message is PInvoke.WM_LBUTTONDOWN or PInvoke.WM_RBUTTONDOWN or PInvoke.WM_MBUTTONDOWN or PInvoke.WM_XBUTTONDOWN)
                 {
                     Diagnostics.MouseClicks++;
-                    Publish(InputEvent.Of(InputEventKind.MouseClick), KeyboardLayouts.ForegroundLayout());
+                    Publish(InputEvent.Of(InputEventKind.MouseClick), _layouts.Current());
                 }
             }
             catch (Exception)
@@ -416,7 +417,8 @@ public sealed unsafe class InputHookService : IDisposable
             }
 
             Diagnostics.FocusEvents++;
-            Publish(InputEvent.Of(kind), KeyboardLayouts.ForegroundLayout());
+            _layouts.Invalidate();
+            Publish(InputEvent.Of(kind), _layouts.Current());
         }
         catch (Exception)
         {
