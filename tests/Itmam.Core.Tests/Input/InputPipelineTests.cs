@@ -172,6 +172,33 @@ public sealed class InputPipelineTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task Unavailable_context_is_retried_once_like_chromium_waking_up()
+    {
+        Type("كلمة ");
+        _context.Responses = call => call == 1 ? null : "ذهبت إلى ";
+        Backspace();
+
+        var resumed = await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedEmpty);
+
+        resumed.IsDetached.ShouldBeFalse();
+        _context.Calls.ShouldBe(2);
+        _updates.Count(u => u.Probe == ProbeOutcome.Unavailable).ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task Context_that_stays_unavailable_is_retried_only_once()
+    {
+        Type("كلمة ");
+        _context.Next = null;
+        Backspace();
+
+        await WaitForAsync(_ => _updates.Count(u => u.Probe == ProbeOutcome.Unavailable) == 2);
+        await Task.Delay(250, TestContext.Current.CancellationToken);
+
+        _context.Calls.ShouldBe(2);
+    }
+
+    [Fact]
     public async Task Context_is_never_read_in_an_excluded_app()
     {
         _foregroundExcluded = true;
@@ -193,19 +220,22 @@ public sealed class InputPipelineTests : IAsyncDisposable
 
         public string? Next { get; set; }
 
+        /// <summary>Response by call number (1-based); overrides <see cref="Next"/>.</summary>
+        public Func<int, string?>? Responses { get; set; }
+
         public TimeSpan Delay { get; set; }
 
         public int Calls => Volatile.Read(ref _calls);
 
         public async Task<string?> ReadBeforeCaretAsync(int maxChars, CancellationToken cancellation)
         {
-            Interlocked.Increment(ref _calls);
+            var call = Interlocked.Increment(ref _calls);
             if (Delay > TimeSpan.Zero)
             {
                 await Task.Delay(Delay, cancellation);
             }
 
-            return Next;
+            return Responses is { } responses ? responses(call) : Next;
         }
     }
 }

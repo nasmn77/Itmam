@@ -56,6 +56,12 @@ public sealed record InputPipelineOptions
     /// <summary>Wait after a Backspace on an empty word so the app has applied it before we read.</summary>
     public TimeSpan ProbeDelay { get; init; } = TimeSpan.FromMilliseconds(40);
 
+    /// <summary>
+    /// One retry after an <see cref="ProbeOutcome.Unavailable"/> read: Chromium/Electron apps
+    /// switch their accessibility tree on at the first UI Automation request and answer the second.
+    /// </summary>
+    public TimeSpan RetryUnavailableAfter { get; init; } = TimeSpan.FromMilliseconds(100);
+
     /// <summary>Characters read before the caret: enough for any word plus the boundary before it.</summary>
     public int ProbeChars { get; init; } = WordBuffer.MaxLength + 1;
 
@@ -84,6 +90,7 @@ public sealed class InputPipeline(ChannelReader<InputRecord> input, ICaretContex
     public async Task RunAsync(CancellationToken cancellation)
     {
         long? probeDue = null;
+        var retried = false;
         Task<bool>? waitForInput = null;
         while (!cancellation.IsCancellationRequested)
         {
@@ -100,7 +107,13 @@ public sealed class InputPipeline(ChannelReader<InputRecord> input, ICaretContex
                     if (await Task.WhenAny(waitForInput, delay).ConfigureAwait(false) == delay)
                     {
                         probeDue = null;
-                        await ProbeAsync(cancellation).ConfigureAwait(false);
+                        var outcome = await ProbeAsync(cancellation).ConfigureAwait(false);
+                        if (outcome == ProbeOutcome.Unavailable && !retried)
+                        {
+                            retried = true;
+                            probeDue = DateTime.UtcNow.Ticks + _options.RetryUnavailableAfter.Ticks;
+                        }
+
                         continue;
                     }
 
@@ -133,25 +146,32 @@ public sealed class InputPipeline(ChannelReader<InputRecord> input, ICaretContex
                 var result = Tracker.Process(record.Input, record.KeyboardLayout);
                 Raise(record, result, probe: null);
 
-                // Every Backspace while detached restarts the delay, so holding Backspace probes once.
-                probeDue = Tracker.Buffer.IsDetached && Tracker.IsArabicLayout && record.Input.Kind == InputEventKind.Backspace
-                    ? DateTime.UtcNow.Ticks + _options.ProbeDelay.Ticks
-                    : Tracker.Buffer.IsDetached ? probeDue : null;
+                // Every Backspace while detached restarts the delay (and the retry allowance),
+                // so holding Backspace probes once.
+                if (Tracker.Buffer.IsDetached && Tracker.IsArabicLayout && record.Input.Kind == InputEventKind.Backspace)
+                {
+                    probeDue = DateTime.UtcNow.Ticks + _options.ProbeDelay.Ticks;
+                    retried = false;
+                }
+                else if (!Tracker.Buffer.IsDetached)
+                {
+                    probeDue = null;
+                }
             }
         }
     }
 
-    private async Task ProbeAsync(CancellationToken cancellation)
+    private async Task<ProbeOutcome?> ProbeAsync(CancellationToken cancellation)
     {
         if (!Tracker.Buffer.IsDetached || HasPendingInput())
         {
-            return;
+            return null;
         }
 
         if (!_options.CanReadContext())
         {
             Raise(null, BufferResult.None, ProbeOutcome.NotAllowed);
-            return;
+            return ProbeOutcome.NotAllowed;
         }
 
         var text = await context.ReadBeforeCaretAsync(_options.ProbeChars, cancellation).ConfigureAwait(false);
@@ -178,6 +198,7 @@ public sealed class InputPipeline(ChannelReader<InputRecord> input, ICaretContex
         }
 
         Raise(null, result, outcome);
+        return outcome;
     }
 
     private bool HasPendingInput() => input.CanCount ? input.Count > 0 : input.TryPeek(out _);
