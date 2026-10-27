@@ -63,6 +63,65 @@ public sealed class WordBuffer
         _ => Reset(),
     };
 
+    /// <summary>
+    /// Resumes tracking after <see cref="IsDetached"/>, using the text immediately before the caret
+    /// read from the app (only a few characters, never stored beyond the current word).
+    /// </summary>
+    /// <param name="textBeforeCaret">Characters before the caret, at most <paramref name="maxRead"/>.</param>
+    /// <param name="maxRead">How many characters were requested; a full read with no boundary means the word may be cut.</param>
+    /// <returns>
+    /// <see cref="BufferOutcome.Updated"/> when the word before the caret became the current word,
+    /// <see cref="BufferOutcome.Reset"/> when tracking resumed with an empty word (start of text or a
+    /// boundary before the caret), <see cref="BufferOutcome.None"/> when the context is unusable and
+    /// the buffer stays detached.
+    /// </returns>
+    public BufferResult ResumeFromContext(ReadOnlySpan<char> textBeforeCaret, int maxRead)
+    {
+        if (!_detached)
+        {
+            return BufferResult.None;
+        }
+
+        // Trailing run of Arabic letters and marks = the word the caret is in.
+        var start = textBeforeCaret.Length;
+        while (start > 0 && (ArabicText.IsArabicLetter(textBeforeCaret[start - 1]) || ArabicText.IsIgnorable(textBeforeCaret[start - 1])))
+        {
+            start--;
+        }
+
+        var word = textBeforeCaret[start..];
+        var before = start > 0 ? textBeforeCaret[start - 1] : '\0';
+
+        // Unusable: the word may continue beyond what was read, it is glued to a non-Arabic letter,
+        // or it is longer than a word can be.
+        if ((start == 0 && textBeforeCaret.Length >= maxRead)
+            || (start > 0 && !ArabicText.IsWordBoundary(before))
+            || word.Length > MaxLength)
+        {
+            return BufferResult.None;
+        }
+
+        // Leading marks without a letter are not part of a word.
+        while (!word.IsEmpty && !ArabicText.IsArabicLetter(word[0]))
+        {
+            word = word[1..];
+        }
+
+        _detached = false;
+        _text.Clear();
+        _text.Append(word);
+        LetterCount = 0;
+        foreach (var c in word)
+        {
+            if (ArabicText.IsArabicLetter(c))
+            {
+                LetterCount++;
+            }
+        }
+
+        return new BufferResult(word.IsEmpty ? BufferOutcome.Reset : BufferOutcome.Updated);
+    }
+
     /// <summary>Discards the current word without committing it.</summary>
     public BufferResult Reset()
     {

@@ -1,4 +1,5 @@
 using Itmam.Core.Input;
+using Itmam.Core.Text;
 
 namespace Itmam.Core.Tests.Input;
 
@@ -133,14 +134,79 @@ public class WordBufferTests
         Type("قلم ").ShouldBe(new BufferResult(BufferOutcome.Committed, "قلم"));
     }
 
-    [Fact]
-    public void Context_change_after_detaching_starts_tracking_again()
+    [Theory]
+    [InlineData(InputEventKind.MouseClick)]
+    [InlineData(InputEventKind.Navigation)]
+    [InlineData(InputEventKind.Shortcut)]      // e.g. Ctrl+A
+    [InlineData(InputEventKind.FocusChanged)]
+    [InlineData(InputEventKind.ForegroundChanged)]
+    public void Context_change_after_detaching_starts_tracking_again(InputEventKind kind)
+    {
+        Type("كتاب ");
+        Send(InputEventKind.Backspace);
+        Send(kind);
+
+        Type("قلم ").ShouldBe(new BufferResult(BufferOutcome.Committed, "قلم"));
+    }
+
+    [Theory]
+    [InlineData("")]                 // all text deleted: start of the field
+    [InlineData("ذهبت إلى ")]        // a space before the caret
+    [InlineData("سطر\r")]            // a line break
+    [InlineData("مرحبا، ")]
+    public void Context_with_a_boundary_before_the_caret_resumes_with_an_empty_word(string before)
+    {
+        Type("كتاب ");
+        Send(InputEventKind.Backspace);
+
+        _buffer.ResumeFromContext(before, maxRead: 48).ShouldBe(new BufferResult(BufferOutcome.Reset));
+
+        _buffer.IsDetached.ShouldBeFalse();
+        Type("قلم ").ShouldBe(new BufferResult(BufferOutcome.Committed, "قلم"));
+    }
+
+    [Theory]
+    [InlineData("ذهبت إلى المدر", "المدر")]
+    [InlineData("المدر", "المدر")]
+    [InlineData("مُدَرِّ", "مُدَرِّ")]
+    public void Context_ending_in_a_word_makes_it_the_current_word(string before, string expectedWord)
+    {
+        Type("كتاب ");
+        Send(InputEventKind.Backspace);
+
+        _buffer.ResumeFromContext(before, maxRead: 48).Outcome.ShouldBe(BufferOutcome.Updated);
+
+        _buffer.Text.ShouldBe(expectedWord);
+        Type("سة ").ShouldBe(new BufferResult(BufferOutcome.Committed, ArabicText.StripIgnorable(expectedWord) + "سة"));
+    }
+
+    [Theory]
+    [InlineData("helloكت")]                  // glued to a Latin letter
+    [InlineData("hello")]                    // caret after a non-Arabic word
+    public void Unusable_context_keeps_the_buffer_detached(string before)
     {
         Send(InputEventKind.Backspace);
-        Send(InputEventKind.MouseClick);
 
-        Type("قل");
-        _buffer.Text.ShouldBe("قل");
+        _buffer.ResumeFromContext(before, maxRead: 48).ShouldBe(BufferResult.None);
+        _buffer.IsDetached.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Word_that_may_continue_beyond_the_read_window_keeps_the_buffer_detached()
+    {
+        Send(InputEventKind.Backspace);
+
+        _buffer.ResumeFromContext("كتابات", maxRead: 6).ShouldBe(BufferResult.None);
+        _buffer.IsDetached.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Context_is_ignored_when_not_detached()
+    {
+        Type("كت");
+
+        _buffer.ResumeFromContext("", maxRead: 48).ShouldBe(BufferResult.None);
+        _buffer.Text.ShouldBe("كت");
     }
 
     [Theory]
