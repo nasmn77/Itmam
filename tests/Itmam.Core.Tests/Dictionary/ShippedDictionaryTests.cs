@@ -67,6 +67,27 @@ public class ShippedDictionaryTests(ITestOutputHelper output)
     }
 
     [Theory]
+    [InlineData("أن")]
+    [InlineData("إن")]
+    [InlineData("على")]
+    [InlineData("علي")]
+    [InlineData("إلى")]
+    public void Distinct_words_sharing_a_normalized_form_are_all_present(string word) =>
+        Shipped.Value.IndexOfWord(word).ShouldBeGreaterThanOrEqualTo(0);
+
+    [Fact]
+    public void Typing_an_suggests_both_an_and_in()
+    {
+        var engine = new SuggestionEngine(Shipped.Value, new UserWordIndex());
+
+        var words = engine.Suggest("ان").Select(s => s.Word).ToArray();
+
+        output.WriteLine($"ان: {string.Join(" | ", words)}");
+        words.ShouldContain("أن");
+        words.ShouldContain("إن");
+    }
+
+    [Theory]
     [InlineData("مرح", "مرحبا")]
     [InlineData("شكر", "شكرا")]
     [InlineData("اعتق", "أعتقد")]
