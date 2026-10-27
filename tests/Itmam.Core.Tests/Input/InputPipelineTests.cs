@@ -15,6 +15,7 @@ public sealed class InputPipelineTests : IAsyncDisposable
     private readonly ConcurrentQueue<PipelineUpdate> _updates = new();
     private readonly CancellationTokenSource _stop = new();
     private readonly Task _run;
+    private readonly FakeInjector _injector = new();
     private volatile bool _foregroundExcluded;
 
     public InputPipelineTests()
@@ -22,7 +23,8 @@ public sealed class InputPipelineTests : IAsyncDisposable
         var pipeline = new InputPipeline(
             _channel.Reader,
             _context,
-            new InputPipelineOptions { ProbeDelay = TimeSpan.FromMilliseconds(10), CanReadContext = () => !_foregroundExcluded });
+            new InputPipelineOptions { ProbeDelay = TimeSpan.FromMilliseconds(10), CanReadContext = () => !_foregroundExcluded },
+            _injector);
         pipeline.Updated += _updates.Enqueue;
         _run = Task.Run(() => pipeline.RunAsync(_stop.Token));
     }
@@ -259,6 +261,82 @@ public sealed class InputPipelineTests : IAsyncDisposable
         probe.Probe.ShouldBe(ProbeOutcome.NotAllowed);
         probe.IsDetached.ShouldBeTrue();
         _context.Calls.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Accepting_types_the_minimal_edit_and_commits_the_word()
+    {
+        Type("مدرسه");
+        Send(InputEvent.Accept(0, "مدرسة"));
+        await DrainAsync();
+
+        _injector.Edits.ShouldBe([new TextEdit(1, "ة ")]);  // fix the last letter, add a space
+        Commits().ShouldBe(["مدرسة"]);
+        _updates.Last(u => u.Result.Outcome == BufferOutcome.Committed).Word.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task Accepting_a_hamza_spelling_replaces_the_whole_prefix()
+    {
+        Type("احم");
+        Send(InputEvent.Accept(0, "أحمد"));
+        await DrainAsync();
+
+        _injector.Edits.ShouldBe([new TextEdit(3, "أحمد ")]);
+    }
+
+    [Fact]
+    public async Task Accept_is_ignored_when_the_context_is_unknown()
+    {
+        Type("كلمة ");
+        Send(InputEvent.Of(InputEventKind.MouseClick));
+        Send(InputEvent.Accept(0, "مدرسة"));
+        await DrainAsync();
+
+        _injector.Edits.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task Failed_injection_leaves_the_word_unchanged()
+    {
+        _injector.Succeeds = false;
+        Type("مدر");
+        Send(InputEvent.Accept(0, "مدرسة"));
+        await DrainAsync();
+
+        Commits().ShouldBeEmpty();
+        _updates.Last(u => u.Input?.Input.Kind == InputEventKind.AcceptSuggestion).Word.ShouldBe("مدر");
+    }
+
+    [Fact]
+    public async Task Esc_suppresses_suggestions_until_the_word_ends()
+    {
+        Type("مدر");
+        Send(InputEvent.Of(InputEventKind.DismissSuggestions));
+        Type("س");
+        await DrainAsync();
+        _updates.Last(u => u.Input?.Input.Kind == InputEventKind.Character).SuggestionsSuppressed.ShouldBeTrue();
+
+        Type(" قل");
+        await DrainAsync();
+        _updates.Last(u => u.Input?.Input.Kind == InputEventKind.Character).SuggestionsSuppressed.ShouldBeFalse();
+    }
+
+    private sealed class FakeInjector : ITextInjector
+    {
+        public List<TextEdit> Edits { get; } = [];
+
+        public bool Succeeds { get; set; } = true;
+
+        public bool Send(TextEdit edit)
+        {
+            if (Succeeds)
+            {
+                Edits.Add(edit);
+            }
+
+            return Succeeds;
+        }
     }
 
     private sealed class FakeCaretContext : ICaretContextSource

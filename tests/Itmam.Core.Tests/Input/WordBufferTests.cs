@@ -177,6 +177,39 @@ public class WordBufferTests
     }
 
     [Fact]
+    public void Accepted_word_is_committed_and_the_next_word_starts_after_the_space()
+    {
+        Type("مدر");
+
+        _buffer.AcceptWord("مدرسة", appendedSpace: true).ShouldBe(new BufferResult(BufferOutcome.Committed, "مدرسة"));
+        _buffer.IsEmpty.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Without_a_space_the_accepted_word_stays_the_current_word()
+    {
+        Type("مدر");
+        _buffer.AcceptWord("مدرسة", appendedSpace: false);
+
+        _buffer.Text.ShouldBe("مدرسة");
+        Type("ي").Outcome.ShouldBe(BufferOutcome.Updated);
+        _buffer.Text.ShouldBe("مدرسةي");
+    }
+
+    [Theory]
+    [InlineData(InputEventKind.AcceptSuggestion)]
+    [InlineData(InputEventKind.DismissSuggestions)]
+    [InlineData(InputEventKind.NavigationSelect)]
+    public void Bar_events_do_not_change_the_word(InputEventKind kind)
+    {
+        Type("مدر");
+
+        Send(kind).ShouldBe(BufferResult.None);
+        _buffer.Text.ShouldBe("مدر");
+        _buffer.IsDetached.ShouldBeFalse();
+    }
+
+    [Fact]
     public void Escape_resets_without_making_the_context_unknown()
     {
         Type("كتا");

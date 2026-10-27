@@ -19,6 +19,12 @@ public interface ICaretContextSource
     Task<string?> ReadBeforeCaretAsync(int maxChars, CancellationToken cancellation);
 }
 
+/// <summary>Types an edit into the focused app (SendInput in production). Returns false if it failed.</summary>
+public interface ITextInjector
+{
+    bool Send(TextEdit edit);
+}
+
 public enum ProbeOutcome
 {
     /// <summary>Tracking resumed with an empty word (start of text or a boundary before the caret).</summary>
@@ -47,6 +53,15 @@ public enum ProbeOutcome
 }
 
 /// <summary>State after an event or a context probe, raised on the pipeline's thread.</summary>
+/// <param name="Input">The event, or null after a context probe.</param>
+/// <param name="Result">What happened to the word (Committed for an accepted suggestion).</param>
+/// <param name="Probe">Outcome of a caret-context read, if this update is one.</param>
+/// <param name="Word">The current word as typed.</param>
+/// <param name="Letters">Letters in the current word.</param>
+/// <param name="IsArabicLayout">Arabic keyboard layout active.</param>
+/// <param name="Layout">The HKL.</param>
+/// <param name="IsDetached">Context unknown; nothing is tracked.</param>
+/// <param name="SuggestionsSuppressed">Esc hid the bar for this word, or a suggestion was just accepted.</param>
 public readonly record struct PipelineUpdate(
     InputRecord? Input,
     BufferResult Result,
@@ -55,7 +70,8 @@ public readonly record struct PipelineUpdate(
     int Letters,
     bool IsArabicLayout,
     nint Layout,
-    bool IsDetached);
+    bool IsDetached,
+    bool SuggestionsSuppressed = false);
 
 public sealed record InputPipelineOptions
 {
@@ -67,6 +83,9 @@ public sealed record InputPipelineOptions
     /// switch their accessibility tree on at the first UI Automation request and answer the second.
     /// </summary>
     public TimeSpan RetryUnavailableAfter { get; init; } = TimeSpan.FromMilliseconds(100);
+
+    /// <summary>Type a space after an accepted suggestion (setting, default on).</summary>
+    public bool AppendSpaceOnAccept { get; init; } = true;
 
     /// <summary>Characters read before the caret: enough for any word plus the boundary before it.</summary>
     public int ProbeChars { get; init; } = WordBuffer.MaxLength + 1;
@@ -86,9 +105,26 @@ public sealed record InputPipelineOptions
 /// word the caret is in. Without that context: after a caret move, tracking resumes with an empty
 /// word if nothing was typed meanwhile; otherwise it waits for the next boundary.
 /// </summary>
-public sealed class InputPipeline(ChannelReader<InputRecord> input, ICaretContextSource context, InputPipelineOptions? options = null)
+public sealed class InputPipeline(
+    ChannelReader<InputRecord> input,
+    ICaretContextSource context,
+    InputPipelineOptions? options = null,
+    ITextInjector? injector = null)
 {
     private readonly InputPipelineOptions _options = options ?? new InputPipelineOptions();
+
+    private enum Suppression
+    {
+        None,
+
+        /// <summary>Esc: until the word ends (boundary, reset, caret move).</summary>
+        UntilWordEnds,
+
+        /// <summary>Just accepted without a trailing space: until the next typed letter.</summary>
+        UntilNextLetter,
+    }
+
+    private Suppression _suppression;
 
     public InputTracker Tracker { get; } = new();
 
@@ -157,7 +193,7 @@ public sealed class InputPipeline(ChannelReader<InputRecord> input, ICaretContex
 
             while (input.TryRead(out var record))
             {
-                var result = Tracker.Process(record.Input, record.KeyboardLayout);
+                var result = Process(record);
                 Raise(record, result, probe: null);
 
                 // Every non-character event that leaves the context unknown (Backspace into a word,
@@ -175,6 +211,50 @@ public sealed class InputPipeline(ChannelReader<InputRecord> input, ICaretContex
                 }
             }
         }
+    }
+
+    private BufferResult Process(InputRecord record)
+    {
+        var buffer = Tracker.Buffer;
+        switch (record.Input.Kind)
+        {
+            case InputEventKind.AcceptSuggestion:
+                return Accept(record);
+            case InputEventKind.DismissSuggestions:
+                _suppression = Suppression.UntilWordEnds;
+                return BufferResult.None;
+        }
+
+        var result = Tracker.Process(record.Input, record.KeyboardLayout);
+        if (result.Outcome is BufferOutcome.Committed or BufferOutcome.Reset || buffer.IsDetached || buffer.IsEmpty)
+        {
+            _suppression = Suppression.None;
+        }
+        else if (_suppression == Suppression.UntilNextLetter && result.Outcome == BufferOutcome.Updated)
+        {
+            _suppression = Suppression.None;
+        }
+
+        return result;
+    }
+
+    // Replaces the typed prefix with the accepted word in the app, then updates the buffer.
+    private BufferResult Accept(InputRecord record)
+    {
+        var buffer = Tracker.Buffer;
+        if (record.Input.Text is not { Length: > 0 } word || buffer.IsDetached || buffer.IsEmpty || injector is null)
+        {
+            return BufferResult.None;
+        }
+
+        var edit = TextEdit.Compute(buffer.Text, word, _options.AppendSpaceOnAccept);
+        if (!injector.Send(edit))
+        {
+            return BufferResult.None;
+        }
+
+        _suppression = _options.AppendSpaceOnAccept ? Suppression.None : Suppression.UntilNextLetter;
+        return buffer.AcceptWord(word, _options.AppendSpaceOnAccept);
     }
 
     /// <param name="isRetry">This is the last attempt (after an Unavailable one).</param>
@@ -250,6 +330,7 @@ public sealed class InputPipeline(ChannelReader<InputRecord> input, ICaretContex
             buffer.LetterCount,
             Tracker.IsArabicLayout,
             Tracker.Layout,
-            buffer.IsDetached));
+            buffer.IsDetached,
+            _suppression != Suppression.None));
     }
 }
