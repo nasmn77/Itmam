@@ -107,6 +107,39 @@ change.
   `GCLatencyMode.SustainedLowLatency` and the worker avoids per-event allocations; the debug
   window reports callbacks slower than 500 µs and how many of them overlapped a GC.
 
+## Suggestion bar (Phase 3: display only)
+
+```
+ InputPipeline.Updated (pipeline thread)
+        │  Arabic layout, not detached, ≥ MinChars letters, foreground app not excluded
+        ▼
+ SuggestionEngine.Suggest(word)            (Core; < 0.1 ms with the prefix cache)
+        │
+        ▼
+ SuggestionController (one request at a time; stale keystrokes are dropped)
+        │  CaretLocator.LocateAsync:
+        │    1. GetGUIThreadInfo → rcCaret + ClientToScreen          (caller thread)
+        │    2. UI Automation caret range → GetBoundingRectangles    (UiaWorker, 150 ms timeout)
+        │       empty range → rectangle of the previous character (caret on its left in RTL)
+        │    3. MSAA AccessibleObjectFromWindow(OBJID_CARET).accLocation
+        │    4. mouse pointer (bar shown below it)
+        ▼
+ SuggestionPopup (UI thread)
+    PopupPlacement: above the caret, right edge at the caret (RTL), below if no room,
+    clamped to the caret monitor's work area; sizes scaled by that monitor's DPI.
+```
+
+The popup never takes focus: `ShowWithoutActivation`, `WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW |
+WS_EX_TOPMOST`, `WM_MOUSEACTIVATE → MA_NOACTIVATE`, shown with `SetWindowPos(SWP_NOACTIVATE)`.
+Its look (35 px high, 14 px Segoe UI, 15 px padding per word, no dividers, `#2C2C2C` / white in
+dark mode) was measured from a screenshot of the native Windows 11 bar; text uses grayscale
+antialiasing like the native bar. The bar only displays suggestions; nothing is inserted yet.
+
+UI Automation cost in Chromium (measured on an isolated Chrome instance with a small page):
+the first request finds no TextPattern while Chrome enables its accessibility tree, the second
+(100 ms later) succeeds; private memory 370 → 354 MB and idle CPU 1.9 % → 0.1 % (no measurable
+increase; numbers dominated by Chrome finishing start-up). Large pages build larger trees.
+
 ## Privacy guarantees in the code
 
 - Typed characters exist only in memory: in the channel, in `WordBuffer`, and on screen.
