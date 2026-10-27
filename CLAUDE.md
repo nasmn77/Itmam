@@ -4,7 +4,7 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
 `PROMPT.md` is the full brief and the source of truth; this file is the short rule set. Read both at the start of a session.
 
 ## Current status
-- **Current phase:** 3 — caret locator + suggestion popup (on branch `phase-3-popup`, awaiting the user's typing test).
+- **Current phase:** 4 — hotkey interception + text insertion (branch `phase-4-insert`). Phase 3 approved and merged into `main`.
 - **Next phase:** 4 — hotkey interception + text insertion.
 - Phase 3 decisions: bar look measured from the user's screenshot (no dividers, 35 px, 14 px Segoe UI, `#2C2C2C`/white dark,
   grayscale text AA, hints off, subtle first-item highlight with a setting to turn it off). Placement mirrors the native bar:
