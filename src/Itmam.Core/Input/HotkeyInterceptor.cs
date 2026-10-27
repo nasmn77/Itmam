@@ -20,10 +20,10 @@ public sealed record HotkeySettings
     public Hotkey ToggleEnabled { get; init; } = new(0x50, KeyModifiers.Ctrl | KeyModifiers.Alt);
 
     /// <summary>
-    /// Off by default. While the bar is shown, Up moves into it, Left/Right select, Enter inserts,
-    /// Esc leaves — like the native Windows suggestions for English.
+    /// On by default (user decision, like the native Windows suggestions for English). While the
+    /// bar is shown, Up moves into it, Left/Right select, Enter inserts, Esc/Down leave.
     /// </summary>
-    public bool NativeNavigation { get; init; }
+    public bool NativeNavigation { get; init; } = true;
 }
 
 public enum InterceptAction

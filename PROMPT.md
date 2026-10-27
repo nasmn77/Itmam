@@ -101,7 +101,7 @@ Cache per focused element briefly; locator calls run off the hook thread with a 
   - Same proportions: compact height, generous horizontal padding, Segoe UI Variable / Segoe UI at about the menu font size, Windows 11 rounded corners (`DwmSetWindowAttribute DWMWA_WINDOW_CORNER_PREFERENCE`), subtle 1px border and soft shadow, background slightly lighter than a dark editor (dark mode). The native bar highlights no word; because `Tab` accepts the first suggestion, the first word gets a **very subtle** highlight (faint translucent background), which a setting can turn off to match Windows exactly. The **Windows accent color** is used for the selected item in "native navigation" mode.
   - Small hotkey hints (e.g. a tiny `1 2 3` badge or `Tab` on the first item) are allowed but must stay subtle, are **off by default**, and can be turned on in settings.
   - Before building it, look at how the native bar appears (I will give you a screenshot if you ask) and match it as closely as possible.
-  - Optional "native navigation" mode (setting, off by default): while the bar is visible, `Up` arrow moves focus into the bar, `Left`/`Right` select, `Enter` inserts, `Esc` leaves, exactly like Windows does for English.
+  - "Native navigation" mode (setting, **on by default** — user decision after testing): while the bar is visible, `Up` arrow moves focus into the bar, `Left`/`Right` select, `Enter` inserts, `Esc` leaves, exactly like Windows does for English.
 - `RightToLeft = Yes`, `RightToLeftLayout = true`.
 - Positioned above the caret (below if no room), clamped to the monitor work area, correct on mixed-DPI multi-monitor setups.
 - **Themes / colors** (all applied live, no restart):

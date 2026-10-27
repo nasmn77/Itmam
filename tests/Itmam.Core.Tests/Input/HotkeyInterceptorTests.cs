@@ -46,10 +46,19 @@ public class HotkeyInterceptorTests
     [InlineData(KeyA, KeyModifiers.None)]
     [InlineData(Tab, KeyModifiers.Shift)]   // Shift+Tab is not the accept key
     [InlineData(Digit1, KeyModifiers.None)] // a plain digit is typed
-    [InlineData(Up, KeyModifiers.None)]     // native navigation is off by default
-    [InlineData(Enter, KeyModifiers.None)]
+    [InlineData(Enter, KeyModifiers.None)]  // Enter only accepts once navigating
+    [InlineData(Up, KeyModifiers.Shift)]    // Shift+Up selects text as usual
     public void Other_keys_pass_through_even_while_the_bar_is_shown(int vk, KeyModifiers modifiers) =>
         Key(vk, modifiers).ShouldBe(InterceptDecision.Pass);
+
+    [Fact]
+    public void Native_navigation_is_on_by_default_and_can_be_turned_off()
+    {
+        Key(Up).ShouldBe(InterceptDecision.Swallow(InputEvent.Select(0)));
+
+        new HotkeyInterceptor(new HotkeySettings { NativeNavigation = false })
+            .OnKeyDown(Up, KeyModifiers.None, Bar).ShouldBe(InterceptDecision.Pass);
+    }
 
     [Fact]
     public void Global_toggle_works_whether_or_not_the_bar_is_shown()
