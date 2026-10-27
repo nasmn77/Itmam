@@ -6,7 +6,7 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
 ## Current status
 - **Current phase:** 1 — Core (approved, merged into `main`).
 - **Next phase:** 2 — Win32 hook thread, layout detection, focus tracking, debug window.
-- **Open questions:** blocklist source (`data/blocklist.txt` is empty; candidate licenses being checked); MSIX tooling must be installed in Visual Studio before Phase 7.
+- **Open questions:** MSIX tooling must be installed in Visual Studio before Phase 7.
 
 ## Build & test
 ```
@@ -39,7 +39,15 @@ Tests run on Microsoft.Testing.Platform (opted in via `global.json` → `test.ru
   - FrequencyWords (github.com/hermitdave/FrequencyWords, `content/2018/ar/ar_full.txt`, ~42 MB): README states
     "MIT License for code, CC-by-sa-4.0 for content"; data derived from OpenSubtitles 2018 (OPUS). Approved; pinned commit +
     SHA-256 in `tools/DictionaryBuilder/download-sources.ps1`. Built with `--min-count 3 --drop-bare-alef-variants`
-    → 522,618 spellings, 1.66 MB file, ~20 MB in memory, load ~200–270 ms.
+    → 522,510 spellings, 1.66 MB file, ~20 MB in memory, load ~200 ms.
+- Lookup speed: `PrefixCandidateCache` precomputes the top 64 entries per 1–3 letter prefix with ≥ 512 entries (by key and by
+  literal spelling); a test proves results equal a full scan for every cached prefix. Lookups ≈ 0.01–0.03 ms.
+- Blocklist (`data/blocklist.txt`, 21 words hand-picked by the user from LDNOOBW `ar` CC-BY-4.0 + uxbertlabs MIT;
+  AhmedRedaAmin rejected — Latin script). Ordinary/medical/legal/news words (أمك، أختك، قضيب، اغتصاب، لواط، سحاق …) are
+  deliberately NOT blocked. Matching: normalized + hamza seats folded; clitic forms for 4+ letters (any clitic), 3 letters
+  (article clitics only), 2 letters never.
+- **Phase 5 rule (user decision):** ship `blocklist.txt` with the app and check it at runtime: never auto-learn a blocked
+  word from typing; but if the user adds a blocked word manually in "My words", accept it and respect that choice.
   - `data/itmam-ar.dict` is CC-BY-SA-4.0 (derived data); code stays MIT. Attribution in `THIRD_PARTY_NOTICES.md`.
 - Ranking: literal-prefix matches get a score bonus (`LiteralMatchBonus`, default ln 10) instead of an absolute tier, because
   users often type ا for أ/إ; hamza-fallback and clitic matches are strict lower tiers. Setting the bonus to +∞ restores the strict rule.
@@ -71,7 +79,8 @@ Tests run on Microsoft.Testing.Platform (opted in via `global.json` → `test.ru
 
 ## Git rules
 - Remote: https://github.com/nasmn77/Itmam (`origin`), default branch `main`.
-- One branch per phase (`phase-1-core`, `phase-2-hook`, …), merged into `main` only after the user approves.
+- One branch per phase (`phase-1-core`, `phase-2-hook`, …), merged into `main` only after the user approves;
+  **delete the branch (local and on GitHub) right after merging.**
 - Conventional Commits (`feat(core): …`, `test(core): …`, `fix(win32): …`), small and focused; never commit a broken build.
 - **Ask before every `git push`**, tag, release or anything public. Never force-push `main`.
 - Never commit certificates (`*.pfx`, private keys), Partner Center secrets, or user data (`user.db`, `user.json`).
