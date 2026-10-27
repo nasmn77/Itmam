@@ -82,14 +82,22 @@ internal sealed class SuggestionPopup : Form
 
         var position = PopupPlacement.Place(caret, _layout.Size, monitor.WorkArea, rightToLeft, _metrics.CaretGap, belowPointer);
         PopupWindows.ShowWithoutActivation(Handle, new Rectangle(position, _layout.Size));
+        IsShowing = true;
         Invalidate();
     }
 
+    /// <summary>
+    /// Whether the bar is on screen. Tracked here because it is shown with SetWindowPos, which
+    /// sends no WM_SHOWWINDOW, so WinForms' <see cref="Control.Visible"/> never becomes true.
+    /// </summary>
+    public bool IsShowing { get; private set; }
+
     public void HideSuggestions()
     {
-        if (IsHandleCreated && Visible)
+        if (IsHandleCreated && IsShowing)
         {
             PopupWindows.Hide(Handle);
+            IsShowing = false;
         }
     }
 

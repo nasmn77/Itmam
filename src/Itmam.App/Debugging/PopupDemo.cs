@@ -16,6 +16,14 @@ internal static class PopupDemo
         _ = popup.Handle;
         popup.ShowSuggestions(["مرحبا", "مرحلة", "مرحى"], new Rectangle(caretX, caretY, 2, 20), rightToLeft: true, belowPointer: false);
 
+        // "hide": hide after 1 s (verifies hiding), then exit at 5 s.
+        using var hideTimer = new System.Windows.Forms.Timer { Interval = 1000 };
+        hideTimer.Tick += (_, _) => { hideTimer.Stop(); popup.HideSuggestions(); };
+        if (options.Contains("hide"))
+        {
+            hideTimer.Start();
+        }
+
         using var timer = new System.Windows.Forms.Timer { Interval = 5000 };
         timer.Tick += (_, _) => Application.ExitThread();
         timer.Start();
