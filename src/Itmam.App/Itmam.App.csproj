@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- WinForms composition root: tray icon, suggestion popup, settings window. -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>$(ItmamWindowsTargetFramework)</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <RootNamespace>Itmam.App</RootNamespace>
+    <AssemblyName>Itmam</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Itmam.Core\Itmam.Core.csproj" />
+    <ProjectReference Include="..\Itmam.Win32\Itmam.Win32.csproj" />
+  </ItemGroup>
+
+</Project>

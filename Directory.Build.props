@@ -1,0 +1,28 @@
+<Project>
+
+  <!-- Shared settings for every project in the repository. -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+    <IsPackable>false</IsPackable>
+
+    <Product>Itmam</Product>
+    <Company>Itmam</Company>
+    <Copyright>Copyright © 2026 Naser AlMadi</Copyright>
+    <NeutralLanguage>en</NeutralLanguage>
+
+    <!-- Windows-specific projects use this TFM; Itmam.Core stays on plain net10.0. -->
+    <ItmamWindowsTargetFramework>net10.0-windows10.0.19041.0</ItmamWindowsTargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+</Project>
