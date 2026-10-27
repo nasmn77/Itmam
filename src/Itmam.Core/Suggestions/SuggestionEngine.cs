@@ -106,31 +106,61 @@ public sealed class SuggestionEngine(
         string attachedPrefix,
         bool skipStemsWithAl)
     {
-        // 1. Best dictionary entries in the prefix range by (tier, base score + literal bonus).
+        // 1. Best dictionary entries in the prefix range by (tier, base score + bonuses).
         var pool = new CandidatePool(Options.CandidatePoolSize);
         var literalBonus = (float)KindBonus(literalKind);
         var otherBonus = (float)KindBonus(otherKind);
         var completeWordBonus = (float)Options.CompleteWordBonus;
-        var (start, end) = dictionary.FindPrefixRange(keyPrefix);
-        for (var i = start; i < end; i++)
+
+        void Consider(int i)
         {
             var display = dictionary.GetDisplay(i);
             var isLiteral = display.StartsWith(literalPrefix);
             var kind = isLiteral ? literalKind : otherKind;
             var score = dictionary.GetBaseScore(i) + (isLiteral ? literalBonus : otherBonus);
-            if (completeWordBonus > 0 && dictionary.GetKey(i).Length == keyPrefix.Length)
+            if (dictionary.GetKey(i).Length == keyPrefix.Length)
             {
                 score += completeWordBonus;
             }
+
             if (!pool.WouldAccept(Tier(kind), score)
+                || pool.Contains(i)
                 || display.SequenceEqual(literalPrefix)
                 || (skipStemsWithAl && display.StartsWith("ال"))
                 || userWords.IsBlocked(display))
             {
-                continue;
+                return;
             }
 
             pool.Add(i, kind, Tier(kind), score);
+        }
+
+        var (start, end) = dictionary.FindPrefixRange(keyPrefix);
+        if (Options.CandidatePoolSize <= PrefixCandidateCache.CandidatesPerPrefix
+            && dictionary.Cache.TryGet(keyPrefix, literalPrefix, out var byKey, out var byLiteral))
+        {
+            // Entries whose key equals the typed key (complete-word bonus) sort first in the range.
+            for (var i = start; i < end && dictionary.GetKey(i).Length == keyPrefix.Length; i++)
+            {
+                Consider(i);
+            }
+
+            foreach (var i in byLiteral)
+            {
+                Consider(i);
+            }
+
+            foreach (var i in byKey)
+            {
+                Consider(i);
+            }
+        }
+        else
+        {
+            for (var i = start; i < end; i++)
+            {
+                Consider(i);
+            }
         }
 
         foreach (var (index, kind, _, score) in pool.Items)
@@ -198,6 +228,19 @@ public sealed class SuggestionEngine(
         private int _worst = -1;
 
         public IReadOnlyList<(int Index, MatchKind Kind, int Tier, float Score)> Items => _items;
+
+        public bool Contains(int index)
+        {
+            foreach (var item in _items)
+            {
+                if (item.Index == index)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         public bool WouldAccept(int tier, float score) =>
             _items.Count < capacity || IsBetter(tier, score, _items[_worst].Tier, _items[_worst].Score);

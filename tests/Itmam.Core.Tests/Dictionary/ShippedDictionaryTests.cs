@@ -43,9 +43,13 @@ public class ShippedDictionaryTests(ITestOutputHelper output)
     [InlineData("است")]
     [InlineData("والمد")]
     [InlineData("بالت")]
+    [InlineData("المس")]
+    [InlineData("المت")]
+    [InlineData("استخ")]
+    [InlineData("ا")]
     public void Lookup_takes_under_2ms(string prefix)
     {
-        var engine = new SuggestionEngine(Shipped.Value, new UserWordIndex());
+        var engine = new SuggestionEngine(Shipped.Value, new UserWordIndex(), new SuggestionOptions { MinChars = 1 });
         for (var i = 0; i < 20; i++)
         {
             engine.Suggest(prefix);
@@ -64,6 +68,33 @@ public class ShippedDictionaryTests(ITestOutputHelper output)
         var median = timings[runs / 2];
         output.WriteLine($"{prefix}: median {median:F3} ms, p95 {timings[runs * 95 / 100]:F3} ms");
         median.ShouldBeLessThan(2.0);
+    }
+
+    [Fact]
+    public void Prefix_cache_gives_exactly_the_same_suggestions_as_a_full_scan()
+    {
+        var dictionary = Shipped.Value;
+        var cached = new SuggestionEngine(dictionary, new UserWordIndex(), new SuggestionOptions { MinChars = 1, MaxSuggestions = 5 });
+
+        // A pool larger than the cache disables it, forcing a full range scan; the top 5 must not change.
+        var scanned = new SuggestionEngine(
+            dictionary,
+            new UserWordIndex(),
+            new SuggestionOptions { MinChars = 1, MaxSuggestions = 5, CandidatePoolSize = PrefixCandidateCache.CandidatesPerPrefix + 1 });
+
+        // Every distinct literal prefix of 1–3 letters that occurs in the dictionary.
+        var prefixes = Enumerable.Range(0, dictionary.Count)
+            .SelectMany(i => Enumerable.Range(1, Math.Min(3, dictionary.GetDisplay(i).Length)).Select(n => dictionary.GetDisplay(i)[..n].ToString()))
+            .Distinct()
+            .ToArray();
+
+        var mismatches = prefixes
+            .Where(p => !cached.Suggest(p).Select(s => s.Word).SequenceEqual(scanned.Suggest(p).Select(s => s.Word)))
+            .Take(10)
+            .ToArray();
+
+        output.WriteLine($"Compared {prefixes.Length:N0} prefixes; cache: {dictionary.Cache.PrefixCount:N0} prefixes, {dictionary.Cache.CandidateCount:N0} candidates");
+        mismatches.ShouldBeEmpty();
     }
 
     [Theory]
