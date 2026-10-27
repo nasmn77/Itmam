@@ -24,11 +24,13 @@ app can be audited for privacy. It is updated at the end of each phase.
    • SetWinEventHook(EVENT_SYSTEM_FOREGROUND, EVENT_OBJECT_FOCUS, out-of-context, skip own process)
         │  callbacks only: filter → classify → translate → enqueue; always CallNextHookEx
         ▼
- Channel<HookEvent>  (unbounded, single writer, single reader; in memory only)
+ Channel<InputRecord>  (unbounded, single writer, single reader; in memory only)
         │
         ▼
- worker task (App) → Itmam.Core.Input.InputTracker → WordBuffer
-        │
+ Itmam.Core.Input.InputPipeline (worker task) → InputTracker → WordBuffer
+        │            │
+        │            └─ after Backspace on an empty word: Itmam.Win32.UiaCaretContextSource
+        │               (reads ≤ 49 characters before the caret, see "Caret context" below)
         ▼
  UI thread: debug window shows the current word (Phase 3+: suggestion popup)
 ```
@@ -57,6 +59,28 @@ while the layout is not Arabic (primary language `0x01` of the HKL low word), so
 never buffered. `WordBuffer` applies the rules in `PROMPT.md` §4 and emits *Committed* only on a
 word boundary.
 
+### Caret context (Backspace into existing text)
+
+Backspace on an empty word moves the caret into text the app did not see typed (the previous
+word, or text that existed before). `WordBuffer` then becomes *detached*: letters are ignored, so
+no wrong suggestions are made from a half-seen word.
+
+To resume quickly, `InputPipeline` waits 40 ms after the last such Backspace (so the app has
+applied it; holding Backspace probes only once) and asks `UiaCaretContextSource` for the text
+before the caret:
+
+1. `IUIAutomation.GetFocusedElement()`; if `CurrentIsPassword` → nothing is read.
+2. Caret range from `TextPattern2.GetCaretRange`, or the (empty) selection from `TextPattern`.
+3. A copy of the range is extended **backwards by at most 49 characters** and `GetText(49)` is called.
+
+`WordBuffer.ResumeFromContext` keeps only the trailing Arabic word of that text (the word the
+caret is in) as the current word, or resumes with an empty word if a boundary or the start of the
+field precedes the caret. The rest of the text is discarded immediately; nothing is stored or
+logged. If keys arrive while reading, the result is discarded. If the app has no UI Automation
+text support, the call times out (250 ms, on a dedicated MTA thread) or fails, tracking stays
+paused and resumes at the next boundary, click, navigation key, shortcut (e.g. Ctrl+A) or focus
+change.
+
 ### Robustness
 
 - Every callback is wrapped in `try/catch`; an exception increments a counter and the input is
@@ -69,6 +93,8 @@ word boundary.
 ## Privacy guarantees in the code
 
 - Typed characters exist only in memory: in the channel, in `WordBuffer`, and on screen.
+- The only text read from other apps is ≤ 49 characters before the caret, after Backspace on an
+  empty word, never from password fields; only the current word is kept from it.
 - No code path writes characters to a log, file, or the network. The debug window's event list
   shows event *kinds* and latencies only (letters are shown as `Character (letter)`).
 - Hook diagnostics (`HookDiagnostics`) are counters and timings only.

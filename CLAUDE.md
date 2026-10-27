@@ -6,6 +6,10 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
 ## Current status
 - **Current phase:** 2 — Win32 hooks (done on branch `phase-2-hook`, awaiting review + manual typing test).
 - **Next phase:** 3 — caret locator + suggestion popup (ask the user for a screenshot of the native Win11 suggestion bar first).
+- Backspace on an empty word (user decision): buffer becomes *detached*; `InputPipeline` reads ≤ 49 chars before the caret via
+  UI Automation (`UiaCaretContextSource`, never in password fields, nothing stored) and resumes with the word the caret is in,
+  or empty. Without UIA: resume at boundary, click, navigation, shortcut (Ctrl+A) or focus change. Documented in PRIVACY.md.
+- Hook warm-up before install fixed first-keystroke latency (max 472 µs, steady 311 µs measured by the user).
 - Phase 2 notes: input path documented in `docs/ARCHITECTURE.md`; `Program.cs` temporarily runs `DebugWindow` (replaced in
   Phase 6). Key classification (`KeyClassifier`) and layout gating (`InputTracker`) live in Core and are unit-tested.
 - `gh` CLI token on this machine is invalid; read CI status from the public badge
