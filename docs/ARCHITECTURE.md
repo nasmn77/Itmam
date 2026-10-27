@@ -96,6 +96,13 @@ change.
 - Hook delegates are held in fields so the GC cannot collect them while installed.
 - Before installing, every keystroke code path is run once (warm-up) so JIT and P/Invoke stub
   generation never happen inside a real callback.
+- Latency target for the keyboard callback: **p99 < 1 ms and max < 5 ms** (Windows removes a
+  hook only after hundreds of ms). The hook thread runs at `AboveNormal` priority, and the
+  foreground input thread is cached (`ForegroundLayoutCache`), so a keystroke costs one
+  `GetForegroundWindow` and one `GetKeyboardLayout` call. The layout itself is read on every key
+  because a layout switch changes no window and raises no event we receive.
+- An unavailable caret context is retried once after 100 ms: Chromium/Electron enable their
+  accessibility tree on the first UI Automation request.
 - A garbage collection pauses all managed threads, the hook thread included. The app runs with
   `GCLatencyMode.SustainedLowLatency` and the worker avoids per-event allocations; the debug
   window reports callbacks slower than 500 µs and how many of them overlapped a GC.
