@@ -34,10 +34,35 @@ public sealed class HookDiagnostics
     /// <summary>Slowest keyboard callback after the first <see cref="SteadyAfterKeys"/> key presses.</summary>
     public TimeSpan MaxCallbackSteady => TimeSpan.FromTicks(Volatile.Read(ref _maxSteadyTicks));
 
+    /// <summary>Keyboard callbacks slower than this count as slow.</summary>
+    public static readonly TimeSpan SlowThreshold = TimeSpan.FromMicroseconds(500);
+
+    /// <summary>Keyboard callbacks slower than <see cref="SlowThreshold"/>.</summary>
+    public long SlowCallbacks { get; private set; }
+
+    /// <summary>Slow callbacks during which a garbage collection ran (the hook thread was paused by it).</summary>
+    public long SlowCallbacksDuringGc { get; private set; }
+
     public void ResetMax()
     {
         Volatile.Write(ref _maxCallbackTicks, 0);
         Volatile.Write(ref _maxSteadyTicks, 0);
+    }
+
+    /// <param name="duration">Time spent in the callback.</param>
+    /// <param name="gcRan">A gen-0 collection completed while the callback ran.</param>
+    internal void RecordKeyCallback(TimeSpan duration, bool gcRan)
+    {
+        if (duration > SlowThreshold)
+        {
+            SlowCallbacks++;
+            if (gcRan)
+            {
+                SlowCallbacksDuringGc++;
+            }
+        }
+
+        RecordCallback(duration);
     }
 
     internal void RecordCallback(TimeSpan duration)

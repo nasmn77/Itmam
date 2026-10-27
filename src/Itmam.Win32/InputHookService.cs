@@ -243,7 +243,10 @@ public sealed unsafe class InputHookService : IDisposable
     {
         if (code >= 0)
         {
+            // Measured from inside managed code: a GC already running when Windows calls us delays
+            // the entry itself and is not included. A GC during the body is detected by the count.
             var start = Stopwatch.GetTimestamp();
+            var gcCount = GC.CollectionCount(0);
             try
             {
                 Volatile.Write(ref _lastHookTick, (uint)Environment.TickCount);
@@ -261,7 +264,7 @@ public sealed unsafe class InputHookService : IDisposable
                 Diagnostics.CallbackErrors++;
             }
 
-            Diagnostics.RecordCallback(Stopwatch.GetElapsedTime(start));
+            Diagnostics.RecordKeyCallback(Stopwatch.GetElapsedTime(start), GC.CollectionCount(0) != gcCount);
         }
 
         return PInvoke.CallNextHookEx(default, code, wParam, lParam);

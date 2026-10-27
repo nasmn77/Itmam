@@ -35,6 +35,9 @@ public enum ProbeOutcome
 
     /// <summary>Keys arrived while reading, so the text may already include them; result discarded.</summary>
     Discarded,
+
+    /// <summary>The foreground app is excluded (or reading is not allowed): nothing was read.</summary>
+    NotAllowed,
 }
 
 /// <summary>State after an event or a context probe, raised on the pipeline's thread.</summary>
@@ -55,6 +58,12 @@ public sealed record InputPipelineOptions
 
     /// <summary>Characters read before the caret: enough for any word plus the boundary before it.</summary>
     public int ProbeChars { get; init; } = WordBuffer.MaxLength + 1;
+
+    /// <summary>
+    /// Checked right before every read of the caret context; false (e.g. the foreground app is
+    /// excluded) means nothing is read from the app.
+    /// </summary>
+    public Func<bool> CanReadContext { get; init; } = static () => true;
 }
 
 /// <summary>
@@ -78,31 +87,42 @@ public sealed class InputPipeline(ChannelReader<InputRecord> input, ICaretContex
         Task<bool>? waitForInput = null;
         while (!cancellation.IsCancellationRequested)
         {
-            waitForInput ??= input.WaitToReadAsync(cancellation).AsTask();
-
-            if (probeDue is { } due)
-            {
-                var remaining = TimeSpan.FromTicks(Math.Max(0, due - DateTime.UtcNow.Ticks));
-                var delay = Task.Delay(remaining, cancellation);
-                if (await Task.WhenAny(waitForInput, delay).ConfigureAwait(false) == delay)
-                {
-                    probeDue = null;
-                    await ProbeAsync(cancellation).ConfigureAwait(false);
-                    continue;
-                }
-            }
-
             bool hasInput;
             try
             {
-                hasInput = await waitForInput.ConfigureAwait(false);
+                if (probeDue is { } due)
+                {
+                    // Race the next input against the probe delay; only here is a Task allocated.
+                    waitForInput ??= input.WaitToReadAsync(cancellation).AsTask();
+                    using var delayCancel = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
+                    var remaining = TimeSpan.FromTicks(Math.Max(0, due - DateTime.UtcNow.Ticks));
+                    var delay = Task.Delay(remaining, delayCancel.Token);
+                    if (await Task.WhenAny(waitForInput, delay).ConfigureAwait(false) == delay)
+                    {
+                        probeDue = null;
+                        await ProbeAsync(cancellation).ConfigureAwait(false);
+                        continue;
+                    }
+
+                    delayCancel.Cancel(); // free the timer now
+                    hasInput = await waitForInput.ConfigureAwait(false);
+                    waitForInput = null;
+                }
+                else if (waitForInput is not null)
+                {
+                    hasInput = await waitForInput.ConfigureAwait(false);
+                    waitForInput = null;
+                }
+                else
+                {
+                    hasInput = await input.WaitToReadAsync(cancellation).ConfigureAwait(false);
+                }
             }
             catch (OperationCanceledException)
             {
                 return;
             }
 
-            waitForInput = null;
             if (!hasInput)
             {
                 return; // channel completed
@@ -125,6 +145,12 @@ public sealed class InputPipeline(ChannelReader<InputRecord> input, ICaretContex
     {
         if (!Tracker.Buffer.IsDetached || HasPendingInput())
         {
+            return;
+        }
+
+        if (!_options.CanReadContext())
+        {
+            Raise(null, BufferResult.None, ProbeOutcome.NotAllowed);
             return;
         }
 
