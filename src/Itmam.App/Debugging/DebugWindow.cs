@@ -107,8 +107,9 @@ internal sealed class DebugWindow : Form
     {
         var d = _hooks.Diagnostics;
         _health.Text =
-            $"keys {d.KeyEvents}  clicks {d.MouseClicks}  focus {d.FocusEvents}  reinstalls {d.Reinstalls}  errors {d.CallbackErrors}\n" +
-            $"hook callback: last {d.LastCallback.TotalMicroseconds:F0} µs, max {d.MaxCallback.TotalMicroseconds:F0} µs";
+            $"keys {d.KeyEvents}  clicks {d.MouseClicks}  focus {d.FocusEvents} (+{d.RepeatedFocusEvents} repeated, ignored)  reinstalls {d.Reinstalls}  errors {d.CallbackErrors}\n" +
+            $"hook callback: last {d.LastCallback.TotalMicroseconds:F0} µs, max {d.MaxCallback.TotalMicroseconds:F0} µs, " +
+            $"max after first {HookDiagnostics.SteadyAfterKeys} keys {d.MaxCallbackSteady.TotalMicroseconds:F0} µs";
     }
 
     // Event kind only: letters are reported as a category, never as the character itself.

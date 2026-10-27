@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Threading.Channels;
 using Itmam.Core.Input;
 using Windows.Win32;
@@ -53,6 +54,7 @@ public sealed unsafe class InputHookService : IDisposable
     private HHOOK _mouseHook;
     private HWINEVENTHOOK _foregroundHook;
     private HWINEVENTHOOK _focusHook;
+    private (HWND Window, int Object, int Child) _lastFocus;
     private uint _lastHookTick;
     private long _lastReinstallTick;
     private Exception? _startError;
@@ -102,6 +104,7 @@ public sealed unsafe class InputHookService : IDisposable
         _threadId = PInvoke.GetCurrentThreadId();
         try
         {
+            WarmUp();
             InstallLowLevelHooks();
             const uint flags = PInvoke.WINEVENT_OUTOFCONTEXT | PInvoke.WINEVENT_SKIPOWNPROCESS;
             _foregroundHook = PInvoke.SetWinEventHook(PInvoke.EVENT_SYSTEM_FOREGROUND, PInvoke.EVENT_SYSTEM_FOREGROUND, default(HMODULE), _winEventProc, 0, 0, flags);
@@ -136,6 +139,39 @@ public sealed unsafe class InputHookService : IDisposable
         }
 
         UninstallAll();
+    }
+
+    /// <summary>
+    /// Runs every code path a real keystroke takes before the hooks are installed, so JIT
+    /// compilation and P/Invoke stub generation do not happen inside the first real callback
+    /// (a first callback measured ~4.6 ms without this, against a 1 ms budget).
+    /// </summary>
+    private void WarmUp()
+    {
+        // Native → managed thunks of the hook delegates. code = -1 means "pass on, do nothing".
+        var keyboard = (delegate* unmanaged<int, WPARAM, LPARAM, LRESULT>)Marshal.GetFunctionPointerForDelegate(_keyboardProc);
+        var mouse = (delegate* unmanaged<int, WPARAM, LPARAM, LRESULT>)Marshal.GetFunctionPointerForDelegate(_mouseProc);
+        var winEvent = (delegate* unmanaged<HWINEVENTHOOK, uint, HWND, int, int, uint, uint, void>)Marshal.GetFunctionPointerForDelegate(_winEventProc);
+        keyboard(-1, default, default);
+        mouse(-1, default, default);
+        winEvent(default, 0, default, 0, 0, 0, 0); // event 0 is ignored
+
+        // Classification, layout lookup and ToUnicodeEx for a letter, an event key and a modifier.
+        var letter = new KBDLLHOOKSTRUCT { vkCode = 0x41, scanCode = 0x1E };
+        var backspace = new KBDLLHOOKSTRUCT { vkCode = 0x08, scanCode = 0x0E };
+        var shift = new KBDLLHOOKSTRUCT { vkCode = 0xA0, scanCode = 0x2A };
+        OnKeyDown(&letter, publish: false);
+        OnKeyDown(&backspace, publish: false);
+        OnKeyDown(&shift, publish: false);
+
+        // Channel write/read code for HookEvent, on a throwaway channel so no fake event is published.
+        var probe = Channel.CreateUnbounded<HookEvent>(new UnboundedChannelOptions { SingleReader = true, SingleWriter = true });
+        probe.Writer.TryWrite(new HookEvent(InputEvent.Char('ا'), KeyboardLayouts.ForegroundLayout(), Stopwatch.GetTimestamp()));
+        probe.Reader.TryRead(out _);
+
+        Diagnostics.RecordCallback(Stopwatch.GetElapsedTime(Stopwatch.GetTimestamp()));
+        Diagnostics.ResetMax();
+        _ = Volatile.Read(ref _lastHookTick);
     }
 
     private void InstallLowLevelHooks()
@@ -221,7 +257,8 @@ public sealed unsafe class InputHookService : IDisposable
                 var injected = (data->flags & KBDLLHOOKSTRUCT_FLAGS.LLKHF_INJECTED) != 0;
                 if ((message == PInvoke.WM_KEYDOWN || message == PInvoke.WM_SYSKEYDOWN) && !injected)
                 {
-                    OnKeyDown(data);
+                    Diagnostics.KeyEvents++;
+                    OnKeyDown(data, publish: true);
                 }
             }
             catch (Exception)
@@ -235,9 +272,8 @@ public sealed unsafe class InputHookService : IDisposable
         return PInvoke.CallNextHookEx(default, code, wParam, lParam);
     }
 
-    private void OnKeyDown(KBDLLHOOKSTRUCT* data)
+    private void OnKeyDown(KBDLLHOOKSTRUCT* data, bool publish)
     {
-        Diagnostics.KeyEvents++;
         var modifiers = CurrentModifiers(data);
         var classification = KeyClassifier.Classify((int)data->vkCode, modifiers);
         if (classification.Action == KeyAction.Ignore)
@@ -248,14 +284,18 @@ public sealed unsafe class InputHookService : IDisposable
         var layout = KeyboardLayouts.ForegroundLayout();
         if (classification.Action == KeyAction.Event)
         {
-            Publish(InputEvent.Of(classification.Kind), layout);
+            if (publish)
+            {
+                Publish(InputEvent.Of(classification.Kind), layout);
+            }
+
             return;
         }
 
         var count = Translate(data, modifiers, layout);
-        if (count < 0)
+        if (!publish || count < 0)
         {
-            return; // dead key: wait for the next key
+            return; // warm-up, or a dead key waiting for the next key
         }
 
         if (count == 0)
@@ -353,7 +393,30 @@ public sealed unsafe class InputHookService : IDisposable
     {
         try
         {
-            var kind = eventType == PInvoke.EVENT_SYSTEM_FOREGROUND ? InputEventKind.ForegroundChanged : InputEventKind.FocusChanged;
+            InputEventKind kind;
+            if (eventType == PInvoke.EVENT_SYSTEM_FOREGROUND)
+            {
+                kind = InputEventKind.ForegroundChanged;
+            }
+            else if (eventType == PInvoke.EVENT_OBJECT_FOCUS)
+            {
+                // Some apps re-announce focus on the element that already has it while typing;
+                // only a real move to another element resets the word.
+                var focused = (hwnd, idObject, idChild);
+                if (focused == _lastFocus)
+                {
+                    Diagnostics.RepeatedFocusEvents++;
+                    return;
+                }
+
+                _lastFocus = focused;
+                kind = InputEventKind.FocusChanged;
+            }
+            else
+            {
+                return;
+            }
+
             Diagnostics.FocusEvents++;
             Publish(InputEvent.Of(kind), KeyboardLayouts.ForegroundLayout());
         }
