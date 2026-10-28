@@ -25,11 +25,15 @@ internal static class HotkeyNames
             parts.Add("Shift");
         }
 
-        parts.Add(KeyName(hotkey.VirtualKey));
+        if (hotkey.VirtualKey != 0 || parts.Count == 0)
+        {
+            parts.Add(KeyName(hotkey.VirtualKey)); // 0: modifiers alone, e.g. "Ctrl+Alt"
+        }
+
         return string.Join("+", parts);
     }
 
-    public static string Format(KeyModifiers modifiers) => Format(new Hotkey(0, modifiers)).TrimEnd('+', '?');
+    public static string Format(KeyModifiers modifiers) => Format(new Hotkey(0, modifiers));
 
     private static string KeyName(int virtualKey) => (Keys)virtualKey switch
     {
@@ -59,12 +63,14 @@ internal static class HotkeyNames
 
 /// <summary>
 /// Shows a shortcut; click it (or press Enter/Space) and press the new keys to record one.
-/// Clicking elsewhere cancels. Every key, Tab and Esc included, can be recorded.
+/// Clicking elsewhere cancels. Every key, Tab and Esc included, can be recorded, and modifiers
+/// pressed and released on their own (Ctrl+Alt) record a modifiers-only shortcut.
 /// </summary>
 internal sealed class HotkeyBox : ThemedControl
 {
     private Hotkey _hotkey;
     private bool _recording;
+    private KeyModifiers _heldModifiers; // most modifiers held at once while recording
     private bool _hovered;
 
     public HotkeyBox()
@@ -132,17 +138,33 @@ internal sealed class HotkeyBox : ThemedControl
         }
 
         var key = (int)e.KeyCode;
-        if (HotkeyRules.IsModifierKey(key) || e.KeyCode is Keys.Menu or Keys.LWin or Keys.RWin)
+        var modifiers = Modifiers(e);
+        if (HotkeyRules.IsModifierKey(key))
         {
-            return; // wait for the main key
+            _heldModifiers |= modifiers; // wait for the main key, or for the modifiers' release
+            return;
         }
 
-        var modifiers = (e.Control ? KeyModifiers.Ctrl : KeyModifiers.None)
-            | (e.Alt ? KeyModifiers.Alt : KeyModifiers.None)
-            | (e.Shift ? KeyModifiers.Shift : KeyModifiers.None);
         SetRecording(false);
         Recorded?.Invoke(new Hotkey(key, modifiers));
     }
+
+    // Modifiers released without another key: a modifiers-only shortcut such as Ctrl+Alt.
+    protected override void OnKeyUp(KeyEventArgs e)
+    {
+        base.OnKeyUp(e);
+        if (_recording && HotkeyRules.IsModifierKey((int)e.KeyCode) && _heldModifiers != KeyModifiers.None)
+        {
+            var held = _heldModifiers;
+            SetRecording(false);
+            Recorded?.Invoke(new Hotkey(0, held));
+        }
+    }
+
+    private static KeyModifiers Modifiers(KeyEventArgs e) =>
+        (e.Control ? KeyModifiers.Ctrl : KeyModifiers.None)
+        | (e.Alt ? KeyModifiers.Alt : KeyModifiers.None)
+        | (e.Shift ? KeyModifiers.Shift : KeyModifiers.None);
 
     // Alt+key arrives as a system key: record it instead of letting it reach the window menu.
     protected override void WndProc(ref Message m)
@@ -216,6 +238,7 @@ internal sealed class HotkeyBox : ThemedControl
         if (_recording != recording)
         {
             _recording = recording;
+            _heldModifiers = KeyModifiers.None;
             Invalidate();
             RecordingChanged?.Invoke(recording);
         }

@@ -479,6 +479,7 @@ internal sealed class SettingsWindow : Form
             HotkeyProblem.EditingKey => Strings.HotkeyProblemEditingKey,
             HotkeyProblem.NeedsModifier => Strings.HotkeyProblemNeedsModifier,
             HotkeyProblem.CommonShortcut => Strings.HotkeyProblemCommonShortcut,
+            HotkeyProblem.ModifiersOnly => Strings.HotkeyProblemModifiersOnly,
             _ => Strings.HotkeyProblemAcceptsNth,
         };
 

@@ -72,7 +72,7 @@ internal sealed class ItmamApp : IDisposable
         GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
     }
 
-    /// <summary>Enabled/disabled changed (tray, Ctrl+Alt+P, pause). Raised on the UI thread.</summary>
+    /// <summary>Enabled/disabled changed (tray, the toggle shortcut, pause). Raised on the UI thread.</summary>
     public event Action? EnabledChanged;
 
     public string DataFolder { get; }
@@ -131,13 +131,13 @@ internal sealed class ItmamApp : IDisposable
 
     /// <summary>
     /// While a shortcut is being recorded in Settings, Itmam's own shortcuts are off (virtual key 0
-    /// never arrives), so pressing e.g. Ctrl+Alt+P reaches the settings window instead of toggling Itmam.
+    /// never arrives), so pressing e.g. Ctrl+Alt reaches the settings window instead of toggling Itmam.
     /// </summary>
     public void SuspendHotkeys(bool suspend) => Hooks.Hotkeys = suspend
         ? new HotkeySettings { AcceptFirst = default, Dismiss = default, ToggleEnabled = default, NativeNavigation = false }
         : Settings.Hotkeys;
 
-    /// <summary>Tray "Enabled" / Ctrl+Alt+P: remembered across restarts.</summary>
+    /// <summary>Tray "Enabled" / the toggle shortcut: remembered across restarts.</summary>
     public void SetEnabled(bool enabled)
     {
         PausedUntil = null;
@@ -233,7 +233,7 @@ internal sealed class ItmamApp : IDisposable
             Learning.Remove(forgotten);
         }
 
-        // Ctrl+Alt+P (or the tray) toggled Itmam: keep the tray and settings in sync.
+        // The toggle shortcut (or the tray) toggled Itmam: keep the tray and settings in sync.
         if (update.Input?.Input.Kind == InputEventKind.ToggleEnabled)
         {
             _ui.Post(_ =>

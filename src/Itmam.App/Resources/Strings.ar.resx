@@ -6,7 +6,7 @@
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="AppName" xml:space="preserve"><value>إتمام</value></data>
   <data name="TrayOn" xml:space="preserve"><value>إتمام — يعمل</value></data>
-  <data name="TrayOff" xml:space="preserve"><value>إتمام — متوقف (Ctrl+Alt+P للتشغيل)</value></data>
+  <data name="TrayOff" xml:space="preserve"><value>إتمام — متوقف ({0} للتشغيل)</value></data>
   <data name="TrayPausedUntil" xml:space="preserve"><value>إتمام — متوقف مؤقتًا حتى {0}</value></data>
   <data name="MenuEnabled" xml:space="preserve"><value>مفعّل</value></data>
   <data name="MenuPauseHour" xml:space="preserve"><value>إيقاف مؤقت لساعة</value></data>
@@ -93,11 +93,12 @@
   <data name="NativeNavigation" xml:space="preserve"><value>الاختيار بالأسهم</value></data>
   <data name="NativeNavigationHint" xml:space="preserve"><value>↑ للدخول إلى الشريط، ← → للاختيار، Enter للإدراج، Esc أو ↓ للخروج. Ctrl+Delete ينسى الكلمة المتعلَّمة المحددة.</value></data>
   <data name="ResetShortcuts" xml:space="preserve"><value>الاختصارات الافتراضية</value></data>
-  <data name="ResetShortcutsHint" xml:space="preserve"><value>Tab للإدراج، وEsc للإخفاء، و‪Ctrl+Alt+P‬ للتشغيل والإيقاف، والاختيار بالأسهم.</value></data>
+  <data name="ResetShortcutsHint" xml:space="preserve"><value>Tab للإدراج، وEsc للإخفاء، و‪Ctrl+Alt‬ (ضغطًا ثم إفلاتًا) للتشغيل والإيقاف، والاختيار بالأسهم.</value></data>
   <data name="HotkeyProblemDuplicate" xml:space="preserve"><value>{0} مستخدم لاختصار آخر في إتمام.</value></data>
   <data name="HotkeyProblemTypesText" xml:space="preserve"><value>{0} يكتب نصًا: أضف Ctrl أو Alt.</value></data>
   <data name="HotkeyProblemEditingKey" xml:space="preserve"><value>{0} لازم لتحرير النص: اختر مفتاحًا آخر.</value></data>
   <data name="HotkeyProblemNeedsModifier" xml:space="preserve"><value>{0} سيُحجز في كل التطبيقات: أضف Ctrl أو Alt.</value></data>
   <data name="HotkeyProblemCommonShortcut" xml:space="preserve"><value>{0} اختصار شائع في Windows: اختر غيره.</value></data>
   <data name="HotkeyProblemAcceptsNth" xml:space="preserve"><value>{0} يُدرج اقتراحًا برقمه بالفعل.</value></data>
+  <data name="HotkeyProblemModifiersOnly" xml:space="preserve"><value>Ctrl أو Alt أو Shift وحدها تصلح فقط لتشغيل إتمام وإيقافه: أضف مفتاحًا.</value></data>
 </root>

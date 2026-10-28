@@ -154,7 +154,7 @@ increase; numbers dominated by Chrome finishing start-up). Large pages build lar
         │    Tab                   → Swallow + AcceptSuggestion(0, word)
         │    Ctrl+1…9 (≤ shown)    → Swallow + AcceptSuggestion(n, word)
         │    Esc                   → Swallow + DismissSuggestions
-        │    Ctrl+Alt+P (always)   → Swallow + ToggleEnabled
+        │    Ctrl+Alt released alone (always) → ToggleEnabled (key-up, nothing swallowed)
         │    native navigation (setting, off): Up enters, ←/→ select, Enter accepts, Esc/↓ leave
         │  a swallowed key's key-up is swallowed too
         ▼
@@ -176,7 +176,7 @@ punctuation gets no space before it, and otherwise a space is appended.
 The word in `AcceptSuggestion` is captured from the bar snapshot the hook saw, so exactly the
 word on screen is inserted. `PopupState` is published by the UI thread on every show/hide and
 read lock-free by the hook. Clicking a word on the bar posts the same event; clicks inside the
-bar's bounds are not treated as caret moves. While disabled (Ctrl+Alt+P), the hooks publish
+bar's bounds are not treated as caret moves. While disabled (Ctrl+Alt by default), the hooks publish
 nothing and swallow nothing except the toggle key.
 
 ## Learning and storage (Phase 5)

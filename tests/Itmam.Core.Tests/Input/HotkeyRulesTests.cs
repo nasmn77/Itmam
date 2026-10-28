@@ -59,6 +59,20 @@ public class HotkeyRulesTests
     }
 
     [Fact]
+    public void Modifiers_alone_are_only_for_the_toggle_and_only_ctrl_alt()
+    {
+        var ctrlAlt = new Hotkey(0, KeyModifiers.Ctrl | KeyModifiers.Alt);
+
+        Defaults.ToggleEnabled.ShouldBe(ctrlAlt);
+        HotkeyRules.Check(Defaults, HotkeyAction.ToggleEnabled, ctrlAlt).ShouldBe(HotkeyProblem.None);
+        HotkeyRules.Check(Defaults, HotkeyAction.ToggleEnabled, new(0, KeyModifiers.Ctrl | KeyModifiers.Alt | KeyModifiers.Shift)).ShouldBe(HotkeyProblem.None);
+        HotkeyRules.Check(Defaults, HotkeyAction.ToggleEnabled, new(0, KeyModifiers.Ctrl | KeyModifiers.Shift)).ShouldBe(HotkeyProblem.CommonShortcut);
+        HotkeyRules.Check(Defaults, HotkeyAction.ToggleEnabled, new(0, KeyModifiers.Alt | KeyModifiers.Shift)).ShouldBe(HotkeyProblem.CommonShortcut);
+        HotkeyRules.Check(Defaults, HotkeyAction.ToggleEnabled, new(0, KeyModifiers.Ctrl)).ShouldBe(HotkeyProblem.CommonShortcut);
+        HotkeyRules.Check(Defaults, HotkeyAction.AcceptFirst, ctrlAlt).ShouldBe(HotkeyProblem.ModifiersOnly);
+    }
+
+    [Fact]
     public void A_shortcut_used_by_another_action_is_refused()
     {
         HotkeyRules.Check(Defaults, HotkeyAction.AcceptFirst, Defaults.Dismiss).ShouldBe(HotkeyProblem.Duplicate);

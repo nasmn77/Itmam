@@ -30,6 +30,9 @@ public enum HotkeyProblem
 
     /// <summary>Same as "accept suggestion N" (the modifier held with a digit 1–9).</summary>
     AcceptsNthSuggestion,
+
+    /// <summary>Modifiers alone: only the global toggle can be Ctrl+Alt without another key.</summary>
+    ModifiersOnly,
 }
 
 /// <summary>
@@ -48,8 +51,17 @@ public static class HotkeyRules
     private static readonly HashSet<int> CommonCtrlLetters = [.. "ACVXZYSOPNFWT".Select(c => (int)c)];
 
     /// <summary>Modifier key codes (Shift/Ctrl/Alt/Win, left/right): never a shortcut by themselves.</summary>
-    public static bool IsModifierKey(int virtualKey) =>
-        virtualKey is 0x10 or 0x11 or 0x12 or 0x5B or 0x5C or (>= 0xA0 and <= 0xA5);
+    public static bool IsModifierKey(int virtualKey) => ModifierOf(virtualKey) != KeyModifiers.None;
+
+    /// <summary>The modifier a modifier key sets (Shift/Ctrl/Alt/Win, left or right); None for other keys.</summary>
+    public static KeyModifiers ModifierOf(int virtualKey) => virtualKey switch
+    {
+        0x10 or 0xA0 or 0xA1 => KeyModifiers.Shift,
+        0x11 or 0xA2 or 0xA3 => KeyModifiers.Ctrl,
+        0x12 or 0xA4 or 0xA5 => KeyModifiers.Alt,
+        0x5B or 0x5C => KeyModifiers.Win,
+        _ => KeyModifiers.None,
+    };
 
     /// <summary>Whether <paramref name="candidate"/> can be used for <paramref name="action"/>.</summary>
     public static HotkeyProblem Check(HotkeySettings settings, HotkeyAction action, Hotkey candidate)
@@ -61,6 +73,20 @@ public static class HotkeyRules
         if (action == HotkeyAction.ToggleEnabled && (mods & (KeyModifiers.Ctrl | KeyModifiers.Alt)) == 0)
         {
             return HotkeyProblem.NeedsModifier;
+        }
+
+        // Modifiers alone (pressed and released): only for the global toggle, and only Ctrl+Alt
+        // (+Shift); Ctrl+Shift / Alt+Shift switch the keyboard layout, Win opens Start.
+        if (key == 0)
+        {
+            if (action != HotkeyAction.ToggleEnabled)
+            {
+                return HotkeyProblem.ModifiersOnly;
+            }
+
+            return (mods & (KeyModifiers.Ctrl | KeyModifiers.Alt)) == (KeyModifiers.Ctrl | KeyModifiers.Alt) && !mods.HasFlag(KeyModifiers.Win)
+                ? HotkeyProblem.None
+                : HotkeyProblem.CommonShortcut;
         }
 
         if (!withCommand && TypesText(key))

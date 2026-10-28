@@ -199,7 +199,8 @@ internal sealed class TrayApplication : ApplicationContext
         _icon.Icon = _app.IsEnabled ? _iconOn : _iconOff;
         _icon.Text = paused is { } until
             ? string.Format(CultureInfo.CurrentCulture, Strings.TrayPausedUntil, until.ToString("t", CultureInfo.CurrentCulture))
-            : _app.IsEnabled ? Strings.TrayOn : Strings.TrayOff;
+            : _app.IsEnabled ? Strings.TrayOn
+            : string.Format(CultureInfo.CurrentCulture, Strings.TrayOff, "‪" + HotkeyNames.Format(_app.Settings.Hotkeys.ToggleEnabled) + "‬");
 
         if (paused is null)
         {

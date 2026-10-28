@@ -57,7 +57,7 @@ Keep `Core` 100% unit-testable with no Windows dependencies.
    - `Esc` → hide popup for the current word
    - All configurable in settings.
    - Mouse click on a suggestion also accepts it.
-6. Global toggle hotkey `Ctrl+Alt+P` enables/disables the app (configurable). Tray menu mirrors it.
+6. Global toggle hotkey enables/disables the app (configurable). Default: `Ctrl+Alt` pressed and released on its own, with no other key in between (user decision: no letter, so it works with any layout; `Ctrl+Alt+P` did not work with Arabic). Nothing is swallowed. Tray menu mirrors it.
 
 ## 4. Keyboard hook (Itmam.Win32)
 

@@ -22,7 +22,7 @@ public enum ThemeChoice
 /// </summary>
 public sealed record AppSettings
 {
-    /// <summary>Itmam suggests words (tray "Enable/Disable", Ctrl+Alt+P).</summary>
+    /// <summary>Itmam suggests words (tray "Enable/Disable", Ctrl+Alt by default).</summary>
     public bool Enabled { get; init; } = true;
 
     /// <summary>Start Itmam when the user signs in.</summary>

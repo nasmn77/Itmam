@@ -19,7 +19,7 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
   fields (ES_PASSWORD + UIA IsPassword), elevated, excluded and full-screen apps; right-click or Ctrl+Delete (navigating)
   FORGETS a learned word (user decision: removed, re-learned if used again); permanent blocking only in "My words". Startup does one compacting GC after loading: working set ≈ 90 MB, private ≈ 38 MB.
 - Phase 4 (approved after the user's tests in Notepad; other apps not tested yet): `HotkeyInterceptor` (Core) decides in the hook
-  from `PopupState`; Tab/Ctrl+N/Esc only while the bar is visible, Ctrl+Alt+P always; `SendInputInjector` releases a held Ctrl,
+  from `PopupState`; Tab/Ctrl+N/Esc only while the bar is visible, the toggle always (default Ctrl+Alt pressed and released alone, fired on key-up, nothing swallowed — user decision; Ctrl+Alt+P failed with the Arabic layout); `SendInputInjector` releases a held Ctrl,
   sends backspaces + Delete + unicode in one batch. Native navigation (Up/Left/Right/Enter/Esc) ON by default (user decision).
   No suggestions while text is selected (Shift+arrows, Ctrl+A, mouse drag). Accepting mid-line never doubles a space: the char
   after the caret is read with the context (space → Delete + word + space; punctuation → no space).
