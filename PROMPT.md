@@ -40,7 +40,7 @@ data/
   README.md                  # where the source word list comes from + license
 docs/
   PRIVACY.md  STORE_LISTING.md  ARCHITECTURE.md
-README.md  README.ar.md  LICENSE  THIRD_PARTY_NOTICES.md
+README.md (Arabic, default)  README.en.md  LICENSE  THIRD_PARTY_NOTICES.md
 ```
 
 Keep `Core` 100% unit-testable with no Windows dependencies.

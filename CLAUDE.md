@@ -93,6 +93,7 @@ Tests run on Microsoft.Testing.Platform (opted in via `global.json` → `test.ru
   are in the shipped dictionary.
 - Committed words are stored without tashkeel/tatweel.
 - Code license: MIT.
+- README: `README.md` is Arabic (the default shown on GitHub, user decision), `README.en.md` English; both cross-linked.
 - Terminals are excluded by default (user can re-enable in settings).
 - Lookup structure: sorted normalized-key array + front coding + varint frequencies (compressed via BCL), not an object trie, to meet the memory target.
 - The `.wapproj` is created in Phase 7: the MSIX tooling (DesktopBridge targets) is not installed in Visual Studio yet.

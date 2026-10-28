@@ -1,76 +1,102 @@
-# Itmam (إتمام)
+<div dir="rtl">
 
-**English** · [العربية](README.ar.md)
+# إتمام
 
-**Itmam** suggests Arabic words as you type on your physical keyboard, in any Windows app, like the suggestions on a phone: a small bar above the caret shows the closest words to what you started typing, and one key inserts the one you want.
+**العربية** · [English](README.en.md)
 
-It works fully offline, learns your own words, and never saves what you type.
+**إتمام** يقترح عليك الكلمات العربية أثناء الكتابة بلوحة المفاتيح في أي برنامج على Windows، مثل اقتراحات الهاتف: شريط صغير فوق المؤشر فيه أقرب الكلمات لما بدأت كتابته، تختار منها بضغطة واحدة.
 
-## Features
+يعمل دون اتصال بالإنترنت إطلاقًا، ويتعلّم كلماتك أنت، ولا يحفظ ما تكتبه.
 
-- **Instant suggestions** in Notepad, Word, browsers and most apps, from an Arabic dictionary of more than 500,000 words.
-- **Learns your words:** a word you use twice becomes a suggestion, and the words you use most come first.
-- **Understands Arabic writing:** «احمد» finds «أحمد», «ان» suggests «أن», «إن» and «أنا», and the article «ال» and attached prepositions and conjunctions are handled.
-- **A bar that looks like Windows 11's own**, following light or dark mode, with the colors, size and opacity you choose.
-- **Completes a word from the middle:** go back into a word with a click or Backspace and it continues from the caret.
-- **Silent where it should be:** password fields, excluded apps (such as terminals and remote desktop) and full-screen games.
-- **Arabic and English interface**, switched instantly, right to left in Arabic.
+المستودع: https://github.com/nasmn77/Itmam
 
-## Shortcuts
+## المزايا
 
-| Shortcut | What it does |
+- **اقتراحات فورية** في المفكرة وWord والمتصفحات ومعظم البرامج، من قاموس عربي فيه أكثر من 500 ألف كلمة.
+- **يتعلّم كلماتك:** الكلمة التي تستعملها مرتين تصبح من اقتراحاته، ويقدّم الكلمات الأكثر استعمالًا.
+- **يفهم الكتابة العربية:** «احمد» تجد «أحمد»، و«ان» تقترح «أن» و«إن» و«أنا»، ويتعامل مع «ال» وحروف العطف والجر.
+- **شريط يشبه شريط Windows 11** يتبع الوضع الفاتح أو الداكن، مع ألوان وحجم وعتامة تختارها.
+- **يكمل الكلمة من وسطها:** إذا رجعت إلى كلمة بالنقر أو Backspace يكملها من حيث يقف المؤشر.
+- **صامت حيث يجب:** في حقول كلمات المرور، والتطبيقات المستثناة (مثل الطرفيات وسطح المكتب البعيد)، والألعاب بملء الشاشة.
+- **واجهة عربية وإنجليزية** تتبدل فورًا، من اليمين لليسار بالعربية.
+
+## الاختصارات
+
+| الاختصار | ما يفعله |
 |---|---|
-| <kbd>Tab</kbd> | Insert the first suggestion |
-| <kbd>Ctrl</kbd>+<kbd>1</kbd>…<kbd>9</kbd> | Insert suggestion by number |
-| <kbd>↑</kbd>, then <kbd>←</kbd> <kbd>→</kbd>, then <kbd>Enter</kbd> | Choose with the arrow keys, then insert |
-| <kbd>Esc</kbd> | Hide the suggestions until the next word |
-| <kbd>Ctrl</kbd>+<kbd>Alt</kbd> (press and release) | Turn Itmam off or on from anywhere |
-| Right-click a suggestion, or <kbd>Ctrl</kbd>+<kbd>Delete</kbd> while choosing with the arrows | Forget a learned word |
+| <kbd>Tab</kbd> | إدراج الاقتراح الأول |
+| <kbd>Ctrl</kbd>+<kbd>1</kbd>…<kbd>9</kbd> | إدراج الاقتراح برقمه |
+| <kbd>↑</kbd> ثم <kbd>←</kbd> <kbd>→</kbd> ثم <kbd>Enter</kbd> | الاختيار بالأسهم ثم الإدراج |
+| <kbd>Esc</kbd> | إخفاء الاقتراحات حتى الكلمة التالية |
+| <kbd>Ctrl</kbd>+<kbd>Alt</kbd> (ضغط ثم إفلات) | إيقاف إتمام وتشغيله من أي مكان |
+| زر الفأرة الأيمن على اقتراح، أو <kbd>Ctrl</kbd>+<kbd>Delete</kbd> أثناء الاختيار بالأسهم | نسيان كلمة متعلَّمة |
 
-Shortcuts can be changed in Settings → "Shortcuts".
+يمكنك تغيير الاختصارات من الإعدادات ← «الاختصارات».
 
-## Settings
+## الإعدادات
 
-Open Settings by double-clicking the Itmam icon next to the clock:
+افتح الإعدادات بالنقر المزدوج على أيقونة إتمام قرب الساعة:
 
-- **General:** start with Windows, number of suggestions, letters before they appear, interface language.
-- **Appearance:** theme, bar, text and selection colors, opacity, text size, with a live preview.
-- **Shortcuts:** record a new shortcut by pressing it; shortcuts that would break typing or Windows shortcuts are refused.
-- **Excluded apps:** programs where Itmam stays completely silent.
-- **My words:** add, edit, block and delete words, import and export, delete all.
+- **عام:** التشغيل مع Windows، وعدد الاقتراحات، وعدد الحروف قبل ظهورها، ولغة الواجهة.
+- **المظهر:** السمة، وألوان الشريط والنص والتحديد، والعتامة، وحجم النص، مع معاينة حية.
+- **الاختصارات:** تسجيل اختصار جديد بضغطه، مع منع ما يتعارض مع الكتابة أو مع اختصارات Windows.
+- **التطبيقات المستثناة:** البرامج التي يبقى فيها إتمام صامتًا تمامًا.
+- **كلماتي:** إضافة الكلمات وتعديلها وحظرها وحذفها، والاستيراد والتصدير، وحذف الكل.
 
-## Privacy
+## الأيقونة قرب الساعة
 
-- No internet connection, no statistics, no automatic updates, no crash reports.
-- For each word only the word, how many times it was used and when are kept, in a file on your device. No sentences, no word order.
-- Nothing is read or learned in password fields or excluded apps.
+إتمام لا يظهر في شريط المهام ولا له نافذة رئيسية؛ يعمل من أيقونة قرب الساعة. يخفي Windows 11 الأيقونات الجديدة في القائمة المنبثقة (السهم ^)، ولإظهارها دائمًا:
 
-Full details in the [privacy policy](docs/PRIVACY.md).
+- اسحب أيقونة إتمام من القائمة المنبثقة إلى جانب الساعة، أو
+- من إعدادات Windows ← التخصيص ← شريط المهام، فعّل إتمام في قسم أيقونات زاوية شريط المهام الأخرى.
 
-## Requirements
+## الإيقاف أم الخروج
 
-- Windows 10 version 2004 (19041) or later, or Windows 11.
-- x64 or ARM64 processor.
-- An Arabic keyboard layout added in Windows.
+- **الإيقاف** (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>، أو «مفعّل» في قائمة الأيقونة، أو «إيقاف مؤقت لساعة»): يبقى إتمام قرب الساعة بأيقونة رمادية، ولا يتتبع شيئًا ولا يعترض أي مفتاح، حتى تعيد تشغيله.
+- **الخروج** (من قائمة الأيقونة أو صفحة «الخروج» في الإعدادات): يُغلق تمامًا حتى تسجيل الدخول التالي أو تشغيله يدويًا.
+- **لمنع تشغيله مع Windows:** الإعدادات ← عام ← «التشغيل مع Windows»، أو إعدادات Windows ← التطبيقات ← بدء التشغيل.
 
-## Building from source
+## الخصوصية
 
-Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0):
+- لا اتصال بالإنترنت، ولا إحصاءات، ولا تحديثات تلقائية، ولا تقارير أعطال.
+- يُحفظ لكل كلمة: الكلمة وعدد مرات استعمالها ووقت آخر استعمال فقط، في ملف على جهازك. لا جمل ولا ترتيب كلمات.
+- لا يُقرأ ولا يُتعلَّم شيء في حقول كلمات المرور والتطبيقات المستثناة.
+
+التفاصيل الكاملة في [سياسة الخصوصية](docs/PRIVACY.md).
+
+## المتطلبات
+
+- Windows 10 الإصدار 2004 (19041) أو أحدث، أو Windows 11.
+- معالج x64 أو ARM64.
+- لوحة مفاتيح عربية مضافة في Windows.
+
+## البناء من المصدر
+
+يحتاج [‎.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0):
 
 ```
 dotnet build Itmam.CI.slnf -c Release
 dotnet test --solution Itmam.CI.slnf -c Release
 ```
 
-Then run `src\Itmam.App\bin\Release\net10.0-windows10.0.19041.0\Itmam.exe`.
-How it works and how the code is organized: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+ثم شغّل `src\Itmam.App\bin\Release\net10.0-windows10.0.19041.0\Itmam.exe`.
+بنية المشروع وطريقة عمله في [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (بالإنجليزية).
 
-## License and sources
+## المساهمة
 
-- Source code: [MIT](LICENSE).
-- The dictionary (`data/itmam-ar.dict`) is derived from the [FrequencyWords](https://github.com/hermitdave/FrequencyWords) word frequency lists (built from OpenSubtitles subtitles) and is licensed [CC-BY-SA-4.0](https://creativecommons.org/licenses/by-sa/4.0/).
-- All components and their licenses: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+- **الأخطاء والاقتراحات:** افتح [Issue](https://github.com/nasmn77/Itmam/issues) واشرح ما حدث وفي أي برنامج.
+- **القاموس:** يُبنى بالأداة `tools/DictionaryBuilder` من مصادر ذات رخص مفتوحة، والطريقة موضّحة في [data/README.md](data/README.md). لاقتراح مصدر كلمات جديد، افتح Issue فيه رابطه ورخصته؛ لا يُضاف مصدر قبل التحقق من رخصته.
+- **قائمة الحظر** (`data/blocklist.txt`): كلمة في كل سطر. أرسل Pull Request مع سبب الإضافة أو الحذف؛ الكلمات العادية والطبية والقانونية والإخبارية لا تُحظر عمدًا.
+- **الشيفرة:** قبل أي Pull Request يجب أن ينجح البناء بلا تحذيرات وتنجح كل الاختبارات (الأوامر أعلاه). التعليقات والتوثيق في الشيفرة بالإنجليزية، ونصوص الواجهة في ملفات `.resx` بالعربية والإنجليزية.
 
-## Developer
+## الترخيص والمصادر
 
-Naser Mohammad Almadi — nasmn77@gmail.com
+- الشيفرة المصدرية: رخصة [MIT](LICENSE).
+- القاموس (`data/itmam-ar.dict`) مشتق من قوائم تكرار الكلمات في مشروع [FrequencyWords](https://github.com/hermitdave/FrequencyWords) (المأخوذة من ترجمات OpenSubtitles)، ورخصته [CC-BY-SA-4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+- تفاصيل كل المكوّنات ورخصها في [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+## المطوّر
+
+ناصر محمد الماضي — nasmn77@gmail.com
+
+</div>
