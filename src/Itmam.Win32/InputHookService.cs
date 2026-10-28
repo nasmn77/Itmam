@@ -40,7 +40,7 @@ public sealed unsafe class InputHookService : IDisposable
         Channel.CreateUnbounded<InputRecord>(new UnboundedChannelOptions { SingleReader = true });
 
     private readonly PopupState _popup;
-    private readonly HotkeyInterceptor _interceptor;
+    private volatile HotkeyInterceptor _interceptor;
     private readonly bool[] _swallowedKeys = new bool[256];
     private volatile bool _enabled = true;
 
@@ -91,6 +91,13 @@ public sealed unsafe class InputHookService : IDisposable
                 Publish(InputEvent.Of(InputEventKind.ToggleEnabled), 0);
             }
         }
+    }
+
+    /// <summary>Keys acting on the bar; replaced live from Settings (the hook reads the new instance on the next key).</summary>
+    public HotkeySettings Hotkeys
+    {
+        get => _interceptor.Settings;
+        set => _interceptor = new HotkeyInterceptor(value);
     }
 
     /// <summary>Publishes an event from another thread (e.g. a click on a suggestion).</summary>
