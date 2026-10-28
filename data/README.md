@@ -1,9 +1,76 @@
-# Dictionary data
+# بيانات القاموس | Dictionary data
+
+[العربية](#العربية) · [English](#english)
+
+<div dir="rtl">
+
+## العربية
+
+`itmam-ar.dict` هو القاموس الذي يُشحن مع إتمام. وهو مُولَّد لا مكتوب باليد: كل كلمة وكل تكرار فيه مأخوذ من مدوّنة نصوص حقيقية مذكورة أدناه. لا شيء هنا مُختلَق.
+
+### المصادر
+
+| الاسم | المحتوى | الرخصة | الإصدار المثبَّت |
+|---|---|---|---|
+| `frequencywords` | [FrequencyWords](https://github.com/hermitdave/FrequencyWords) من Hermit Dave: عدد مرات ورود الكلمات في مدوّنة ترجمات OpenSubtitles لعام 2018 ([OPUS](https://opus.nlpl.eu/OpenSubtitles/corpus/version/OpenSubtitles))، الملف `content/2018/ar/ar_full.txt`. عربية المحادثة والاستعمال اليومي. | المحتوى: [CC-BY-SA-4.0](https://creativecommons.org/licenses/by-sa/4.0/) (الشيفرة: MIT) | الـ commit ‏`525f9b560de45753a5ea01069454e72e9aa541c6`، وبصمة SHA-256 ‏`EBB36AEAE78E609ADC552B32EC91FF2490E1170F8B244D22EEF9952D2096D610` |
+
+مخطَّط لاحقًا: تكرار الكلمات في ويكيبيديا العربية (CC-BY-SA-4.0) لمفردات الفصحى، بعد اكتمال النسخة الأولى.
+
+**ملف القاموس `itmam-ar.dict` عمل مشتق من هذه المصادر، ويُوزَّع برخصة CC-BY-SA-4.0** مستقلًا عن الشيفرة المرخّصة بـ MIT. انظر `THIRD_PARTY_NOTICES.md`.
+
+### إعادة البناء
+
+```powershell
+# 1. Download the pinned sources into data/raw/ (git-ignored). This is the only network step.
+./tools/DictionaryBuilder/download-sources.ps1
+
+# 2. Build the dictionary (offline).
+dotnet run --project tools/DictionaryBuilder -c Release -- `
+    --source frequencywords=data/raw/frequencywords-ar_full.txt `
+    --min-count frequencywords=3 `
+    --drop-bare-alef-variants `
+    --blocklist data/blocklist.txt `
+    --output data/itmam-ar.dict
+```
+
+الخطوة الأولى تنزّل المصادر المثبَّتة إلى `data/raw/` (مستبعد من git)، وهي الخطوة الوحيدة التي تتصل بالشبكة. والثانية تبني القاموس دون اتصال.
+
+الخيارات:
+- `--source <name>=<path>`: مصدر (يتكرر؛ ويجب أن يكون الاسم مصدرًا معروفًا له إسناد).
+- `--weight <name>=<w>`: الوزن النسبي عند دمج عدة مصادر (الافتراضي 1).
+- `--min-count <name>=<n>`: إسقاط الكلمات التي وردت أقل من n مرة.
+- `--max-words <n>`: الحد الأقصى لعدد الكلمات.
+- `--drop-bare-alef-variants`: انظر الخطوة 5.
+
+### ما الذي تفعله أداة البناء
+
+1. تقرأ أسطر `word count` من كل مصدر، وتُسقط ما ورد أقل من `--min-count` (3 في FrequencyWords: الأندر غالبًا أخطاء كتابة).
+2. تحذف التشكيل والتطويل؛ وتُبقي الكلمات المكوّنة من حروف عربية فقط، بطول من 2 إلى 25 حرفًا، ولا يتكرر فيها حرف 3 مرات متتالية أو أكثر (فتُسقط `ههههه`، والكتابة المختلطة، والأرقام، وعلامات الترقيم).
+3. تحذف كل كلمة تقع صورتها الموحَّدة في `blocklist.txt`.
+4. تحوّل تكرار كل مصدر إلى نسبة لكل مليون، وتدمج المصادر بأوزانها.
+5. تجمع صور الكتابة حسب الصورة الموحَّدة (أ/إ/آ/ٱ←ا، ى←ي، ة←ه)، وتحتفظ **بعدة صور كتابة للصورة الواحدة، لكل منها تكراره**، فتبقى الكلمات المختلفة (أن / إن، على / علي، إلى / إلي). وفي الصورة الواحدة تحتفظ بأربع صور على الأكثر، وتُسقط:
+   - الصور التي يقل تكرارها عن 5% من أكثر صورة تكرارًا (أخطاء كتابة نادرة)؛
+   - ومع `--drop-bare-alef-variants`: الصورة التي هي بالضبط صورة أكثر تكرارًا بلا همزة على ألفها (ان بدل أن، انا بدل أنا، الى بدل إلى). الترجمات تكتبها كثيرًا جدًا (25–29% من الصورة الصحيحة)، فلا تكفي قاعدة الـ 5% لحذفها. أما الكلمات الصحيحة بألف بلا همزة (انتظار، استخدام) فتبقى لأنها هي الصورة الأكثر تكرارًا.
+6. تكتب ملفًا ثنائيًا مضغوطًا بـ Brotli: مفاتيح موحَّدة مرتّبة بترميز البادئات (front coding)، وصور الكتابة المعروضة، والتكرار بترميز varint (الصيغة موثّقة في `src/Itmam.Core/Dictionary/DictionaryFile.cs`).
+
+البناء الحالي: **522,510 كلمة** (صورة كتابة)، 1.66 ميغابايت؛ وحذفت قائمة الحظر 108 مدخلات.
+
+### قائمة الحظر
+
+`blocklist.txt` يضم الكلمات التي لا تُقترح أبدًا (كلمة في كل سطر، والسطر الذي يبدأ بـ `#` تعليق). المساهمات مرحَّب بها؛ أعد بناء القاموس بعد تعديلها. ويستطيع المستخدمون أيضًا حظر الكلمات بأنفسهم.
+
+- **المصادر:** 21 كلمة اختيرت يدويًا من قائمة LDNOOBW العربية `ar` (CC-BY-4.0) والقائمة العربية من uxbertlabs (MIT)؛ انظر `THIRD_PARTY_NOTICES.md`. ورُفض مصدر ثالث (AhmedRedaAmin/ArabicSlangProfanity) لأنه مكتوب بحروف لاتينية (عربيزي).
+- **لا يُحظر عمدًا:** كلمات من تلك القوائم عادية أو لها معنى شائع غير مسيء، أو من مفردات الطب أو القانون والدين أو الأخبار: أمك، أختك، نيك (غالبًا اسم Nick)، شاذ، قضيب، قواد، فرج، حلمه، خول، لبوة، مبادل، زق، بز، ثدي، شرج، بظر، احتلام، خنثى، جماع، شهوة، اغتصاب، لواط، سحاق، لعق، لحس، مص، تمص، بيضان.
+- **المطابقة:** بالصورة الموحَّدة مع توحيد مقاعد الهمزة (ؤ/ئ = ء)، فتُلتقط صور التشكيل والألف والياء والتاء المربوطة والهمزة كلها. وصور اللواصق: الكلمات من 4 حروف فأكثر مع أي لاصقة، والكلمات من 3 حروف بعد ال/وال/بال/فال/كال/لل فقط، والكلمات من حرفين لا تُطابق مع اللواصق أبدًا (فلا تحظر كس كلمتي ألكس وكسكس، ولا تحظر خرا كلمة فخرا).
+
+</div>
+
+## English
 
 `itmam-ar.dict` is the dictionary shipped with Itmam. It is generated, not hand-written: every word
 and frequency comes from a real corpus listed below. Nothing here is invented.
 
-## Sources
+### Sources
 
 | Name | What | License | Pinned version |
 |---|---|---|---|
@@ -14,7 +81,7 @@ Planned: Arabic Wikipedia word counts (CC-BY-SA-4.0) for formal vocabulary, adde
 **The dictionary file `itmam-ar.dict` is a derived work of these sources and is distributed under
 CC-BY-SA-4.0**, separately from the MIT-licensed code. See `THIRD_PARTY_NOTICES.md`.
 
-## Rebuilding
+### Rebuilding
 
 ```powershell
 # 1. Download the pinned sources into data/raw/ (git-ignored). This is the only network step.
@@ -34,7 +101,7 @@ Options: `--source <name>=<path>` (repeatable; the name must be a known source w
 `--min-count <name>=<n>` (drop tokens seen fewer than n times), `--max-words <n>`,
 `--drop-bare-alef-variants` (see step 5).
 
-## What the builder does
+### What the builder does
 
 1. Reads `word count` lines from each source and drops tokens below `--min-count`
    (3 for FrequencyWords: rarer tokens are mostly typos).
@@ -55,7 +122,7 @@ Options: `--source <name>=<path>` (repeatable; the name must be a known source w
 
 Current build: **522,510 words** (spellings), 1.66 MB; the blocklist removed 108 entries.
 
-## Blocklist
+### Blocklist
 
 `blocklist.txt` lists words that are never suggested (one per line, `#` comments). Contributions
 are welcome; rebuild the dictionary after editing it. Users can also block words themselves.

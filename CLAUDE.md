@@ -108,7 +108,7 @@ Tests run on Microsoft.Testing.Platform (opted in via `global.json` → `test.ru
 - Low-level hook callback: filter, translate, enqueue to a `Channel<T>`, decide swallow/pass — nothing else, no allocations, < 1 ms.
 - Ignore `LLKHF_INJECTED` events. `ToUnicodeEx` with flag `0x4`.
 - Hook/worker exceptions must never crash the app; reinstall the hook if Windows removes it.
-- Code comments in English; all user-facing strings in `.resx` (Arabic + English). Public docs are bilingual, Arabic first (user decision): `README.md` (Arabic) + `README.en.md`; `docs/PRIVACY.md`, `docs/ARCHITECTURE.md` and `THIRD_PARTY_NOTICES.md` hold an Arabic RTL section then English. Keep both languages in sync. Arabic UI name **إتمام**, English **Itmam**.
+- Code comments in English; all user-facing strings in `.resx` (Arabic + English). Public docs are bilingual, Arabic first (user decision): `README.md` (Arabic) + `README.en.md`; `docs/PRIVACY.md`, `docs/ARCHITECTURE.md`, `THIRD_PARTY_NOTICES.md` and `data/README.md` hold an Arabic RTL section then English. Keep both languages in sync. Arabic UI name **إتمام**, English **Itmam**.
 - Never fabricate APIs, package names or licenses; say when unsure and propose how to verify.
 - Ask before: adding a dependency, choosing/downloading a word-list source, anything touching the network.
 
