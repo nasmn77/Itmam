@@ -221,6 +221,24 @@ nothing:
 | Full screen | `SHQueryUserNotificationState`: Direct3D exclusive full screen or presentation mode |
 | IME / other languages | Only Arabic keyboard layouts are ever tracked |
 
+## Tray app and settings (Phase 6)
+
+- `Program`: single instance via the `Local\Itmam.SingleInstance` mutex; a second launch calls
+  `AllowSetForegroundWindow(ASFW_ANY)` and signals `Local\Itmam.ShowSettings`, so the running copy
+  opens Settings in front, then exits. The UI culture (ar/en) comes from the settings.
+- `ItmamApp` (composition root) builds every component, applies `AppSettings` live (hotkeys,
+  suggestion counts, space after accept, learning, excluded apps, bar look) and shuts down once:
+  unhook → stop pipeline → learn the pending word → flush and close user.db → dispose.
+- `TrayApplication` (`ApplicationContext`, no main window, nothing in the taskbar or Alt+Tab):
+  NotifyIcon menu Enabled · Pause for 1 hour · Settings · About · (Diagnostics, Debug builds) · Exit.
+  Exit and Windows log-off (`SystemEvents.SessionEnding`) run the same clean shutdown and remove the
+  icon. NotifyIcon re-adds itself when Explorer restarts (TaskbarCreated).
+- Settings: `%LOCALAPPDATA%\Itmam\settings.json` (`SettingsStore`: temp file + replace; a corrupt file
+  is kept as `settings.json.corrupt-*` and defaults are used). Preferences only — no typed text.
+- Start with Windows (`StartupRegistration`): MSIX `StartupTask` "ItmamStartup" when packaged
+  (synced with the setting at start-up); `HKCU\…\Run` when unpackaged, only when the user switches it
+  on in Settings (development builds are never registered automatically).
+
 ## Privacy guarantees in the code
 
 - Typed characters exist only in memory: in the channel, in `WordBuffer`, and on screen.
