@@ -4,7 +4,7 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
 `PROMPT.md` is the full brief and the source of truth; this file is the short rule set. Read both at the start of a session.
 
 ## Current status
-- **Current phase:** 6b on branch `phase-6-tray` (6a done: tray, menu, exit, single instance, settings.json, start with
+- **Phase 6** merged into main (tray + every settings page). Details kept below for reference: 6b on branch `phase-6-tray` (6a done: tray, menu, exit, single instance, settings.json, start with
   Windows, General/About/Exit pages, live ar/en switching). 6b done so far: **Appearance** page (theme, bar/text/selection
   colors with presets + custom picker, automatic WCAG text color, contrast warning, opacity 80–100 %, text size 12–20 with
   the bar height kept at 35:14, first-item highlight, number hints, reset, live preview drawn by the same `BarRenderer` as
@@ -40,7 +40,17 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
   user in Notepad, Word and Chrome.
 - Phase 2 notes: input path documented in `docs/ARCHITECTURE.md`; `Program.cs` temporarily runs `DebugWindow` (replaced in
   Phase 6). Key classification (`KeyClassifier`) and layout gating (`InputTracker`) live in Core and are unit-tested.
-- **Open questions:** MSIX tooling must be installed in Visual Studio before Phase 7.
+- **Current phase:** 7 on branch `phase-7-msix` (awaiting review). `src/Itmam.Package` (.wapproj, x64 + ARM64 bundle),
+  identity from Partner Center product **9P08F7KGRJB0** (`NasserAlmadi.563063310BE3D`, `CN=9260B530-9E02-440E-8E99-B74323B1CE93`,
+  PublisherDisplayName "Nasser Almadi"; reserved names «إتمام» + "Itmam"; a separate draft product «اتمام» without hamza
+  also exists — unused, «اتمام» is a Store search term instead). Self-contained + ReadyToRun (~67 MB per architecture).
+  `tools/Build-Package.ps1` (Store upload / signed test bundle), `tools/New-DevCertificate.ps1` (non-exportable cert in
+  CurrentUser\My, no pfx; public part trusted in LocalMachine\TrustedPeople). Verified by the user: installs and runs.
+  WACK 1.0.0.0: 21/23 pass; "Blocked executables" (strings in .NET files/dictionary, Process.Start for About links) and
+  DPI-awareness warning (set by WinForms at runtime) explained in STORE_LISTING.md certification notes.
+  User decisions: category Productivity, free, full self-contained size (no trimming), version 1.0.0.0.
+- MSIX tooling: VS 2026 → .NET desktop development → optional "MSIX Packaging Tools"
+  (`Microsoft.VisualStudio.ComponentGroup.MSIX.Packaging`, not listed under Individual components) + Windows 11 SDK 10.0.26100.
 
 ## Build & test
 ```
@@ -108,7 +118,7 @@ Tests run on Microsoft.Testing.Platform (opted in via `global.json` → `test.ru
 - Low-level hook callback: filter, translate, enqueue to a `Channel<T>`, decide swallow/pass — nothing else, no allocations, < 1 ms.
 - Ignore `LLKHF_INJECTED` events. `ToUnicodeEx` with flag `0x4`.
 - Hook/worker exceptions must never crash the app; reinstall the hook if Windows removes it.
-- Code comments in English; all user-facing strings in `.resx` (Arabic + English). Public docs are bilingual, Arabic first (user decision): `README.md` (Arabic) + `README.en.md`; `docs/PRIVACY.md`, `docs/ARCHITECTURE.md`, `THIRD_PARTY_NOTICES.md` and `data/README.md` hold an Arabic RTL section then English. Keep both languages in sync. Arabic UI name **إتمام**, English **Itmam**.
+- Code comments in English; all user-facing strings in `.resx` (Arabic + English). Public docs are bilingual, Arabic first (user decision): `README.md` (Arabic) + `README.en.md`; `docs/PRIVACY.md`, `docs/ARCHITECTURE.md`, `THIRD_PARTY_NOTICES.md`, `data/README.md`, `src/Itmam.Package/README.md` and `STORE_LISTING.md` hold an Arabic RTL section then English. Keep both languages in sync. Arabic UI name **إتمام**, English **Itmam**.
 - Never fabricate APIs, package names or licenses; say when unsure and propose how to verify.
 - Ask before: adding a dependency, choosing/downloading a word-list source, anything touching the network.
 

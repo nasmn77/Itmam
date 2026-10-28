@@ -78,6 +78,8 @@ dotnet test --solution Itmam.CI.slnf -c Release
 ```
 
 Then run `src\Itmam.App\bin\Release\net10.0-windows10.0.19041.0\Itmam.exe`.
+
+**Store package (MSIX):** needs Visual Studio 2026 with "MSIX Packaging Tools" and a Windows 11 SDK, then `./tools/Build-Package.ps1`. Building and testing locally with a self-signed certificate: [src/Itmam.Package/README.md](src/Itmam.Package/README.md).
 How it works and how the code is organized: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Contributing
