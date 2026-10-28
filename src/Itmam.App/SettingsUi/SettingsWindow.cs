@@ -13,6 +13,7 @@ internal enum SettingsPage
 {
     General,
     About,
+    Exit,
 }
 
 /// <summary>
@@ -154,7 +155,7 @@ internal sealed class SettingsWindow : Form
         _navigation.Controls.Add(header);
 
         var top = 72;
-        foreach (var (page, title) in new[] { (SettingsPage.General, Strings.NavGeneral), (SettingsPage.About, Strings.NavAbout) })
+        foreach (var (page, title) in new[] { (SettingsPage.General, Strings.NavGeneral), (SettingsPage.About, Strings.NavAbout), (SettingsPage.Exit, Strings.NavExit) })
         {
             var item = new NavItem { Text = title, Left = 8, Top = top, Width = _navigation.Width - 16, Height = 40, Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
             item.Click += (_, _) => SelectPage(page);
@@ -188,6 +189,9 @@ internal sealed class SettingsWindow : Form
                 break;
             case SettingsPage.About:
                 BuildAboutPage();
+                break;
+            case SettingsPage.Exit:
+                BuildExitPage();
                 break;
         }
 
@@ -247,8 +251,12 @@ internal sealed class SettingsWindow : Form
         language.SelectedIndex = settings.Language == UiLanguage.Arabic ? 0 : 1;
         language.SelectedIndexChanged += (_, _) => Update(s => s with { Language = language.SelectedIndex == 0 ? UiLanguage.Arabic : UiLanguage.English });
         AddCard(Strings.UiLanguage, null, language);
+    }
 
-        AddSection(Strings.SectionExit);
+    // Its own page: exiting is different from "Enabled" off, and is explained here.
+    private void BuildExitPage()
+    {
+        AddTitle(Strings.SectionExit);
         var exit = new ThemedButton { Text = Strings.ExitButton };
         exit.Click += (_, _) => _exit();
         AddCard(Strings.ExitTitle, Strings.ExitHint, exit);
@@ -300,7 +308,7 @@ internal sealed class SettingsWindow : Form
         return choice;
     }
 
-    private void AddTitle(string text) => AddPageControl(new Label { Text = text, Font = new Font("Segoe UI Semibold", 20f), Height = 56, UseMnemonic = false });
+    private void AddTitle(string text) => AddPageControl(new Label { Text = text, Font = new Font("Segoe UI Semibold", 20f), Height = 56, UseMnemonic = false, Tag = "title" });
 
     private void AddSection(string text) => AddPageControl(new Label { Text = text, Font = new Font("Segoe UI Semibold", 10.5f), Height = 40, TextAlign = ContentAlignment.BottomLeft, UseMnemonic = false });
 
@@ -338,12 +346,18 @@ internal sealed class SettingsWindow : Form
         foreach (var control in _pageControls)
         {
             control.SetBounds(margin, y, width, control.Height);
-            if (control is Label label and not LinkLabel)
+            if (control is Label label)
             {
-                label.TextAlign = RightToLeft == RightToLeft.Yes ? ContentAlignment.BottomRight : ContentAlignment.BottomLeft;
+                // Start of the line: WinForms mirrors it to the right for RightToLeft labels.
+                label.TextAlign = ContentAlignment.BottomLeft;
             }
 
-            y += control.Height + (control is SettingCard ? (int)(4 * scale) : 0);
+            y += control.Height + control switch
+            {
+                SettingCard => (int)(4 * scale),
+                Label { Tag: "title" } => (int)(16 * scale), // breathing room under the page title
+                _ => 0,
+            };
         }
 
         _content.AutoScrollMinSize = new Size(0, y - _content.AutoScrollPosition.Y + margin);

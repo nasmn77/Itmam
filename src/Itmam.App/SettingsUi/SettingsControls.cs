@@ -433,7 +433,9 @@ internal sealed class SettingCard : Panel
 
         var textWidth = Math.Max(0, Width - (2 * padding) - controlWidth - (controlWidth > 0 ? padding : 0));
         var textLeft = rtl ? Width - padding - textWidth : padding;
-        var align = rtl ? ContentAlignment.BottomRight : ContentAlignment.BottomLeft;
+
+        // "Left" means "start of the line": a Label with RightToLeft = Yes mirrors it to the right.
+        const ContentAlignment align = ContentAlignment.BottomLeft;
         if (_description.Visible)
         {
             // Long descriptions wrap: the card grows to fit them.
@@ -453,12 +455,12 @@ internal sealed class SettingCard : Panel
             _title.SetBounds(textLeft, top, textWidth, titleHeight);
             _description.SetBounds(textLeft, top + titleHeight, textWidth, descriptionHeight);
             _title.TextAlign = align;
-            _description.TextAlign = rtl ? ContentAlignment.TopRight : ContentAlignment.TopLeft;
+            _description.TextAlign = ContentAlignment.TopLeft;
         }
         else
         {
             _title.SetBounds(textLeft, 0, textWidth, Height);
-            _title.TextAlign = rtl ? ContentAlignment.MiddleRight : ContentAlignment.MiddleLeft;
+            _title.TextAlign = ContentAlignment.MiddleLeft;
         }
     }
 

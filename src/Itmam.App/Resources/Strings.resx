@@ -45,4 +45,5 @@
   <data name="ExitTitle" xml:space="preserve"><value>Exit Itmam</value></data>
   <data name="ExitHint" xml:space="preserve"><value>Stops completely until you sign in again or start it. To stop suggestions for a while, turn off “Enabled” in the tray menu instead.</value></data>
   <data name="ExitButton" xml:space="preserve"><value>Exit</value></data>
+  <data name="NavExit" xml:space="preserve"><value>Exit</value></data>
 </root>

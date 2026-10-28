@@ -33,7 +33,7 @@ internal static class Program
             var english = args.Contains("en");
             UiCulture.Apply(english ? UiLanguage.English : UiLanguage.Arabic);
             using var window = new SettingsWindow(demoApp, Application.ExitThread, english ? UiLanguage.English : UiLanguage.Arabic) { TopMost = true };
-            window.ShowPage(args.Contains("about") ? SettingsPage.About : SettingsPage.General);
+            window.ShowPage(args.Contains("about") ? SettingsPage.About : args.Contains("exit") ? SettingsPage.Exit : SettingsPage.General);
             if (args.Contains("end"))
             {
                 window.ScrollToEnd();
