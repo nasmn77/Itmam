@@ -20,13 +20,17 @@ internal sealed class TrayApplication : ApplicationContext
     private readonly ItmamApp _app;
     private readonly NotifyIcon _icon;
     private readonly ContextMenuStrip _menu;
-    private readonly ToolStripMenuItem _enabled;
-    private readonly ToolStripMenuItem _pause;
+    private readonly ToolStripMenuItem _enabled = new();
+    private readonly ToolStripMenuItem _pause = new();
+    private readonly ToolStripMenuItem _settingsItem = new();
+    private readonly ToolStripMenuItem _aboutItem = new();
+    private readonly ToolStripMenuItem _exitItem = new();
     private readonly System.Windows.Forms.Timer _pauseTimer = new() { Interval = 15_000 };
     private readonly Icon _iconOn;
     private readonly Icon _iconOff;
     private SettingsWindow? _settings;
 #if DEBUG
+    private readonly ToolStripMenuItem _diagnosticsItem = new();
     private Debugging.DebugWindow? _diagnostics;
 #endif
     private bool _exited;
@@ -40,34 +44,29 @@ internal sealed class TrayApplication : ApplicationContext
         _iconOn = AppIcon.Create(size, enabled: true);
         _iconOff = AppIcon.Create(size, enabled: false);
 
-        var rtl = app.Settings.Language == UiLanguage.Arabic;
-        _menu = new ContextMenuStrip { RightToLeft = rtl ? RightToLeft.Yes : RightToLeft.No, ShowImageMargin = false, ShowCheckMargin = true };
-        _enabled = new ToolStripMenuItem(Strings.MenuEnabled) { CheckOnClick = false };
+        _menu = new ContextMenuStrip { ShowImageMargin = false, ShowCheckMargin = true };
         _enabled.Click += (_, _) => _app.SetEnabled(!_app.IsEnabled);
-        _pause = new ToolStripMenuItem(Strings.MenuPauseHour);
         _pause.Click += (_, _) => TogglePause();
-        var settings = new ToolStripMenuItem(Strings.MenuSettings) { Font = new Font(_menu.Font, FontStyle.Bold) };
-        settings.Click += (_, _) => ShowSettings(SettingsPage.General);
-        var about = new ToolStripMenuItem(Strings.MenuAbout);
-        about.Click += (_, _) => ShowSettings(SettingsPage.About);
-        var exit = new ToolStripMenuItem(Strings.MenuExit);
-        exit.Click += (_, _) => Exit();
+        _settingsItem.Font = new Font(_menu.Font, FontStyle.Bold);
+        _settingsItem.Click += (_, _) => ShowSettings(SettingsPage.General);
+        _aboutItem.Click += (_, _) => ShowSettings(SettingsPage.About);
+        _exitItem.Click += (_, _) => Exit();
 
-        _menu.Items.AddRange([_enabled, _pause, new ToolStripSeparator(), settings, about]);
+        _menu.Items.AddRange([_enabled, _pause, new ToolStripSeparator(), _settingsItem, _aboutItem]);
 #if DEBUG
-        var diagnostics = new ToolStripMenuItem(Strings.MenuDiagnostics);
-        diagnostics.Click += (_, _) => ShowDiagnostics();
-        _menu.Items.Add(diagnostics);
+        _diagnosticsItem.Click += (_, _) => ShowDiagnostics();
+        _menu.Items.Add(_diagnosticsItem);
 #endif
-        _menu.Items.AddRange([new ToolStripSeparator(), exit]);
+        _menu.Items.AddRange([new ToolStripSeparator(), _exitItem]);
 
         _icon = new NotifyIcon { ContextMenuStrip = _menu, Visible = true };
         _icon.DoubleClick += (_, _) => ShowSettings(SettingsPage.General);
 
         _pauseTimer.Tick += (_, _) => _app.EndPauseIfDue();
         _app.EnabledChanged += Refresh;
+        _app.LanguageChanged += OnLanguageChanged;
         SystemEvents.SessionEnding += OnSessionEnding;
-        Refresh();
+        ApplyLanguage();
 
         if (!app.Settings.FirstRunNoticeShown && !startedAtSignIn)
         {
@@ -84,8 +83,48 @@ internal sealed class TrayApplication : ApplicationContext
             return;
         }
 
-        _settings ??= new SettingsWindow(_app);
+        _settings ??= new SettingsWindow(_app, ExitLater);
         _settings.ShowPage(page);
+    }
+
+    // The settings window's exit button: exit after its click has finished (it is disposed by Exit).
+    private void ExitLater() => SynchronizationContext.Current?.Post(_ => Exit(), null);
+
+    // Menu texts and direction follow the interface language.
+    private void ApplyLanguage()
+    {
+        _menu.RightToLeft = _app.Settings.Language == UiLanguage.Arabic ? RightToLeft.Yes : RightToLeft.No;
+        _enabled.Text = Strings.MenuEnabled;
+        _settingsItem.Text = Strings.MenuSettings;
+        _aboutItem.Text = Strings.MenuAbout;
+        _exitItem.Text = Strings.MenuExit;
+#if DEBUG
+        _diagnosticsItem.Text = Strings.MenuDiagnostics;
+#endif
+        Refresh();
+    }
+
+    // Applied at once: the menu is retitled, and an open settings window is rebuilt on the same page
+    // (after the click that changed the language has been handled).
+    private void OnLanguageChanged()
+    {
+        ApplyLanguage();
+        if (_settings is { Visible: true } window)
+        {
+            var page = window.CurrentPage;
+            var bounds = window.Bounds;
+            SynchronizationContext.Current?.Post(_ =>
+            {
+                window.Dispose();
+                _settings = new SettingsWindow(_app, ExitLater) { StartPosition = FormStartPosition.Manual, Bounds = bounds };
+                _settings.ShowPage(page);
+            }, null);
+        }
+        else
+        {
+            _settings?.Dispose();
+            _settings = null;
+        }
     }
 
     /// <summary>Exit: unhook, save, remove the icon, end the message loop. Starting at sign-in is unchanged.</summary>

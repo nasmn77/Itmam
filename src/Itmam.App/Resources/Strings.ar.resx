@@ -32,7 +32,6 @@
   <data name="MinUses" xml:space="preserve"><value>مرات الاستخدام قبل اقتراح كلمة جديدة</value></data>
   <data name="SectionLanguage" xml:space="preserve"><value>اللغة</value></data>
   <data name="UiLanguage" xml:space="preserve"><value>لغة الواجهة</value></data>
-  <data name="LanguageRestart" xml:space="preserve"><value>يُطبَّق عند تشغيل إتمام في المرة القادمة.</value></data>
   <data name="AboutVersion" xml:space="preserve"><value>الإصدار {0}</value></data>
   <data name="AboutTagline" xml:space="preserve"><value>اقتراح الكلمات العربية أثناء الكتابة على لوحة المفاتيح.</value></data>
   <data name="AboutDictionary" xml:space="preserve"><value>القاموس: {0:N0} كلمة</value></data>
@@ -42,4 +41,8 @@
   <data name="AboutPrivacyLink" xml:space="preserve"><value>سياسة الخصوصية</value></data>
   <data name="LanguageArabic" xml:space="preserve"><value>العربية</value></data>
   <data name="LanguageEnglish" xml:space="preserve"><value>English</value></data>
+  <data name="SectionExit" xml:space="preserve"><value>إغلاق إتمام</value></data>
+  <data name="ExitTitle" xml:space="preserve"><value>الخروج من إتمام</value></data>
+  <data name="ExitHint" xml:space="preserve"><value>يتوقف تمامًا حتى تسجيل الدخول التالي أو تشغيله يدويًا. لإيقاف الاقتراحات فترةً فقط، أطفئ «مفعّل» من قائمة الأيقونة.</value></data>
+  <data name="ExitButton" xml:space="preserve"><value>خروج</value></data>
 </root>

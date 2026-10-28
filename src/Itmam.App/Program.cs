@@ -31,9 +31,13 @@ internal static class Program
             SynchronizationContext.SetSynchronizationContext(new WindowsFormsSynchronizationContext());
             using var demoApp = new ItmamApp(SynchronizationContext.Current!);
             var english = args.Contains("en");
-            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(english ? "en" : "ar");
-            using var window = new SettingsWindow(demoApp, english ? UiLanguage.English : null) { TopMost = true };
+            UiCulture.Apply(english ? UiLanguage.English : UiLanguage.Arabic);
+            using var window = new SettingsWindow(demoApp, Application.ExitThread, english ? UiLanguage.English : UiLanguage.Arabic) { TopMost = true };
             window.ShowPage(args.Contains("about") ? SettingsPage.About : SettingsPage.General);
+            if (args.Contains("end"))
+            {
+                window.ScrollToEnd();
+            }
             using var timer = new System.Windows.Forms.Timer { Interval = 6000 };
             timer.Tick += (_, _) => Application.ExitThread();
             timer.Start();
@@ -63,9 +67,7 @@ internal static class Program
         var ui = SynchronizationContext.Current!;
 
         using var app = new ItmamApp(ui);
-        var culture = CultureInfo.GetCultureInfo(app.Settings.Language == UiLanguage.Arabic ? "ar" : "en");
-        CultureInfo.CurrentUICulture = culture;
-        CultureInfo.DefaultThreadCurrentUICulture = culture;
+        UiCulture.Apply(app.Settings.Language);
 
         using var tray = new TrayApplication(app, startedAtSignIn: args.Contains(StartupRegistration.StartupArgument));
         var wait = ThreadPool.RegisterWaitForSingleObject(

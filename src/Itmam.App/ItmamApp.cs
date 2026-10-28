@@ -112,12 +112,21 @@ internal sealed class ItmamApp : IDisposable
         _running = Task.Run(() => Pipeline.RunAsync(_stop.Token));
     }
 
+    /// <summary>The interface language changed (applied at once). Raised on the UI thread.</summary>
+    public event Action? LanguageChanged;
+
     /// <summary>Saves and applies edited settings (Settings window). Call on the UI thread.</summary>
     public void UpdateSettings(AppSettings settings)
     {
+        var languageChanged = settings.Language != Settings.Language;
         Settings = settings.Normalized();
         _settingsStore.Save(Settings);
         Apply(Settings);
+        if (languageChanged)
+        {
+            UiCulture.Apply(Settings.Language);
+            LanguageChanged?.Invoke();
+        }
     }
 
     /// <summary>Tray "Enabled" / Ctrl+Alt+P: remembered across restarts.</summary>

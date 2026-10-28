@@ -32,7 +32,6 @@
   <data name="MinUses" xml:space="preserve"><value>Uses before a new word is suggested</value></data>
   <data name="SectionLanguage" xml:space="preserve"><value>Language</value></data>
   <data name="UiLanguage" xml:space="preserve"><value>Interface language</value></data>
-  <data name="LanguageRestart" xml:space="preserve"><value>Takes effect the next time Itmam starts.</value></data>
   <data name="AboutVersion" xml:space="preserve"><value>Version {0}</value></data>
   <data name="AboutTagline" xml:space="preserve"><value>Arabic word suggestions as you type, on the physical keyboard.</value></data>
   <data name="AboutDictionary" xml:space="preserve"><value>Dictionary: {0:N0} words</value></data>
@@ -42,4 +41,8 @@
   <data name="AboutPrivacyLink" xml:space="preserve"><value>Privacy policy</value></data>
   <data name="LanguageArabic" xml:space="preserve"><value>العربية</value></data>
   <data name="LanguageEnglish" xml:space="preserve"><value>English</value></data>
+  <data name="SectionExit" xml:space="preserve"><value>Close Itmam</value></data>
+  <data name="ExitTitle" xml:space="preserve"><value>Exit Itmam</value></data>
+  <data name="ExitHint" xml:space="preserve"><value>Stops completely until you sign in again or start it. To stop suggestions for a while, turn off “Enabled” in the tray menu instead.</value></data>
+  <data name="ExitButton" xml:space="preserve"><value>Exit</value></data>
 </root>

@@ -23,9 +23,13 @@ internal enum SettingsPage
 internal sealed class SettingsWindow : Form
 {
     private const string PrivacyUrl = "https://github.com/nasmn77/Itmam/blob/main/docs/PRIVACY.md";
+    private const int WS_EX_LAYOUTRTL = 0x00400000;
+    private const int WS_EX_NOINHERITLAYOUT = 0x00100000;
 
     private readonly ItmamApp _app;
-    private readonly Panel _navigation = new() { Dock = DockStyle.Right, Width = 240 };
+    private readonly Action _exit;
+    private readonly bool _mirrored;
+    private readonly Panel _navigation = new() { Dock = DockStyle.Left, Width = 240 };
     private readonly Panel _content = new() { Dock = DockStyle.Fill, AutoScroll = true };
     private readonly Dictionary<SettingsPage, NavItem> _navItems = [];
     private readonly List<Control> _pageControls = [];
@@ -34,12 +38,15 @@ internal sealed class SettingsWindow : Form
     private bool _loading;
 
     /// <param name="app">The running app (settings are read and saved through it).</param>
+    /// <param name="exit">Exits Itmam (the "Close Itmam" section).</param>
     /// <param name="language">Overrides the layout direction (Debug demo only); normally the settings' language.</param>
-    public SettingsWindow(ItmamApp app, UiLanguage? language = null)
+    public SettingsWindow(ItmamApp app, Action exit, UiLanguage? language = null)
     {
         _app = app;
+        _exit = exit;
         _palette = SettingsPalette.For(app.Settings.Theme);
         var rtl = (language ?? app.Settings.Language) == UiLanguage.Arabic;
+        _mirrored = rtl;
 
         Text = Strings.SettingsTitle;
         Icon = Tray.AppIcon.Create(32, enabled: true);
@@ -50,7 +57,6 @@ internal sealed class SettingsWindow : Form
         MinimumSize = new Size(760, 540);
         Size = new Size(940, 680);
         RightToLeft = rtl ? RightToLeft.Yes : RightToLeft.No;
-        _navigation.Dock = rtl ? DockStyle.Right : DockStyle.Left;
 
         Controls.Add(_content);
         Controls.Add(_navigation);
@@ -59,6 +65,14 @@ internal sealed class SettingsWindow : Form
         SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
         ApplyPalette();
     }
+
+    /// <summary>The page currently shown.</summary>
+    public SettingsPage CurrentPage => _page;
+
+#if DEBUG
+    /// <summary>Debug demo only: scrolls to the end of the page (screenshots).</summary>
+    public void ScrollToEnd() => _content.AutoScrollPosition = new Point(0, _content.AutoScrollMinSize.Height);
+#endif
 
     /// <summary>Shows the window on <paramref name="page"/> and brings it to the front.</summary>
     public void ShowPage(SettingsPage page)
@@ -75,6 +89,26 @@ internal sealed class SettingsWindow : Form
         }
 
         Activate();
+    }
+
+    /// <summary>
+    /// Arabic: the whole window is mirrored like any right-to-left Windows app — title and icon on
+    /// the right, caption buttons on the left, navigation on the right (Dock = Left in mirrored
+    /// coordinates). NOINHERITLAYOUT keeps each child's own drawing unmirrored; the controls lay
+    /// out their content right to left themselves.
+    /// </summary>
+    protected override CreateParams CreateParams
+    {
+        get
+        {
+            var cp = base.CreateParams;
+            if (_mirrored)
+            {
+                cp.ExStyle |= WS_EX_LAYOUTRTL | WS_EX_NOINHERITLAYOUT;
+            }
+
+            return cp;
+        }
     }
 
     protected override void OnHandleCreated(EventArgs e)
@@ -212,7 +246,12 @@ internal sealed class SettingsWindow : Form
         var language = new SegmentedChoice { Options = [Strings.LanguageArabic, Strings.LanguageEnglish] };
         language.SelectedIndex = settings.Language == UiLanguage.Arabic ? 0 : 1;
         language.SelectedIndexChanged += (_, _) => Update(s => s with { Language = language.SelectedIndex == 0 ? UiLanguage.Arabic : UiLanguage.English });
-        AddCard(Strings.UiLanguage, Strings.LanguageRestart, language);
+        AddCard(Strings.UiLanguage, null, language);
+
+        AddSection(Strings.SectionExit);
+        var exit = new ThemedButton { Text = Strings.ExitButton };
+        exit.Click += (_, _) => _exit();
+        AddCard(Strings.ExitTitle, Strings.ExitHint, exit);
     }
 
     private void BuildAboutPage()
@@ -275,7 +314,12 @@ internal sealed class SettingsWindow : Form
         AddPageControl(link);
     }
 
-    private void AddCard(string title, string? description, Control control) => AddPageControl(new SettingCard(title, description, control));
+    private void AddCard(string title, string? description, Control control)
+    {
+        var card = new SettingCard(title, description, control);
+        card.SizeChanged += (_, _) => LayoutPage(); // a wrapped description made it taller
+        AddPageControl(card);
+    }
 
     private void AddPageControl(Control control)
     {

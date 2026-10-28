@@ -120,6 +120,95 @@ internal sealed class ToggleSwitch : ThemedControl
     }
 }
 
+/// <summary>Windows 11 standard button: rounded, subtle fill and border, hover highlight.</summary>
+internal sealed class ThemedButton : ThemedControl
+{
+    private bool _hovered;
+    private bool _pressed;
+
+    public ThemedButton()
+    {
+        Height = 32;
+        Cursor = Cursors.Hand;
+        TabStop = true;
+    }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    [System.Diagnostics.CodeAnalysis.AllowNull]
+    public override string Text
+    {
+        get => base.Text;
+        set
+        {
+            base.Text = value;
+            Width = Math.Max(120, TextRenderer.MeasureText(value ?? string.Empty, Font).Width + 40);
+            Invalidate();
+        }
+    }
+
+    protected override void OnMouseEnter(EventArgs e)
+    {
+        base.OnMouseEnter(e);
+        _hovered = true;
+        Invalidate();
+    }
+
+    protected override void OnMouseLeave(EventArgs e)
+    {
+        base.OnMouseLeave(e);
+        _hovered = _pressed = false;
+        Invalidate();
+    }
+
+    protected override void OnMouseDown(MouseEventArgs e)
+    {
+        base.OnMouseDown(e);
+        _pressed = true;
+        Focus();
+        Invalidate();
+    }
+
+    protected override void OnMouseUp(MouseEventArgs e)
+    {
+        base.OnMouseUp(e);
+        _pressed = false;
+        Invalidate();
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        base.OnKeyDown(e);
+        if (e.KeyCode is Keys.Space or Keys.Enter)
+        {
+            OnClick(EventArgs.Empty);
+        }
+    }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        var g = e.Graphics;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
+        var bounds = new RectangleF(0.5f, 0.5f, Width - 1.5f, Height - 1.5f);
+        using var path = Drawing.Rounded(bounds, 4 * DpiScale);
+        var fill = _pressed ? Palette.NavSelected : _hovered ? Palette.NavHover : Palette.ControlFill;
+        using (var brush = new SolidBrush(fill))
+        using (var border = new Pen(Palette.CardBorder, DpiScale))
+        {
+            g.FillPath(brush, path);
+            g.DrawPath(border, path);
+        }
+
+        TextRenderer.DrawText(g, Text, Font, ClientRectangle, Palette.Text,
+            TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine);
+
+        if (Focused && ShowFocusCues)
+        {
+            using var focus = new Pen(Palette.Text, DpiScale);
+            g.DrawPath(focus, path);
+        }
+    }
+}
+
 /// <summary>A row of mutually exclusive options (e.g. 1 2 3 4 5, or العربية | English).</summary>
 internal sealed class SegmentedChoice : ThemedControl
 {
@@ -347,8 +436,22 @@ internal sealed class SettingCard : Panel
         var align = rtl ? ContentAlignment.BottomRight : ContentAlignment.BottomLeft;
         if (_description.Visible)
         {
-            _title.SetBounds(textLeft, (int)(10 * scale), textWidth, (Height / 2) - (int)(10 * scale));
-            _description.SetBounds(textLeft, Height / 2, textWidth, (Height / 2) - (int)(8 * scale));
+            // Long descriptions wrap: the card grows to fit them.
+            var top = (int)(12 * scale);
+            var titleHeight = TextRenderer.MeasureText(_title.Text, _title.Font).Height;
+            var descriptionHeight = TextRenderer.MeasureText(_description.Text, _description.Font, new Size(Math.Max(1, textWidth), int.MaxValue), TextFormatFlags.WordBreak).Height;
+            var needed = Math.Max(top + titleHeight + descriptionHeight + top, (int)(64 * scale));
+            if (Height != needed)
+            {
+                Height = needed; // the page re-stacks the cards (SizeChanged)
+                if (Control is not null)
+                {
+                    Control.Top = (Height - Control.Height) / 2;
+                }
+            }
+
+            _title.SetBounds(textLeft, top, textWidth, titleHeight);
+            _description.SetBounds(textLeft, top + titleHeight, textWidth, descriptionHeight);
             _title.TextAlign = align;
             _description.TextAlign = rtl ? ContentAlignment.TopRight : ContentAlignment.TopLeft;
         }
