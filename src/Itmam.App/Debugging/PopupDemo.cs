@@ -20,7 +20,12 @@ internal static class PopupDemo
             words = [.. app.Engine.Suggest(typed).Select(s => s.Word)];
         }
 
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         var caret = Task.Run(() => new Win32.CaretLocator(app.UiAutomation).LocateAsync(rightToLeft: true, CancellationToken.None)).GetAwaiter().GetResult();
+
+        // Diagnostics for caret problems: which method found the caret, where, and how long it took.
+        File.AppendAllText(Path.Combine(Path.GetTempPath(), "itmam-caret.txt"),
+            FormattableString.Invariant($"{DateTime.Now:HH:mm:ss} {caret.Source} {caret.Bounds} {watch.ElapsedMilliseconds} ms{Environment.NewLine}"));
         _ = app.Popup.Handle;
         app.Popup.ShowSuggestions(words, caret.Bounds, rightToLeft: true, belowPointer: caret.Source == Win32.CaretSource.Mouse);
 

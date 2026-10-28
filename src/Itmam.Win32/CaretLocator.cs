@@ -20,6 +20,12 @@ public enum CaretSource
     /// <summary>MSAA caret object (Chromium, Electron).</summary>
     Msaa,
 
+    /// <summary>
+    /// No caret reported, but the focused field's bounds are known (custom web controls): the bar goes
+    /// at the field's start edge, one line high.
+    /// </summary>
+    FocusedField,
+
     /// <summary>No caret found: the bar is shown below the mouse pointer.</summary>
     Mouse,
 }
@@ -36,6 +42,11 @@ public readonly record struct CaretLocation(Rectangle Bounds, CaretSource Source
 public sealed class CaretLocator(UiaWorker worker)
 {
     private static readonly TimeSpan AccessibilityTimeout = TimeSpan.FromMilliseconds(150);
+
+    // Focused-field fallback: field-sized elements only (a whole page or window focused is no better
+    // than the mouse pointer), and a one-line caret height.
+    private const int MaxFieldHeight = 240;
+    private const int LineHeight = 24;
     private static readonly Guid IAccessibleId = typeof(IAccessible).GUID;
 
     private HWND _lastFocus;
@@ -121,7 +132,25 @@ public sealed class CaretLocator(UiaWorker worker)
             return new CaretLocation(fromMsaa, CaretSource.Msaa);
         }
 
+        if (FocusedField(automation, rightToLeft) is { } fromField && IsOnAMonitor(fromField))
+        {
+            return new CaretLocation(fromField, CaretSource.FocusedField);
+        }
+
         return null;
+    }
+
+    private static Rectangle? FocusedField(IUIAutomation automation, bool rightToLeft)
+    {
+        var bounds = automation.GetFocusedElement()?.CurrentBoundingRectangle;
+        if (bounds is not { } r || r.right - r.left <= 0 || r.bottom - r.top <= 0 || r.bottom - r.top > MaxFieldHeight)
+        {
+            return null;
+        }
+
+        // A one-line "caret" at the field's start edge, near its top: the bar then sits just above the field.
+        var height = Math.Min(LineHeight, r.bottom - r.top);
+        return new Rectangle(rightToLeft ? r.right - 1 : r.left, r.top, 1, height);
     }
 
     private static Rectangle? UiaCaret(IUIAutomation automation, bool rightToLeft)

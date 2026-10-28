@@ -93,7 +93,8 @@
         │    2. UI Automation caret range → GetBoundingRectangles    (UiaWorker, 150 ms timeout)
         │       empty range → rectangle of the previous character (caret on its left in RTL)
         │    3. MSAA AccessibleObjectFromWindow(OBJID_CARET).accLocation
-        │    4. mouse pointer (bar shown below it)
+        │    4. focused field's bounds (UIA CurrentBoundingRectangle, field-sized only): its start edge
+        │    5. mouse pointer (bar shown below it)
         ▼
  SuggestionPopup (UI thread)
     PopupPlacement: above the caret, right edge at the caret (RTL), below if no room,
@@ -323,7 +324,8 @@ typed meanwhile; after Backspace, or if letters were typed, it waits for the nex
         │    2. UI Automation caret range → GetBoundingRectangles    (UiaWorker, 150 ms timeout)
         │       empty range → rectangle of the previous character (caret on its left in RTL)
         │    3. MSAA AccessibleObjectFromWindow(OBJID_CARET).accLocation
-        │    4. mouse pointer (bar shown below it)
+        │    4. focused field's bounds (UIA CurrentBoundingRectangle, field-sized only): its start edge
+        │    5. mouse pointer (bar shown below it)
         ▼
  SuggestionPopup (UI thread)
     PopupPlacement: above the caret, right edge at the caret (RTL), below if no room,
