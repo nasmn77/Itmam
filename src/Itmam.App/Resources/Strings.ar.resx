@@ -78,4 +78,26 @@
   <data name="ResetLook" xml:space="preserve"><value>استعادة مظهر Windows</value></data>
   <data name="ResetLookHint" xml:space="preserve"><value>تعود السمة والألوان والعتامة وحجم النص إلى الافتراضي.</value></data>
   <data name="ResetButton" xml:space="preserve"><value>استعادة</value></data>
+  <data name="NavShortcuts" xml:space="preserve"><value>الاختصارات</value></data>
+  <data name="ShortcutsIntro" xml:space="preserve"><value>انقر على اختصار ثم اضغط المفاتيح الجديدة. للإلغاء انقر في مكان آخر.</value></data>
+  <data name="ShortcutRecording" xml:space="preserve"><value>اضغط الاختصار الجديد…</value></data>
+  <data name="SectionBarKeys" xml:space="preserve"><value>أثناء ظهور الشريط</value></data>
+  <data name="SectionEverywhere" xml:space="preserve"><value>في أي مكان</value></data>
+  <data name="ShortcutAcceptFirst" xml:space="preserve"><value>إدراج الاقتراح الأول</value></data>
+  <data name="ShortcutAcceptNth" xml:space="preserve"><value>إدراج الاقتراح برقمه (‪1–9‬)</value></data>
+  <data name="ShortcutAcceptNthHint" xml:space="preserve"><value>هذا المفتاح مع رقم الاقتراح.</value></data>
+  <data name="ShortcutDismiss" xml:space="preserve"><value>إخفاء الاقتراحات</value></data>
+  <data name="ShortcutDismissHint" xml:space="preserve"><value>حتى تبدأ الكلمة التالية.</value></data>
+  <data name="ShortcutToggle" xml:space="preserve"><value>تشغيل إتمام وإيقافه</value></data>
+  <data name="ShortcutToggleHint" xml:space="preserve"><value>يعمل في أي تطبيق.</value></data>
+  <data name="NativeNavigation" xml:space="preserve"><value>الاختيار بالأسهم</value></data>
+  <data name="NativeNavigationHint" xml:space="preserve"><value>↑ للدخول إلى الشريط، ← → للاختيار، Enter للإدراج، Esc أو ↓ للخروج. Ctrl+Delete ينسى الكلمة المتعلَّمة المحددة.</value></data>
+  <data name="ResetShortcuts" xml:space="preserve"><value>الاختصارات الافتراضية</value></data>
+  <data name="ResetShortcutsHint" xml:space="preserve"><value>Tab للإدراج، وEsc للإخفاء، و‪Ctrl+Alt+P‬ للتشغيل والإيقاف، والاختيار بالأسهم.</value></data>
+  <data name="HotkeyProblemDuplicate" xml:space="preserve"><value>{0} مستخدم لاختصار آخر في إتمام.</value></data>
+  <data name="HotkeyProblemTypesText" xml:space="preserve"><value>{0} يكتب نصًا: أضف Ctrl أو Alt.</value></data>
+  <data name="HotkeyProblemEditingKey" xml:space="preserve"><value>{0} لازم لتحرير النص: اختر مفتاحًا آخر.</value></data>
+  <data name="HotkeyProblemNeedsModifier" xml:space="preserve"><value>{0} سيُحجز في كل التطبيقات: أضف Ctrl أو Alt.</value></data>
+  <data name="HotkeyProblemCommonShortcut" xml:space="preserve"><value>{0} اختصار شائع في Windows: اختر غيره.</value></data>
+  <data name="HotkeyProblemAcceptsNth" xml:space="preserve"><value>{0} يُدرج اقتراحًا برقمه بالفعل.</value></data>
 </root>

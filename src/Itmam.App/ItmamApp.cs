@@ -129,6 +129,14 @@ internal sealed class ItmamApp : IDisposable
         }
     }
 
+    /// <summary>
+    /// While a shortcut is being recorded in Settings, Itmam's own shortcuts are off (virtual key 0
+    /// never arrives), so pressing e.g. Ctrl+Alt+P reaches the settings window instead of toggling Itmam.
+    /// </summary>
+    public void SuspendHotkeys(bool suspend) => Hooks.Hotkeys = suspend
+        ? new HotkeySettings { AcceptFirst = default, Dismiss = default, ToggleEnabled = default, NativeNavigation = false }
+        : Settings.Hotkeys;
+
     /// <summary>Tray "Enabled" / Ctrl+Alt+P: remembered across restarts.</summary>
     public void SetEnabled(bool enabled)
     {

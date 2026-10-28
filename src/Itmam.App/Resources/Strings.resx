@@ -78,4 +78,26 @@
   <data name="ResetLook" xml:space="preserve"><value>Reset to the Windows look</value></data>
   <data name="ResetLookHint" xml:space="preserve"><value>Theme, colors, opacity and text size go back to the defaults.</value></data>
   <data name="ResetButton" xml:space="preserve"><value>Reset</value></data>
+  <data name="NavShortcuts" xml:space="preserve"><value>Shortcuts</value></data>
+  <data name="ShortcutsIntro" xml:space="preserve"><value>Click a shortcut, then press the new keys. Click elsewhere to cancel.</value></data>
+  <data name="ShortcutRecording" xml:space="preserve"><value>Press the new shortcut…</value></data>
+  <data name="SectionBarKeys" xml:space="preserve"><value>While the bar is shown</value></data>
+  <data name="SectionEverywhere" xml:space="preserve"><value>Everywhere</value></data>
+  <data name="ShortcutAcceptFirst" xml:space="preserve"><value>Insert the first suggestion</value></data>
+  <data name="ShortcutAcceptNth" xml:space="preserve"><value>Insert suggestion 1–9</value></data>
+  <data name="ShortcutAcceptNthHint" xml:space="preserve"><value>This key held with the suggestion's number.</value></data>
+  <data name="ShortcutDismiss" xml:space="preserve"><value>Hide the suggestions</value></data>
+  <data name="ShortcutDismissHint" xml:space="preserve"><value>Until you start the next word.</value></data>
+  <data name="ShortcutToggle" xml:space="preserve"><value>Turn Itmam on or off</value></data>
+  <data name="ShortcutToggleHint" xml:space="preserve"><value>Works in any app.</value></data>
+  <data name="NativeNavigation" xml:space="preserve"><value>Choose with the arrow keys</value></data>
+  <data name="NativeNavigationHint" xml:space="preserve"><value>↑ moves into the bar, ← → choose, Enter inserts, Esc or ↓ leaves. Ctrl+Delete forgets the chosen learned word.</value></data>
+  <data name="ResetShortcuts" xml:space="preserve"><value>Default shortcuts</value></data>
+  <data name="ResetShortcutsHint" xml:space="preserve"><value>Tab to insert, Esc to hide, Ctrl+Alt+P to turn on or off, and the arrow keys to choose.</value></data>
+  <data name="HotkeyProblemDuplicate" xml:space="preserve"><value>{0} is already used by another Itmam shortcut.</value></data>
+  <data name="HotkeyProblemTypesText" xml:space="preserve"><value>{0} types text: add Ctrl or Alt.</value></data>
+  <data name="HotkeyProblemEditingKey" xml:space="preserve"><value>{0} is needed for editing text: choose another key.</value></data>
+  <data name="HotkeyProblemNeedsModifier" xml:space="preserve"><value>{0} would be blocked in every app: add Ctrl or Alt.</value></data>
+  <data name="HotkeyProblemCommonShortcut" xml:space="preserve"><value>{0} is a common Windows shortcut: choose another.</value></data>
+  <data name="HotkeyProblemAcceptsNth" xml:space="preserve"><value>{0} already inserts a suggestion by number.</value></data>
 </root>

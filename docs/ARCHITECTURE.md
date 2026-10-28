@@ -239,6 +239,9 @@ nothing:
   background with black/white text chosen by WCAG contrast, `ColorContrast`). `BarRenderer` paints the bar's
   items for both the real bar and the live preview on the Appearance page. Opacity uses a layered window
   (`Form.Opacity`), which never activates or shows the bar.
+- Shortcuts: recorded on the Shortcuts page and checked by `HotkeyRules` (Core) before saving. While a
+  shortcut is recorded, `ItmamApp.SuspendHotkeys` gives the hook an empty `HotkeySettings`, so the keys
+  reach the settings window instead of acting on Itmam.
 - Start with Windows (`StartupRegistration`): MSIX `StartupTask` "ItmamStartup" when packaged
   (synced with the setting at start-up); `HKCU\…\Run` when unpackaged, only when the user switches it
   on in Settings (development builds are never registered automatically).

@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Reflection;
 using Itmam.App.Resources;
 using Itmam.App.Suggestions;
+using Itmam.Core.Input;
 using Itmam.Core.Presentation;
 using Itmam.Core.Settings;
 using Itmam.Win32;
@@ -15,6 +16,7 @@ internal enum SettingsPage
 {
     General,
     Appearance,
+    Shortcuts,
     About,
     Exit,
 }
@@ -162,7 +164,7 @@ internal sealed class SettingsWindow : Form
         _navigation.Controls.Add(header);
 
         var top = 72;
-        foreach (var (page, title) in new[] { (SettingsPage.General, Strings.NavGeneral), (SettingsPage.Appearance, Strings.NavAppearance), (SettingsPage.About, Strings.NavAbout), (SettingsPage.Exit, Strings.NavExit) })
+        foreach (var (page, title) in new[] { (SettingsPage.General, Strings.NavGeneral), (SettingsPage.Appearance, Strings.NavAppearance), (SettingsPage.Shortcuts, Strings.NavShortcuts), (SettingsPage.About, Strings.NavAbout), (SettingsPage.Exit, Strings.NavExit) })
         {
             var item = new NavItem { Text = title, Left = 8, Top = top, Width = _navigation.Width - 16, Height = 40, Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
             item.Click += (_, _) => SelectPage(page);
@@ -198,6 +200,9 @@ internal sealed class SettingsWindow : Form
                 break;
             case SettingsPage.Appearance:
                 BuildAppearancePage();
+                break;
+            case SettingsPage.Shortcuts:
+                BuildShortcutsPage();
                 break;
             case SettingsPage.About:
                 BuildAboutPage();
@@ -388,6 +393,97 @@ internal sealed class SettingsWindow : Form
         _textCard?.SetDescription(ratio < ColorContrast.MinimumReadable
             ? string.Format(CultureInfo.CurrentCulture, Strings.ContrastWarning, ratio)
             : Strings.BarTextHint);
+    }
+
+    // Shortcuts are checked (HotkeyRules) before they are saved; a refused one shows why under its card.
+    private void BuildShortcutsPage()
+    {
+        var hotkeys = _app.Settings.Hotkeys;
+        AddTitle(Strings.NavShortcuts);
+        AddText(Strings.ShortcutsIntro, secondary: true);
+
+        AddSection(Strings.SectionBarKeys);
+        AddHotkeyCard(HotkeyAction.AcceptFirst, Strings.ShortcutAcceptFirst, null);
+
+        KeyModifiers[] nthModifiers = [KeyModifiers.Ctrl, KeyModifiers.Alt];
+        var nth = new SegmentedChoice { Options = [.. nthModifiers.Select(HotkeyNames.Format)] };
+        nth.SelectedIndex = Math.Max(0, Array.IndexOf(nthModifiers, hotkeys.AcceptNthModifier));
+        var nthCard = AddCard(Strings.ShortcutAcceptNth, Strings.ShortcutAcceptNthHint, nth);
+        nth.SelectedIndexChanged += (_, _) =>
+        {
+            if (_loading)
+            {
+                return;
+            }
+
+            var modifier = nthModifiers[nth.SelectedIndex];
+            var problem = HotkeyRules.CheckAcceptNthModifier(_app.Settings.Hotkeys, modifier);
+            if (problem == HotkeyProblem.None)
+            {
+                Update(s => s with { Hotkeys = s.Hotkeys with { AcceptNthModifier = modifier } });
+                nthCard.SetDescription(Strings.ShortcutAcceptNthHint);
+                return;
+            }
+
+            nthCard.SetDescription(ProblemText(problem, new Hotkey('1', modifier)));
+            _loading = true;
+            nth.SelectedIndex = Array.IndexOf(nthModifiers, _app.Settings.Hotkeys.AcceptNthModifier);
+            _loading = false;
+        };
+
+        AddHotkeyCard(HotkeyAction.Dismiss, Strings.ShortcutDismiss, Strings.ShortcutDismissHint);
+
+        var navigation = new ToggleSwitch { Checked = hotkeys.NativeNavigation };
+        navigation.CheckedChanged += (_, _) => Update(s => s with { Hotkeys = s.Hotkeys with { NativeNavigation = navigation.Checked } });
+        AddCard(Strings.NativeNavigation, Strings.NativeNavigationHint, navigation);
+
+        AddSection(Strings.SectionEverywhere);
+        AddHotkeyCard(HotkeyAction.ToggleEnabled, Strings.ShortcutToggle, Strings.ShortcutToggleHint);
+
+        var reset = new ThemedButton { Text = Strings.ResetButton };
+        reset.Click += (_, _) =>
+        {
+            Update(s => s with { Hotkeys = new HotkeySettings() });
+            BeginInvoke(() => SelectPage(SettingsPage.Shortcuts)); // rebuild after this click is handled
+        };
+        AddCard(Strings.ResetShortcuts, Strings.ResetShortcutsHint, reset);
+    }
+
+    private void AddHotkeyCard(HotkeyAction action, string title, string? hint)
+    {
+        var box = new HotkeyBox { Hotkey = HotkeyRules.Get(_app.Settings.Hotkeys, action), RecordingText = Strings.ShortcutRecording };
+        var card = AddCard(title, hint, box);
+        box.RecordingChanged += _app.SuspendHotkeys;
+        box.Recorded += hotkey =>
+        {
+            var problem = HotkeyRules.Check(_app.Settings.Hotkeys, action, hotkey);
+            if (problem == HotkeyProblem.None)
+            {
+                Update(s => s with { Hotkeys = HotkeyRules.With(s.Hotkeys, action, hotkey) });
+                box.Hotkey = hotkey;
+                card.SetDescription(hint);
+            }
+            else
+            {
+                card.SetDescription(ProblemText(problem, hotkey));
+            }
+        };
+    }
+
+    private static string ProblemText(HotkeyProblem problem, Hotkey hotkey)
+    {
+        var format = problem switch
+        {
+            HotkeyProblem.Duplicate => Strings.HotkeyProblemDuplicate,
+            HotkeyProblem.TypesText => Strings.HotkeyProblemTypesText,
+            HotkeyProblem.EditingKey => Strings.HotkeyProblemEditingKey,
+            HotkeyProblem.NeedsModifier => Strings.HotkeyProblemNeedsModifier,
+            HotkeyProblem.CommonShortcut => Strings.HotkeyProblemCommonShortcut,
+            _ => Strings.HotkeyProblemAcceptsNth,
+        };
+
+        // A left-to-right embedding keeps "Ctrl+Alt+P" in order inside Arabic text.
+        return string.Format(CultureInfo.CurrentCulture, format, "\u202A" + HotkeyNames.Format(hotkey) + "\u202C");
     }
 
     // Its own page: exiting is different from "Enabled" off, and is explained here.
