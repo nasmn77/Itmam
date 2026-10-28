@@ -169,7 +169,7 @@ public sealed class InputPipeline(
     ITextInjector? injector = null,
     IInputGuard? guard = null)
 {
-    private readonly InputPipelineOptions _options = options ?? new InputPipelineOptions();
+    private volatile InputPipelineOptions _options = options ?? new InputPipelineOptions();
     private SilenceReason _silence;
     private bool _guardChecked;
     private string? _pendingWord;
@@ -192,6 +192,13 @@ public sealed class InputPipeline(
     private char? _charAfterCaret;
 
     public InputTracker Tracker { get; } = new();
+
+    /// <summary>Replaced live from Settings (e.g. the space after accepting).</summary>
+    public InputPipelineOptions Options
+    {
+        get => _options;
+        set => _options = value;
+    }
 
     /// <summary>Raised on the pipeline thread after every event and probe.</summary>
     public event Action<PipelineUpdate>? Updated;

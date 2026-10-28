@@ -25,6 +25,18 @@ public class ExcludedAppsTests
     public void Ordinary_apps_are_not_excluded(string? process) => _defaults.IsExcluded(process).ShouldBeFalse();
 
     [Fact]
+    public void Edited_list_applies_live()
+    {
+        var apps = new ExcludedApps();
+
+        apps.Replace(["game", "  ", ""]);
+
+        apps.IsExcluded("game.exe").ShouldBeTrue();
+        apps.IsExcluded("mstsc.exe").ShouldBeFalse();
+        apps.Names.Count.ShouldBe(1);
+    }
+
+    [Fact]
     public void Custom_list_replaces_the_defaults()
     {
         var custom = new ExcludedApps(["game"]);

@@ -1,9 +1,11 @@
+using System.Collections.Frozen;
+
 namespace Itmam.Core.Input;
 
 /// <summary>
 /// Apps where Itmam stays completely silent: nothing is tracked, shown, learned or read.
 /// Matched by process file name, case-insensitively, with or without ".exe".
-/// The user edits the list in Settings (Phase 6); these are the defaults.
+/// The user edits the list in Settings; <see cref="Replace"/> applies it live (thread-safe).
 /// </summary>
 public sealed class ExcludedApps
 {
@@ -19,25 +21,24 @@ public sealed class ExcludedApps
         "steam.exe", "EpicGamesLauncher.exe", "Battle.net.exe", "GalaxyClient.exe",
     ];
 
-    private readonly HashSet<string> _names;
+    private volatile FrozenSet<string> _names;
 
-    public ExcludedApps(IEnumerable<string>? processNames = null)
-    {
-        _names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var name in processNames ?? Defaults)
-        {
-            if (Normalize(name) is { Length: > 0 } normalized)
-            {
-                _names.Add(normalized);
-            }
-        }
-    }
+    public ExcludedApps(IEnumerable<string>? processNames = null) => _names = Build(processNames ?? Defaults);
 
     public IReadOnlyCollection<string> Names => _names;
 
     /// <param name="processName">File name or full path of the process, e.g. "C:\…\WindowsTerminal.exe".</param>
     public bool IsExcluded(string? processName) =>
         processName is not null && _names.Contains(Normalize(processName));
+
+    /// <summary>Applies an edited list (Settings).</summary>
+    public void Replace(IEnumerable<string> processNames) => _names = Build(processNames);
+
+    private static FrozenSet<string> Build(IEnumerable<string> processNames) =>
+        processNames
+            .Select(Normalize)
+            .Where(name => name.Length > ".exe".Length)
+            .ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
     private static string Normalize(string name)
     {
