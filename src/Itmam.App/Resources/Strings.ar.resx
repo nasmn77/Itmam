@@ -113,4 +113,6 @@
   <data name="RemoveButton" xml:space="preserve"><value>إزالة</value></data>
   <data name="ResetExcluded" xml:space="preserve"><value>القائمة الافتراضية</value></data>
   <data name="ResetExcludedHint" xml:space="preserve"><value>سطح المكتب البعيد والأجهزة الافتراضية والطرفيات ومشغّلات الألعاب.</value></data>
+  <data name="SearchApps" xml:space="preserve"><value>ابحث في التطبيقات</value></data>
+  <data name="NoMatchingApps" xml:space="preserve"><value>لا توجد تطبيقات مطابقة.</value></data>
 </root>

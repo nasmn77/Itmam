@@ -113,4 +113,6 @@
   <data name="RemoveButton" xml:space="preserve"><value>Remove</value></data>
   <data name="ResetExcluded" xml:space="preserve"><value>Default list</value></data>
   <data name="ResetExcludedHint" xml:space="preserve"><value>Remote desktops, virtual machines, terminals and game launchers.</value></data>
+  <data name="SearchApps" xml:space="preserve"><value>Search apps</value></data>
+  <data name="NoMatchingApps" xml:space="preserve"><value>No matching apps.</value></data>
 </root>

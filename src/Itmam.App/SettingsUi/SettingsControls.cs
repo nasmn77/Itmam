@@ -517,3 +517,71 @@ internal sealed class SettingCard : Panel
         g.DrawPath(border, path);
     }
 }
+
+/// <summary>Windows 11 style search box: a borderless text box with a placeholder on a rounded field.</summary>
+internal sealed class SearchBox : ThemedControl
+{
+    private readonly TextBox _text = new() { BorderStyle = BorderStyle.None };
+
+    public SearchBox()
+    {
+        Height = 34;
+        Cursor = Cursors.IBeam;
+        Controls.Add(_text);
+        _text.TextChanged += (_, _) => OnTextChanged(EventArgs.Empty);
+        _text.GotFocus += (_, _) => Invalidate();
+        _text.LostFocus += (_, _) => Invalidate();
+    }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public string Placeholder
+    {
+        get => _text.PlaceholderText;
+        set => _text.PlaceholderText = value;
+    }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    [System.Diagnostics.CodeAnalysis.AllowNull]
+    public override string Text
+    {
+        get => _text.Text;
+        set => _text.Text = value;
+    }
+
+    protected override void OnClick(EventArgs e)
+    {
+        base.OnClick(e);
+        _text.Focus();
+    }
+
+    protected override void OnLayout(LayoutEventArgs levent)
+    {
+        base.OnLayout(levent);
+        var padding = (int)(12 * DpiScale);
+        _text.SetBounds(padding, (Height - _text.Height) / 2, Math.Max(1, Width - (2 * padding)), _text.Height);
+    }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        _text.BackColor = Palette.ControlFill;
+        _text.ForeColor = Palette.Text;
+        var g = e.Graphics;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
+        g.Clear(Palette.Window);
+        var bounds = new RectangleF(0.5f, 0.5f, Width - 1.5f, Height - 1.5f);
+        using var path = Drawing.Rounded(bounds, 4 * DpiScale);
+        using (var fill = new SolidBrush(Palette.ControlFill))
+        using (var border = new Pen(Palette.CardBorder, DpiScale))
+        {
+            g.FillPath(fill, path);
+            g.DrawPath(border, path);
+        }
+
+        // Accent underline while typing, like Windows 11 text fields.
+        if (_text.Focused)
+        {
+            using var accent = new Pen(Palette.Accent, 2 * DpiScale);
+            g.DrawLine(accent, 4 * DpiScale, Height - DpiScale, Width - (4 * DpiScale), Height - DpiScale);
+        }
+    }
+}

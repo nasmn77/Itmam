@@ -42,6 +42,8 @@ internal sealed class SettingsWindow : Form
     private readonly Panel _content = new() { Dock = DockStyle.Fill, AutoScroll = true };
     private readonly Dictionary<SettingsPage, NavItem> _navItems = [];
     private readonly List<Control> _pageControls = [];
+    private readonly HashSet<Control> _filteredOut = [];
+    private string _excludedSearch = string.Empty; // kept when the page is rebuilt after add/remove
     private SettingsPalette _palette;
     private SettingsPage _page;
     private bool _loading;
@@ -177,6 +179,11 @@ internal sealed class SettingsWindow : Form
 
     private void SelectPage(SettingsPage page)
     {
+        if (page != _page)
+        {
+            _excludedSearch = string.Empty; // a search applies only while staying on its page
+        }
+
         _page = page;
         foreach (var (key, item) in _navItems)
         {
@@ -191,6 +198,7 @@ internal sealed class SettingsWindow : Form
         }
 
         _pageControls.Clear();
+        _filteredOut.Clear();
         _preview = null;
         _textCard = null;
         _loading = true;
@@ -509,7 +517,14 @@ internal sealed class SettingsWindow : Form
             AddText(Strings.ExcludedEmpty, secondary: true);
         }
 
-        foreach (var name in excluded)
+        var search = new SearchBox { Placeholder = Strings.SearchApps, Text = _excludedSearch };
+        AddPageControl(search);
+        AddText(Strings.NoMatchingApps, secondary: true);
+        var noMatches = _pageControls[^1];
+
+        // Open apps first (they show their description), then the rest in list order.
+        var cards = new List<(Control Card, string Searchable)>();
+        foreach (var name in excluded.OrderBy(n => running.ContainsKey(ExcludedApps.NormalizeName(n)) ? 0 : 1))
         {
             var remove = new ThemedButton { Text = Strings.RemoveButton };
             remove.Click += (_, _) =>
@@ -517,8 +532,44 @@ internal sealed class SettingsWindow : Form
                 Update(s => s with { ExcludedApps = ExcludedApps.Without(s.ExcludedApps, name) });
                 BeginInvoke(RebuildPage); // after this click is handled
             };
-            AddCard(name, running.TryGetValue(ExcludedApps.NormalizeName(name), out var description) ? description : null, remove);
+            var description = running.TryGetValue(ExcludedApps.NormalizeName(name), out var found) ? found : null;
+            cards.Add((AddCard(name, description, remove), $"{name} {description}"));
         }
+
+        void Filter()
+        {
+            _excludedSearch = search.Text.Trim();
+            foreach (var (card, searchable) in cards)
+            {
+                if (searchable.Contains(_excludedSearch, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    _filteredOut.Remove(card);
+                }
+                else
+                {
+                    _filteredOut.Add(card);
+                }
+            }
+
+            if (cards.Count > 0 && cards.All(c => _filteredOut.Contains(c.Card)))
+            {
+                _filteredOut.Remove(noMatches);
+            }
+            else
+            {
+                _filteredOut.Add(noMatches);
+            }
+
+            if (excluded.Count == 0)
+            {
+                _filteredOut.Add(search);
+            }
+
+            LayoutPage();
+        }
+
+        search.TextChanged += (_, _) => Filter();
+        Filter();
 
         var reset = new ThemedButton { Text = Strings.ResetButton };
         reset.Click += (_, _) =>
@@ -701,6 +752,14 @@ internal sealed class SettingsWindow : Form
         var y = (int)(12 * scale) + _content.AutoScrollPosition.Y;
         foreach (var control in _pageControls)
         {
+            // Filtered out by a search box (the parent may not be visible yet, so Visible cannot be read back).
+            var shown = !_filteredOut.Contains(control);
+            control.Visible = shown;
+            if (!shown)
+            {
+                continue;
+            }
+
             control.SetBounds(margin, y, width, control.Height);
             if (control is Label label)
             {
