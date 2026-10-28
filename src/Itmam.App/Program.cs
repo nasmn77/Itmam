@@ -69,7 +69,7 @@ internal static class Program
         using var app = new ItmamApp(ui);
         UiCulture.Apply(app.Settings.Language);
 
-        using var tray = new TrayApplication(app, startedAtSignIn: args.Contains(StartupRegistration.StartupArgument));
+        using var tray = new TrayApplication(app);
         var wait = ThreadPool.RegisterWaitForSingleObject(
             showSettings,
             (_, _) => ui.Post(_ => tray.ShowSettings(SettingsPage.General), null),

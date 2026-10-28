@@ -7,7 +7,8 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
 - **Current phase:** 6a — tray, menu, exit, single instance, settings.json, start with Windows, settings window shell with
   General + About pages (branch `phase-6-tray`, awaiting review). Then 6b: Shortcuts, Appearance, Excluded apps, My words pages,
   live ar/en switching. Phases 0–5 merged. User decisions: phase 6 split in two; Windows 11 style settings (side navigation);
-  diagnostics window in Debug builds only (tray → Diagnostics). Debug: `--demo-settings [general|about] [en]`.
+  diagnostics window in Debug builds only (tray → Diagnostics); "Itmam is running" notice on EVERY start, including start with
+  Windows (user decision, overrides the brief's one-time notice); app icon = concept A (suggestion bar + «ت», tools/IconGenerator). Debug: `--demo-settings [general|about] [en]`.
 - Phase 5 decisions: learn words of ≥ 2 letters; silent full screen only for D3D exclusive + presentation mode (not F11
   browser/video); a finished word stays *pending* and is dropped if Backspace/Ctrl+Backspace follows it at once (user question);
   SQLite in Core (`SqliteUserWordStore`, WAL, corrupt file kept as `user.db.corrupt-*`); `ForegroundGuard` silences password

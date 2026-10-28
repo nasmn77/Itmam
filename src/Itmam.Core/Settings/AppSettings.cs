@@ -28,9 +28,6 @@ public sealed record AppSettings
     /// <summary>Start Itmam when the user signs in.</summary>
     public bool StartWithWindows { get; init; } = true;
 
-    /// <summary>The one-time "Itmam is running in the tray" notification was shown.</summary>
-    public bool FirstRunNoticeShown { get; init; }
-
     public UiLanguage Language { get; init; } = UiLanguage.Arabic;
 
     /// <summary>Suggestions shown (1–5).</summary>

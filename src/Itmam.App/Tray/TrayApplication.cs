@@ -36,8 +36,7 @@ internal sealed class TrayApplication : ApplicationContext
     private bool _exited;
 
     /// <param name="app">The running Itmam components.</param>
-    /// <param name="startedAtSignIn">Started by "Start with Windows" (no first-run notice then).</param>
-    public TrayApplication(ItmamApp app, bool startedAtSignIn)
+    public TrayApplication(ItmamApp app)
     {
         _app = app;
         var size = SystemInformation.SmallIconSize.Width;
@@ -68,10 +67,8 @@ internal sealed class TrayApplication : ApplicationContext
         SystemEvents.SessionEnding += OnSessionEnding;
         ApplyLanguage();
 
-        if (!app.Settings.FirstRunNoticeShown && !startedAtSignIn)
-        {
-            ShowFirstRunNoticeSoon();
-        }
+        // User decision: confirm on every start (Itmam has no window), including start with Windows.
+        ShowRunningNoticeSoon();
     }
 
     /// <summary>Opens Settings (also used when a second copy of Itmam is started).</summary>
@@ -86,9 +83,9 @@ internal sealed class TrayApplication : ApplicationContext
         _settings.ShowPage(page);
     }
 
-    // One-time "Itmam is running in the tray" notification. Shown a moment after the icon is added:
+    // "Itmam is running in the tray" notification, on every start. Shown a moment after the icon is added:
     // a notification requested in the same instant the icon appears can be dropped by Windows.
-    private void ShowFirstRunNoticeSoon()
+    private void ShowRunningNoticeSoon()
     {
         var delay = new System.Windows.Forms.Timer { Interval = 1500 };
         delay.Tick += (_, _) =>
@@ -100,7 +97,6 @@ internal sealed class TrayApplication : ApplicationContext
             }
 
             _icon.ShowBalloonTip(10_000, Strings.FirstRunTitle, Strings.FirstRunText, ToolTipIcon.Info);
-            _app.UpdateSettings(_app.Settings with { FirstRunNoticeShown = true });
         };
         delay.Start();
     }
