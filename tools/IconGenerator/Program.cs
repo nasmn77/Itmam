@@ -14,6 +14,7 @@ switch (args)
         return 0;
     case ["--listing", var folder]:
         WriteListingLogos(folder);
+        WriteHeroArt(folder);
         return 0;
     case [var output] when !output.StartsWith('-'):
         WriteIco(output);
@@ -151,6 +152,11 @@ static Bitmap Art(int width, int height, float iconShare)
         g.FillRectangle(gradient, 0, 0, width, height);
     }
 
+    if (iconShare <= 0)
+    {
+        return canvas; // background only (the hero art draws its own content)
+    }
+
     // A soft light behind the icon, then the icon.
     var size = (int)Math.Round(width * iconShare);
     var x = (width - size) / 2;
@@ -165,4 +171,86 @@ static Bitmap Art(int width, int height, float iconShare)
     using var icon = AppIconArt.Render(size);
     g.DrawImage(icon, x, y, size, size);
     return canvas;
+}
+
+// 16:9 Super hero art (top of the Store listing). The Store forbids the product name in it, so it shows
+// the product instead: the suggestion bar above a word being typed, next to the icon.
+static void WriteHeroArt(string folder)
+{
+    foreach (var scale in new[] { 1, 2 })
+    {
+        Save(Hero(1920 * scale, 1080 * scale), folder, $"super-hero-art-{1920 * scale}x{1080 * scale}.png");
+    }
+}
+
+static Bitmap Hero(int width, int height)
+{
+    var s = width / 1920f;
+    var canvas = Art(width, height, 0f); // gradient + glow only
+    using var g = Graphics.FromImage(canvas);
+    g.SmoothingMode = SmoothingMode.AntiAlias;
+    g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+    g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+
+    // Icon on the right (Arabic reading start), the typing scene on the left of it.
+    var iconSize = (int)(300 * s);
+    using (var icon = AppIconArt.Render(iconSize))
+    {
+        g.DrawImage(icon, (int)(1320 * s), (height - iconSize) / 2, iconSize, iconSize);
+    }
+
+    using var rtl = new StringFormat { FormatFlags = StringFormatFlags.DirectionRightToLeft, Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Center }; // Near = right edge in RTL
+    using var center = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center, FormatFlags = StringFormatFlags.DirectionRightToLeft };
+
+    // The typed line with its caret.
+    using var lineFont = new Font("Segoe UI", 64 * s, FontStyle.Regular, GraphicsUnit.Pixel);
+    var line = new RectangleF(260 * s, 560 * s, 960 * s, 110 * s);
+    g.DrawString("التحيات والسلا", lineFont, Brushes.White, line, rtl);
+    var typedWidth = g.MeasureString("التحيات والسلا", lineFont, PointF.Empty, rtl).Width;
+    var caretX = line.Right - typedWidth - (6 * s);
+    using (var caret = new SolidBrush(Color.FromArgb(0x5E, 0xEA, 0xD4)))
+    {
+        g.FillRectangle(caret, caretX, line.Top + (18 * s), 4 * s, line.Height - (36 * s));
+    }
+
+    // The suggestion bar above the word, like the real one: dark, first item highlighted, right edge at the caret.
+    string[] words = ["والسلام", "والسلامة", "والسلاح"];
+    using var barFont = new Font("Segoe UI", 40 * s, FontStyle.Regular, GraphicsUnit.Pixel);
+    var itemWidths = words.Select(w => g.MeasureString(w, barFont).Width + (56 * s)).ToArray();
+    var barWidth = itemWidths.Sum() + (16 * s);
+    var bar = new RectangleF(caretX + (12 * s) - barWidth, 400 * s, barWidth, 104 * s);
+    using (var path = RoundedRect(bar, 22 * s))
+    using (var fill = new SolidBrush(Color.FromArgb(0x2C, 0x2C, 0x2C)))
+    {
+        g.FillPath(fill, path);
+    }
+
+    var x = bar.Right - (8 * s);
+    for (var i = 0; i < words.Length; i++)
+    {
+        var item = new RectangleF(x - itemWidths[i], bar.Top + (8 * s), itemWidths[i], bar.Height - (16 * s));
+        if (i == 0)
+        {
+            using var pick = RoundedRect(item, 14 * s);
+            using var teal = new SolidBrush(Color.FromArgb(0x1A, 0x9E, 0xA0));
+            g.FillPath(teal, pick);
+        }
+
+        g.DrawString(words[i], barFont, Brushes.White, item, center);
+        x -= itemWidths[i];
+    }
+
+    return canvas;
+}
+
+static GraphicsPath RoundedRect(RectangleF r, float radius)
+{
+    var d = radius * 2;
+    var path = new GraphicsPath();
+    path.AddArc(r.Left, r.Top, d, d, 180, 90);
+    path.AddArc(r.Right - d, r.Top, d, d, 270, 90);
+    path.AddArc(r.Right - d, r.Bottom - d, d, d, 0, 90);
+    path.AddArc(r.Left, r.Bottom - d, d, d, 90, 90);
+    path.CloseFigure();
+    return path;
 }
