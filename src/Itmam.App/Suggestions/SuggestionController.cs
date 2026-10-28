@@ -20,7 +20,6 @@ internal sealed class SuggestionController : IDisposable
 {
     private readonly SuggestionEngine _engine;
     private readonly CaretLocator _caret;
-    private readonly ExcludedApps _excludedApps;
     private readonly SuggestionPopup _popup;
     private readonly Func<bool> _isEnabled;
     private readonly Channel<Request> _requests = Channel.CreateBounded<Request>(
@@ -28,11 +27,10 @@ internal sealed class SuggestionController : IDisposable
     private readonly CancellationTokenSource _stop = new();
     private long _sequence;
 
-    public SuggestionController(SuggestionEngine engine, CaretLocator caret, ExcludedApps excludedApps, SuggestionPopup popup, Func<bool> isEnabled)
+    public SuggestionController(SuggestionEngine engine, CaretLocator caret, SuggestionPopup popup, Func<bool> isEnabled)
     {
         _engine = engine;
         _caret = caret;
-        _excludedApps = excludedApps;
         _popup = popup;
         _isEnabled = isEnabled;
         _ = Task.Run(() => ProcessAsync(_stop.Token));
@@ -53,10 +51,10 @@ internal sealed class SuggestionController : IDisposable
 
         var sequence = Interlocked.Increment(ref _sequence);
         IReadOnlyList<string> words = [];
-        if (update is { IsArabicLayout: true, IsDetached: false, SuggestionsSuppressed: false }
+        // Silenced windows (password field, elevated/excluded app, full screen) never show the bar.
+        if (update is { IsArabicLayout: true, IsDetached: false, SuggestionsSuppressed: false, Silenced: SilenceReason.None }
             && _isEnabled()
-            && update.Letters >= _engine.Options.MinChars
-            && !_excludedApps.IsExcluded(ProcessNames.ForegroundProcessName()))
+            && update.Letters >= _engine.Options.MinChars)
         {
             words = _engine.Suggest(update.Word).Select(s => s.Word).ToArray();
         }

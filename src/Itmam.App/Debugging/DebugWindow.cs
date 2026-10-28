@@ -21,16 +21,23 @@ internal sealed class DebugWindow : Form
     private readonly Label _health = new() { Dock = DockStyle.Top, Height = 66, Font = new Font("Consolas", 9.5f) };
     private readonly ListBox _log = new() { Dock = DockStyle.Fill, Font = new Font("Consolas", 9.5f), IntegralHeight = false };
     private readonly System.Windows.Forms.Timer _healthTimer = new() { Interval = 500 };
+    private readonly Func<int> _learnedCount;
     private int _commits;
+    private int _learned;
     private string _lastShown = "—";
 
-    public DebugWindow(InputHookService hooks, InputPipeline pipeline, SuggestionController suggestions)
+    public DebugWindow(InputHookService hooks, InputPipeline pipeline, SuggestionController suggestions, string? recoveredBackup, Func<int> learnedCount)
     {
         _hooks = hooks;
+        _learnedCount = learnedCount;
         pipeline.Updated += OnPipelineUpdated;
         suggestions.Shown += shown => _lastShown =
             $"{shown.Count} suggestions, caret via {shown.Source}, {shown.Latency.TotalMilliseconds:F1} ms after the key";
-        Text = "Itmam — debug (Phase 3)";
+        Text = "Itmam — debug (Phase 5)";
+        if (recoveredBackup is not null)
+        {
+            _log.Items.Add($"user.db was damaged: kept as {Path.GetFileName(recoveredBackup)}, started fresh");
+        }
         ShowInTaskbar = false;
         TopMost = true;
         StartPosition = FormStartPosition.Manual;
@@ -84,9 +91,15 @@ internal sealed class DebugWindow : Form
             _commits++;
         }
 
+        if (update.WordToLearn is not null)
+        {
+            _learned++;
+        }
+
         _state.Text =
-            $"Layout: {(update.IsArabicLayout ? "Arabic" : "other (silent)")}  0x{update.Layout:X8}\n" +
-            $"Letters: {update.Letters}   Last: {update.Result.Outcome}   Commits: {_commits}" +
+            $"Layout: {(update.IsArabicLayout ? "Arabic" : "other (silent)")}  0x{update.Layout:X8}" +
+            (update.Silenced != SilenceReason.None ? $"   SILENT: {update.Silenced}" : string.Empty) + "\n" +
+            $"Letters: {update.Letters}   Last: {update.Result.Outcome}   Commits: {_commits}   Learned: {_learned} (user words: {_learnedCount()})" +
             (update.IsDetached ? "   [paused: caret inside an unseen word]" : string.Empty) +
             $"\nBar: {_lastShown}";
 

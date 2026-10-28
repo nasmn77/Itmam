@@ -55,6 +55,9 @@ internal sealed class SuggestionPopup : Form
     /// <summary>A suggestion was clicked: (index, word). Raised on the UI thread.</summary>
     public event Action<int, string>? SuggestionClicked;
 
+    /// <summary>A suggestion was right-clicked: never suggest it again. Raised on the UI thread.</summary>
+    public event Action<int, string>? SuggestionBlockRequested;
+
     protected override bool ShowWithoutActivation => true;
 
     protected override CreateParams CreateParams
@@ -147,9 +150,16 @@ internal sealed class SuggestionPopup : Form
     protected override void OnMouseDown(MouseEventArgs e)
     {
         base.OnMouseDown(e);
-        if (e.Button == MouseButtons.Left && ItemAt(e.Location) is var index and >= 0)
+        if (ItemAt(e.Location) is var index and >= 0)
         {
-            SuggestionClicked?.Invoke(index, _words[index]);
+            if (e.Button == MouseButtons.Left)
+            {
+                SuggestionClicked?.Invoke(index, _words[index]);
+            }
+            else if (e.Button == MouseButtons.Right)
+            {
+                SuggestionBlockRequested?.Invoke(index, _words[index]);
+            }
         }
     }
 
