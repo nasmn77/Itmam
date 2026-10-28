@@ -43,8 +43,13 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
 - **Store submission 1 (v1.0.0.0) sent for certification on 2026-10-28** (publish as soon as it passes). Partner Center:
   pricing free (0 USD, all markets), category Productivity, OneDrive backup and clip recording declarations turned off
   (privacy), age rating questionnaire all "No", listings ar + en (texts from STORE_LISTING.md, screenshots docs/store,
-  logos docs/store/logos), certification notes in Additional Testing Information. To follow in 1.0.1: the bar appeared at
-  the top of the screen instead of at the caret in an Edge page (Partner Center), and optional 16:9 Super hero art.
+  logos docs/store/logos), certification notes in Additional Testing Information. Super hero art is ready in docs/store/logos
+  (add it in the next submission).
+- **1.0.1 (branch `release-1.0.1`, verified by the user, waiting for 1.0.0 to be published before submitting):**
+  (1) `CaretSource.FocusedField` fallback before the mouse pointer when a web control reports no caret (the bar had
+  appeared at the top of Partner Center in Edge); (2) the caret is read again 60 ms after the bar is shown when no
+  newer key arrived (the hook reads it before the app inserts the letter; an empty dir=auto field such as Google
+  search flips to RTL on the first Arabic letter). Local test installs of the same version need Remove-AppxPackage first.
 - **Phase 7** merged into main. `src/Itmam.Package` (.wapproj, x64 + ARM64 bundle),
   identity from Partner Center product **9P08F7KGRJB0** (`NasserAlmadi.563063310BE3D`, `CN=9260B530-9E02-440E-8E99-B74323B1CE93`,
   PublisherDisplayName "Nasser Almadi"; reserved names «إتمام» + "Itmam"; a separate draft product «اتمام» without hamza
