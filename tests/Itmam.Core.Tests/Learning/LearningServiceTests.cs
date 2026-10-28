@@ -50,6 +50,53 @@ public sealed class LearningServiceTests : IDisposable
     }
 
     [Fact]
+    public void Snapshot_copies_every_word_with_its_state()
+    {
+        var (learning, _) = Start();
+        learning.Learn("كتاب");
+        learning.Learn("كتاب");
+        learning.SetBlocked("قلم", blocked: true);
+
+        var snapshot = learning.Snapshot();
+
+        snapshot.Single(w => w.Word == "كتاب").ShouldBe(new StoredWord("كتاب", 2, Now, Blocked: false));
+        snapshot.Single(w => w.Word == "قلم").Blocked.ShouldBeTrue();
+
+        learning.Remove("كتاب");
+        snapshot.Count.ShouldBe(2); // a copy: later changes do not affect it
+    }
+
+    [Fact]
+    public async Task Changes_from_another_thread_never_break_readers_holding_the_lock()
+    {
+        var (learning, index) = Start();
+        using var stop = new CancellationTokenSource(TimeSpan.FromMilliseconds(300));
+
+        // "My words" edits (UI thread) while the engine reads (pipeline thread).
+        var writer = Task.Run(() =>
+        {
+            for (var i = 0; !stop.IsCancellationRequested; i++)
+            {
+                learning.AddManually("كلمة" + new string('ب', (i % 20) + 1), 2);
+                learning.Remove("كلمة" + new string('ب', ((i + 7) % 20) + 1));
+            }
+        }, TestContext.Current.CancellationToken);
+        var reads = 0;
+        while (!stop.IsCancellationRequested)
+        {
+            lock (learning.SyncRoot)
+            {
+                index.FindByPrefix("كلم").Count().ShouldBe(index.Count);
+            }
+
+            reads++;
+        }
+
+        await writer;
+        reads.ShouldBeGreaterThan(0);
+    }
+
+    [Fact]
     public void A_new_word_becomes_suggestible_after_the_threshold_and_survives_a_restart()
     {
         var (learning, index) = Start();

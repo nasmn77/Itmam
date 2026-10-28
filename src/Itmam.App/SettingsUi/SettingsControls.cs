@@ -36,11 +36,17 @@ internal abstract class ThemedControl : Control
         set
         {
             _palette = value;
+            OnPaletteChanged();
             Invalidate();
         }
     }
 
     protected float DpiScale => DeviceDpi / 96f;
+
+    /// <summary>Containers pass the new palette on to their children.</summary>
+    protected virtual void OnPaletteChanged()
+    {
+    }
 }
 
 /// <summary>Windows 11 toggle switch: a pill with a sliding knob, accent-filled when on.</summary>
@@ -141,10 +147,19 @@ internal sealed class ThemedButton : ThemedControl
         set
         {
             base.Text = value;
-            Width = Math.Max(120, TextRenderer.MeasureText(value ?? string.Empty, Font).Width + 40);
+            FitWidth();
             Invalidate();
         }
     }
+
+    // The font is inherited from the window once the button is placed: measure again.
+    protected override void OnFontChanged(EventArgs e)
+    {
+        base.OnFontChanged(e);
+        FitWidth();
+    }
+
+    private void FitWidth() => Width = Math.Max(120, TextRenderer.MeasureText(Text, Font).Width + 40);
 
     protected override void OnMouseEnter(EventArgs e)
     {
@@ -198,7 +213,7 @@ internal sealed class ThemedButton : ThemedControl
             g.DrawPath(border, path);
         }
 
-        TextRenderer.DrawText(g, Text, Font, ClientRectangle, Palette.Text,
+        TextRenderer.DrawText(g, Text, Font, ClientRectangle, Enabled ? Palette.Text : Palette.SecondaryText,
             TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine);
 
         if (Focused && ShowFocusCues)
@@ -232,10 +247,19 @@ internal sealed class SegmentedChoice : ThemedControl
         set
         {
             _options = value;
-            Width = (int)((_options.Sum(o => Math.Max(40, TextRenderer.MeasureText(o, Font).Width + 24))) * 1f);
+            FitWidth();
             Invalidate();
         }
     }
+
+    // The font is inherited from the window once the control is placed: measure again.
+    protected override void OnFontChanged(EventArgs e)
+    {
+        base.OnFontChanged(e);
+        FitWidth();
+    }
+
+    private void FitWidth() => Width = _options.Sum(OptionWidth);
 
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public int SelectedIndex
@@ -343,12 +367,17 @@ internal sealed class SegmentedChoice : ThemedControl
     }
 
     // Options flow in reading order: right to left in Arabic.
+    // Each option is as wide as its text (scaled to the control), in reading order.
     private RectangleF ItemBounds(int index)
     {
-        var width = (float)Width / Math.Max(1, _options.Length);
-        var slot = RightToLeft == RightToLeft.Yes ? _options.Length - 1 - index : index;
-        return new RectangleF(slot * width, 0, width, Height);
+        var widths = _options.Select(OptionWidth).ToArray();
+        var scale = Width / Math.Max(1f, widths.Sum());
+        var rtl = RightToLeft == RightToLeft.Yes;
+        var before = rtl ? widths.Skip(index + 1).Sum() : widths.Take(index).Sum();
+        return new RectangleF(before * scale, 0, widths[index] * scale, Height);
     }
+
+    private int OptionWidth(string option) => Math.Max(40, TextRenderer.MeasureText(option, Font).Width + 24);
 
     private int IndexAt(int x)
     {
@@ -584,4 +613,13 @@ internal sealed class SearchBox : ThemedControl
             g.DrawLine(accent, 4 * DpiScale, Height - DpiScale, Width - (4 * DpiScale), Height - DpiScale);
         }
     }
+}
+
+/// <summary>
+/// The scrolling page. A plain Panel scrolls a control fully into view when it gets focus, so
+/// clicking a tall control (the word list) jumps the page under the mouse; this one stays put.
+/// </summary>
+internal sealed class PageScroller : Panel
+{
+    protected override Point ScrollToControl(Control activeControl) => DisplayRectangle.Location;
 }

@@ -57,7 +57,7 @@ internal sealed class ItmamApp : IDisposable
         _ = Popup.Handle; // create the (hidden) window now so the first suggestion is not delayed
         Popup.SuggestionClicked += (index, word) => Hooks.Post(InputEvent.Accept(index, word));
         Popup.SuggestionForgetRequested += (index, word) => Hooks.Post(InputEvent.Forget(index, word));
-        Suggestions = new SuggestionController(Engine, new CaretLocator(UiAutomation), Popup, () => Hooks.IsEnabled);
+        Suggestions = new SuggestionController(Engine, new CaretLocator(UiAutomation), Popup, () => Hooks.IsEnabled, Learning.SyncRoot);
 
         // Learning first, so a just-forgotten word is gone before the bar is recomputed. Same thread as the engine.
         Pipeline.Updated += OnPipelineUpdated;

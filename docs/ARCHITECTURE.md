@@ -207,6 +207,11 @@ window. A learned word is suggested after `MinUsesToSuggest` uses (default 2). "
 forgets a learned word (`ForgetSuggestion` → `LearningService.Remove`); it is learned again if
 used. Blocking for good is only offered in "My words".
 
+Thread safety: the pipeline thread learns words while "My words" edits them from the UI thread.
+Every change goes through `LearningService` under its lock (`SyncRoot`); `SuggestionController`
+holds the same lock while `SuggestionEngine` reads the index, and the page lists a copy
+(`LearningService.Snapshot`).
+
 ## Where Itmam is silent (Phase 5)
 
 `ForegroundGuard` (Win32, implements Core `IInputGuard`) is checked whenever the window, field or

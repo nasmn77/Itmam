@@ -118,4 +118,45 @@
   <data name="ConfirmAddExcluded" xml:space="preserve"><value>استثناء {0}؟ سيبقى إتمام صامتًا تمامًا فيه: لا اقتراحات ولا تعلّم.</value></data>
   <data name="ConfirmRemoveExcluded" xml:space="preserve"><value>إزالة {0} من التطبيقات المستثناة؟ سيعود إتمام إلى الاقتراح وتعلّم الكلمات فيه.</value></data>
   <data name="ConfirmResetExcluded" xml:space="preserve"><value>استعادة القائمة الافتراضية؟ ستُحذف منها التطبيقات التي أضفتها، وتُستثنى من جديد التطبيقات الافتراضية التي أزلتها.</value></data>
+  <data name="NavWords" xml:space="preserve"><value>كلماتي</value></data>
+  <data name="WordsIntro" xml:space="preserve"><value>الكلمات التي تعلّمها إتمام منك. لا يُحفظ إلا الكلمة وعدد مرات استعمالها ووقت آخر استعمال، على هذا الجهاز فقط.</value></data>
+  <data name="PauseLearningHint" xml:space="preserve"><value>لا يتعلّم كلمات جديدة، وتبقى كلماتك تُقترح.</value></data>
+  <data name="AddWord" xml:space="preserve"><value>إضافة كلمة</value></data>
+  <data name="AddWordHint" xml:space="preserve"><value>الكلمة المضافة تُقترح فورًا. والكلمة المحظورة لا تُقترح أبدًا، ولو كانت في القاموس.</value></data>
+  <data name="AddWordButton" xml:space="preserve"><value>إضافة…</value></data>
+  <data name="BlockWordButton" xml:space="preserve"><value>حظر…</value></data>
+  <data name="AddWordPrompt" xml:space="preserve"><value>اكتب الكلمة التي تريد إضافتها:</value></data>
+  <data name="BlockWord" xml:space="preserve"><value>حظر كلمة</value></data>
+  <data name="BlockWordPrompt" xml:space="preserve"><value>اكتب الكلمة التي لا تريد أن تُقترح أبدًا:</value></data>
+  <data name="EditWord" xml:space="preserve"><value>تعديل كلمة</value></data>
+  <data name="EditWordPrompt" xml:space="preserve"><value>صحّح الكتابة (يبقى عدد استعمالها كما هو):</value></data>
+  <data name="NotAnArabicWord" xml:space="preserve"><value>اكتب كلمة عربية واحدة بلا مسافات.</value></data>
+  <data name="OkButton" xml:space="preserve"><value>موافق</value></data>
+  <data name="CancelButton" xml:space="preserve"><value>إلغاء</value></data>
+  <data name="ImportExport" xml:space="preserve"><value>الاستيراد والتصدير</value></data>
+  <data name="ImportExportHint" xml:space="preserve"><value>ملف نصي فيه كلمة في كل سطر، لنسخ كلماتك احتياطيًا أو نقلها إلى جهاز آخر.</value></data>
+  <data name="ImportButton" xml:space="preserve"><value>استيراد…</value></data>
+  <data name="ExportButton" xml:space="preserve"><value>تصدير…</value></data>
+  <data name="WordsFileFilter" xml:space="preserve"><value>ملفات نصية (*.txt)|*.txt</value></data>
+  <data name="WordsFileName" xml:space="preserve"><value>كلمات-إتمام.txt</value></data>
+  <data name="ImportDone" xml:space="preserve"><value>أُضيفت {0}، وحُدّثت {1}، وتُجوهلت {2}.</value></data>
+  <data name="FileError" xml:space="preserve"><value>تعذّرت قراءة الملف أو الكتابة فيه.</value></data>
+  <data name="SectionWordsList" xml:space="preserve"><value>كلماتك ({0:N0})</value></data>
+  <data name="SortWords" xml:space="preserve"><value>الترتيب</value></data>
+  <data name="SortMostUsed" xml:space="preserve"><value>الأكثر استعمالًا</value></data>
+  <data name="SortRecent" xml:space="preserve"><value>الأحدث</value></data>
+  <data name="SortAlphabetical" xml:space="preserve"><value>أبجديًا</value></data>
+  <data name="SearchWords" xml:space="preserve"><value>ابحث في كلماتك</value></data>
+  <data name="WordUses" xml:space="preserve"><value>استُعملت {0:N0} مرة · آخرها {1:d}</value></data>
+  <data name="WordBlocked" xml:space="preserve"><value>محظورة: لا تُقترح أبدًا</value></data>
+  <data name="EditWordButton" xml:space="preserve"><value>تعديل…</value></data>
+  <data name="BlockButton" xml:space="preserve"><value>حظر</value></data>
+  <data name="UnblockButton" xml:space="preserve"><value>إلغاء الحظر</value></data>
+  <data name="DeleteButton" xml:space="preserve"><value>حذف</value></data>
+  <data name="ConfirmDeleteWord" xml:space="preserve"><value>حذف {0}؟ يمكن أن يتعلّمها إتمام من جديد إذا استعملتها.</value></data>
+  <data name="SectionClearWords" xml:space="preserve"><value>حذف الكل</value></data>
+  <data name="ClearWords" xml:space="preserve"><value>حذف كل كلماتي</value></data>
+  <data name="ClearWordsHint" xml:space="preserve"><value>يحذف من هذا الجهاز كل كلمة تعلّمها إتمام أو أضفتها أو حظرتها، ولا يمكن التراجع عنه.</value></data>
+  <data name="ClearAllButton" xml:space="preserve"><value>حذف الكل</value></data>
+  <data name="ConfirmClearWords" xml:space="preserve"><value>حذف كل كلماتك؟ لا يمكن التراجع عن ذلك. صدّرها أولًا إن أردت نسخة منها.</value></data>
 </root>

@@ -5,6 +5,7 @@ using System.Reflection;
 using Itmam.App.Resources;
 using Itmam.App.Suggestions;
 using Itmam.Core.Input;
+using Itmam.Core.Learning;
 using Itmam.Core.Presentation;
 using Itmam.Core.Settings;
 using Itmam.Win32;
@@ -18,6 +19,7 @@ internal enum SettingsPage
     Appearance,
     Shortcuts,
     Excluded,
+    Words,
     About,
     Exit,
 }
@@ -39,11 +41,19 @@ internal sealed class SettingsWindow : Form
     private readonly Action _exit;
     private readonly bool _mirrored;
     private readonly Panel _navigation = new() { Dock = DockStyle.Left, Width = 240 };
-    private readonly Panel _content = new() { Dock = DockStyle.Fill, AutoScroll = true };
+    private readonly Panel _content = new PageScroller { Dock = DockStyle.Fill, AutoScroll = true };
     private readonly Dictionary<SettingsPage, NavItem> _navItems = [];
     private readonly List<Control> _pageControls = [];
     private readonly HashSet<Control> _filteredOut = [];
     private string _excludedSearch = string.Empty; // kept when the page is rebuilt after add/remove
+    private string _wordsFilter = string.Empty;
+    private int _wordsSort;
+    private Label? _wordsHeader;
+    private SearchBox? _wordsSearch;
+    private WordList? _wordList;
+    private ThemedButton? _editWord;
+    private ThemedButton? _toggleBlock;
+    private ThemedButton? _deleteWord;
     private SettingsPalette _palette;
     private SettingsPage _page;
     private bool _loading;
@@ -167,7 +177,7 @@ internal sealed class SettingsWindow : Form
         _navigation.Controls.Add(header);
 
         var top = 72;
-        foreach (var (page, title) in new[] { (SettingsPage.General, Strings.NavGeneral), (SettingsPage.Appearance, Strings.NavAppearance), (SettingsPage.Shortcuts, Strings.NavShortcuts), (SettingsPage.Excluded, Strings.NavExcluded), (SettingsPage.About, Strings.NavAbout), (SettingsPage.Exit, Strings.NavExit) })
+        foreach (var (page, title) in new[] { (SettingsPage.General, Strings.NavGeneral), (SettingsPage.Appearance, Strings.NavAppearance), (SettingsPage.Shortcuts, Strings.NavShortcuts), (SettingsPage.Excluded, Strings.NavExcluded), (SettingsPage.Words, Strings.NavWords), (SettingsPage.About, Strings.NavAbout), (SettingsPage.Exit, Strings.NavExit) })
         {
             var item = new NavItem { Text = title, Left = 8, Top = top, Width = _navigation.Width - 16, Height = 40, Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
             item.Click += (_, _) => SelectPage(page);
@@ -182,6 +192,7 @@ internal sealed class SettingsWindow : Form
         if (page != _page)
         {
             _excludedSearch = string.Empty; // a search applies only while staying on its page
+            _wordsFilter = string.Empty;
         }
 
         _page = page;
@@ -200,6 +211,10 @@ internal sealed class SettingsWindow : Form
         _pageControls.Clear();
         _filteredOut.Clear();
         _preview = null;
+        _wordsHeader = null;
+        _wordsSearch = null;
+        _wordList = null;
+        _editWord = _toggleBlock = _deleteWord = null;
         _textCard = null;
         _loading = true;
         switch (page)
@@ -215,6 +230,9 @@ internal sealed class SettingsWindow : Form
                 break;
             case SettingsPage.Excluded:
                 BuildExcludedPage();
+                break;
+            case SettingsPage.Words:
+                BuildWordsPage();
                 break;
             case SettingsPage.About:
                 BuildAboutPage();
@@ -674,6 +692,250 @@ internal sealed class SettingsWindow : Form
         _content.AutoScrollPosition = new Point(0, scroll);
     }
 
+    // "My words": only word → count / last use is stored (see docs/PRIVACY.md). Every change goes through
+    // LearningService, under the lock the suggestion engine also holds.
+    private void BuildWordsPage()
+    {
+        var settings = _app.Settings;
+        AddTitle(Strings.NavWords);
+        AddText(Strings.WordsIntro, secondary: true);
+
+        var pause = new ToggleSwitch { Checked = settings.LearningPaused };
+        pause.CheckedChanged += (_, _) => Update(s => s with { LearningPaused = pause.Checked });
+        AddCard(Strings.PauseLearning, Strings.PauseLearningHint, pause);
+
+        var add = new ThemedButton { Text = Strings.AddWordButton };
+        add.Click += (_, _) => AddWord(blocked: false);
+        var block = new ThemedButton { Text = Strings.BlockWordButton };
+        block.Click += (_, _) => AddWord(blocked: true);
+        AddCard(Strings.AddWord, Strings.AddWordHint, new ButtonRow(add, block));
+
+        var import = new ThemedButton { Text = Strings.ImportButton };
+        import.Click += (_, _) => ImportWords();
+        var export = new ThemedButton { Text = Strings.ExportButton };
+        export.Click += (_, _) => ExportWords();
+        AddCard(Strings.ImportExport, Strings.ImportExportHint, new ButtonRow(import, export));
+
+        AddSection(string.Empty);
+        _wordsHeader = (Label)_pageControls[^1];
+
+        string[] sorts = [Strings.SortMostUsed, Strings.SortRecent, Strings.SortAlphabetical];
+        var sort = new SegmentedChoice { Options = sorts };
+        sort.SelectedIndex = _wordsSort;
+        sort.SelectedIndexChanged += (_, _) =>
+        {
+            _wordsSort = sort.SelectedIndex;
+            RefreshWords();
+        };
+        AddCard(Strings.SortWords, null, sort);
+
+        _wordsSearch = new SearchBox { Placeholder = Strings.SearchWords, Text = _wordsFilter };
+        _wordsSearch.TextChanged += (_, _) =>
+        {
+            _wordsFilter = _wordsSearch.Text.Trim();
+            RefreshWords();
+        };
+        AddPageControl(_wordsSearch);
+
+        _wordList = new WordList();
+        _wordList.ItemActivated += (_, _) => EditSelectedWord();
+        _wordList.DeleteRequested += (_, _) => DeleteSelectedWord();
+        _wordList.ContextRequested += ShowWordMenu;
+        AddPageControl(_wordList);
+
+        _editWord = new ThemedButton { Text = Strings.EditWordButton };
+        _editWord.Click += (_, _) => EditSelectedWord();
+        _toggleBlock = new ThemedButton { Text = Strings.UnblockButton }; // the longer label sizes the button
+        _toggleBlock.Click += (_, _) => ToggleSelectedBlock();
+        _deleteWord = new ThemedButton { Text = Strings.DeleteButton };
+        _deleteWord.Click += (_, _) => DeleteSelectedWord();
+        AddPageControl(new ButtonRow(_editWord, _toggleBlock, _deleteWord) { Stretch = true });
+        _wordList.SelectionChanged += (_, _) => UpdateWordButtons();
+
+        AddSection(Strings.SectionClearWords);
+        var clear = new ThemedButton { Text = Strings.ClearAllButton };
+        clear.Click += (_, _) =>
+        {
+            if (Confirm(Strings.ConfirmClearWords, null))
+            {
+                _app.Learning.ClearAll();
+                RefreshWords();
+            }
+        };
+        AddCard(Strings.ClearWords, Strings.ClearWordsHint, clear);
+        RefreshWords();
+    }
+
+    // Reads a fresh copy of the words, then filters and sorts it for the list.
+    private void RefreshWords()
+    {
+        if (_wordList is null || _wordsHeader is null)
+        {
+            return;
+        }
+
+        var all = _app.Learning.Snapshot();
+        _wordsHeader.Text = string.Format(CultureInfo.CurrentCulture, Strings.SectionWordsList, all.Count);
+        IEnumerable<StoredWord> words = all;
+        if (_wordsFilter.Length > 0)
+        {
+            words = words.Where(w => w.Word.Contains(_wordsFilter, StringComparison.Ordinal));
+        }
+
+        words = _wordsSort switch
+        {
+            1 => words.OrderByDescending(w => w.LastUsed),
+            2 => words.OrderBy(w => w.Word, StringComparer.Create(new CultureInfo("ar"), ignoreCase: false)),
+            _ => words.OrderByDescending(w => w.Count).ThenByDescending(w => w.LastUsed),
+        };
+        _wordList.Words = [.. words];
+        UpdateWordButtons();
+    }
+
+    private void UpdateWordButtons()
+    {
+        var selected = _wordList?.SelectedWord;
+        foreach (var button in new[] { _editWord, _toggleBlock, _deleteWord })
+        {
+            if (button is not null)
+            {
+                button.Enabled = selected is not null;
+                button.Invalidate();
+            }
+        }
+
+        if (_toggleBlock is not null)
+        {
+            _toggleBlock.Text = selected is { Blocked: true } ? Strings.UnblockButton : Strings.BlockButton;
+        }
+    }
+
+    // Add: suggested at once (counted as used enough times). Block: never suggested, even from the dictionary.
+    private void AddWord(bool blocked)
+    {
+        var word = WordDialog.Ask(this, blocked ? Strings.BlockWord : Strings.AddWord, blocked ? Strings.BlockWordPrompt : Strings.AddWordPrompt, string.Empty, _palette, _mirrored);
+        if (word is null)
+        {
+            return;
+        }
+
+        if (blocked)
+        {
+            _app.Learning.SetBlocked(word, blocked: true);
+        }
+        else
+        {
+            _app.Learning.AddManually(word, _app.Settings.MinUsesToSuggest);
+        }
+
+        RefreshWords();
+    }
+
+    private void EditSelectedWord()
+    {
+        if (_wordList?.SelectedWord is not { } selected)
+        {
+            return;
+        }
+
+        var word = WordDialog.Ask(this, Strings.EditWord, Strings.EditWordPrompt, selected.Word, _palette, _mirrored);
+        if (word is not null && word != selected.Word)
+        {
+            _app.Learning.Rename(selected.Word, word);
+            RefreshWords();
+        }
+    }
+
+    private void ToggleSelectedBlock()
+    {
+        if (_wordList?.SelectedWord is not { } selected)
+        {
+            return;
+        }
+
+        if (selected.Blocked && selected.Count == 0)
+        {
+            _app.Learning.Remove(selected.Word); // only existed to be blocked
+        }
+        else
+        {
+            _app.Learning.SetBlocked(selected.Word, !selected.Blocked);
+        }
+
+        RefreshWords();
+    }
+
+    private void DeleteSelectedWord()
+    {
+        if (_wordList?.SelectedWord is { } selected && Confirm(Strings.ConfirmDeleteWord, selected.Word))
+        {
+            _app.Learning.Remove(selected.Word);
+            RefreshWords();
+        }
+    }
+
+    private void ShowWordMenu(Point location)
+    {
+        if (_wordList?.SelectedWord is not { } selected)
+        {
+            return;
+        }
+
+        var menu = new ContextMenuStrip { RightToLeft = RightToLeft, ShowImageMargin = false };
+        menu.Items.Add(Strings.EditWordButton, null, (_, _) => EditSelectedWord());
+        menu.Items.Add(selected.Blocked ? Strings.UnblockButton : Strings.BlockButton, null, (_, _) => ToggleSelectedBlock());
+        menu.Items.Add(Strings.DeleteButton, null, (_, _) => DeleteSelectedWord());
+        menu.Closed += (_, _) => BeginInvoke(menu.Dispose);
+        menu.Show(_wordList, location);
+    }
+
+    // The file is the user's choice: one word per line, "word<TAB>count", "!word" = blocked.
+    private void ImportWords()
+    {
+        using var dialog = new OpenFileDialog { Filter = Strings.WordsFileFilter };
+        if (dialog.ShowDialog(this) != DialogResult.OK)
+        {
+            return;
+        }
+
+        try
+        {
+            using var reader = new StreamReader(dialog.FileName, System.Text.Encoding.UTF8);
+            var result = _app.Learning.Import(reader);
+            RefreshWords();
+            ShowInfo(string.Format(CultureInfo.CurrentCulture, Strings.ImportDone, result.Added, result.Updated, result.Skipped));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            ShowInfo(Strings.FileError);
+        }
+    }
+
+    private void ExportWords()
+    {
+        using var dialog = new SaveFileDialog { Filter = Strings.WordsFileFilter, FileName = Strings.WordsFileName };
+        if (dialog.ShowDialog(this) != DialogResult.OK)
+        {
+            return;
+        }
+
+        try
+        {
+            using var writer = new StreamWriter(dialog.FileName, append: false, new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+            _app.Learning.Export(writer);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            ShowInfo(Strings.FileError);
+        }
+    }
+
+    private void ShowInfo(string text)
+    {
+        var options = _mirrored ? MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign : 0;
+        MessageBox.Show(this, text, Strings.AppName, MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, options);
+    }
+
     // Its own page: exiting is different from "Enabled" off, and is explained here.
     private void BuildExitPage()
     {
@@ -742,7 +1004,7 @@ internal sealed class SettingsWindow : Form
     private void AddSection(string text) => AddPageControl(new Label { Text = text, Font = new Font("Segoe UI Semibold", 10.5f), Height = 40, TextAlign = ContentAlignment.BottomLeft, UseMnemonic = false });
 
     private void AddText(string text, bool secondary) =>
-        AddPageControl(new Label { Text = text, Height = 28, Tag = secondary ? "secondary" : null, UseMnemonic = false });
+        AddPageControl(new Label { Text = text, Height = 28, Tag = secondary ? "secondary" : "text", UseMnemonic = false });
 
     private void AddLink(string text, string url)
     {
@@ -783,7 +1045,11 @@ internal sealed class SettingsWindow : Form
                 continue;
             }
 
-            control.SetBounds(margin, y, width, control.Height);
+            // Paragraphs (AddText) wrap: as tall as their text at this width.
+            var height = control is Label { Tag: "text" or "secondary" } paragraph
+                ? Math.Max((int)(28 * scale), TextRenderer.MeasureText(paragraph.Text, paragraph.Font, new Size(width, int.MaxValue), TextFormatFlags.WordBreak).Height + (int)(8 * scale))
+                : control.Height;
+            control.SetBounds(margin, y, width, height);
             if (control is Label label)
             {
                 // Start of the line: WinForms mirrors it to the right for RightToLeft labels.

@@ -22,14 +22,19 @@ internal sealed class SuggestionController : IDisposable
     private readonly CaretLocator _caret;
     private readonly SuggestionPopup _popup;
     private readonly Func<bool> _isEnabled;
+    private readonly Lock _userWordsLock;
     private readonly Channel<Request> _requests = Channel.CreateBounded<Request>(
         new BoundedChannelOptions(1) { FullMode = BoundedChannelFullMode.DropOldest, SingleReader = true, SingleWriter = true });
     private readonly CancellationTokenSource _stop = new();
     private long _sequence;
 
-    public SuggestionController(SuggestionEngine engine, CaretLocator caret, SuggestionPopup popup, Func<bool> isEnabled)
+    /// <param name="userWordsLock">
+    /// Held while the engine reads the user's words: "My words" in Settings changes them from the UI thread.
+    /// </param>
+    public SuggestionController(SuggestionEngine engine, CaretLocator caret, SuggestionPopup popup, Func<bool> isEnabled, Lock userWordsLock)
     {
         _engine = engine;
+        _userWordsLock = userWordsLock;
         _caret = caret;
         _popup = popup;
         _isEnabled = isEnabled;
@@ -56,7 +61,10 @@ internal sealed class SuggestionController : IDisposable
             && _isEnabled()
             && update.Letters >= _engine.Options.MinChars)
         {
-            words = _engine.Suggest(update.Word).Select(s => s.Word).ToArray();
+            lock (_userWordsLock)
+            {
+                words = _engine.Suggest(update.Word).Select(s => s.Word).ToArray();
+            }
         }
 
         var started = update.Input?.Timestamp ?? Stopwatch.GetTimestamp();
