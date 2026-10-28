@@ -25,7 +25,7 @@ internal static class Program
             return;
         }
 
-        // Visual check of the settings window (no hooks installed): --demo-settings [general|appearance|shortcuts|about|exit] [en] [end]
+        // Visual check of the settings window (no hooks installed): --demo-settings [general|appearance|shortcuts|excluded|about|exit] [en] [end]
         if (args is ["--demo-settings", ..])
         {
             SynchronizationContext.SetSynchronizationContext(new WindowsFormsSynchronizationContext());
@@ -38,6 +38,7 @@ internal static class Program
                 : args.Contains("exit") ? SettingsPage.Exit
                 : args.Contains("appearance") ? SettingsPage.Appearance
                 : args.Contains("shortcuts") ? SettingsPage.Shortcuts
+                : args.Contains("excluded") ? SettingsPage.Excluded
                 : SettingsPage.General);
             if (args.Contains("end"))
             {

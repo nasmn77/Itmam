@@ -101,4 +101,16 @@
   <data name="HotkeyProblemCommonShortcut" xml:space="preserve"><value>{0} is a common Windows shortcut: choose another.</value></data>
   <data name="HotkeyProblemAcceptsNth" xml:space="preserve"><value>{0} already inserts a suggestion by number.</value></data>
   <data name="HotkeyProblemModifiersOnly" xml:space="preserve"><value>Ctrl, Alt or Shift alone works only for turning Itmam on or off: add a key.</value></data>
+  <data name="NavExcluded" xml:space="preserve"><value>Excluded apps</value></data>
+  <data name="ExcludedIntro" xml:space="preserve"><value>Itmam stays completely silent in these apps: no suggestions, no learning, nothing read.</value></data>
+  <data name="AddApp" xml:space="preserve"><value>Add an app</value></data>
+  <data name="AddAppHint" xml:space="preserve"><value>Choose an open app, or browse for its program file.</value></data>
+  <data name="AddButton" xml:space="preserve"><value>Add</value></data>
+  <data name="BrowseApp" xml:space="preserve"><value>Browse…</value></data>
+  <data name="ExeFilter" xml:space="preserve"><value>Programs (*.exe)|*.exe</value></data>
+  <data name="SectionExcludedList" xml:space="preserve"><value>Excluded ({0})</value></data>
+  <data name="ExcludedEmpty" xml:space="preserve"><value>No apps are excluded.</value></data>
+  <data name="RemoveButton" xml:space="preserve"><value>Remove</value></data>
+  <data name="ResetExcluded" xml:space="preserve"><value>Default list</value></data>
+  <data name="ResetExcludedHint" xml:space="preserve"><value>Remote desktops, virtual machines, terminals and game launchers.</value></data>
 </root>

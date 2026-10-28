@@ -101,4 +101,16 @@
   <data name="HotkeyProblemCommonShortcut" xml:space="preserve"><value>{0} اختصار شائع في Windows: اختر غيره.</value></data>
   <data name="HotkeyProblemAcceptsNth" xml:space="preserve"><value>{0} يُدرج اقتراحًا برقمه بالفعل.</value></data>
   <data name="HotkeyProblemModifiersOnly" xml:space="preserve"><value>Ctrl أو Alt أو Shift وحدها تصلح فقط لتشغيل إتمام وإيقافه: أضف مفتاحًا.</value></data>
+  <data name="NavExcluded" xml:space="preserve"><value>التطبيقات المستثناة</value></data>
+  <data name="ExcludedIntro" xml:space="preserve"><value>يبقى إتمام صامتًا تمامًا في هذه التطبيقات: لا اقتراحات ولا تعلّم ولا قراءة لأي شيء.</value></data>
+  <data name="AddApp" xml:space="preserve"><value>إضافة تطبيق</value></data>
+  <data name="AddAppHint" xml:space="preserve"><value>اختر تطبيقًا مفتوحًا، أو استعرض ملف البرنامج.</value></data>
+  <data name="AddButton" xml:space="preserve"><value>إضافة</value></data>
+  <data name="BrowseApp" xml:space="preserve"><value>استعراض…</value></data>
+  <data name="ExeFilter" xml:space="preserve"><value>البرامج (*.exe)|*.exe</value></data>
+  <data name="SectionExcludedList" xml:space="preserve"><value>المستثناة ({0})</value></data>
+  <data name="ExcludedEmpty" xml:space="preserve"><value>لا توجد تطبيقات مستثناة.</value></data>
+  <data name="RemoveButton" xml:space="preserve"><value>إزالة</value></data>
+  <data name="ResetExcluded" xml:space="preserve"><value>القائمة الافتراضية</value></data>
+  <data name="ResetExcludedHint" xml:space="preserve"><value>سطح المكتب البعيد والأجهزة الافتراضية والطرفيات ومشغّلات الألعاب.</value></data>
 </root>

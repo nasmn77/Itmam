@@ -29,21 +29,36 @@ public sealed class ExcludedApps
 
     /// <param name="processName">File name or full path of the process, e.g. "C:\…\WindowsTerminal.exe".</param>
     public bool IsExcluded(string? processName) =>
-        processName is not null && _names.Contains(Normalize(processName));
+        processName is not null && _names.Contains(NormalizeName(processName));
 
     /// <summary>Applies an edited list (Settings).</summary>
     public void Replace(IEnumerable<string> processNames) => _names = Build(processNames);
 
-    private static FrozenSet<string> Build(IEnumerable<string> processNames) =>
-        processNames
-            .Select(Normalize)
-            .Where(name => name.Length > ".exe".Length)
-            .ToFrozenSet(StringComparer.OrdinalIgnoreCase);
-
-    private static string Normalize(string name)
+    /// <summary>A full path, "code" or "Code.exe" → "Code.exe" (file name with ".exe").</summary>
+    public static string NormalizeName(string name)
     {
         var trimmed = name.Trim();
         var fileName = trimmed[(trimmed.LastIndexOfAny(['\\', '/']) + 1)..];
         return fileName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? fileName : fileName + ".exe";
     }
+
+    /// <summary>The list with <paramref name="name"/> added (normalized, no duplicates, sorted).</summary>
+    public static IReadOnlyList<string> With(IEnumerable<string> list, string name) =>
+        [.. list.Append(NormalizeName(name))
+            .Where(n => n.Length > ".exe".Length)
+            .DistinctBy(n => n, StringComparer.OrdinalIgnoreCase)
+            .Order(StringComparer.OrdinalIgnoreCase)];
+
+    /// <summary>The list without <paramref name="name"/> (any spelling or case).</summary>
+    public static IReadOnlyList<string> Without(IEnumerable<string> list, string name)
+    {
+        var removed = NormalizeName(name);
+        return [.. list.Where(n => !string.Equals(NormalizeName(n), removed, StringComparison.OrdinalIgnoreCase))];
+    }
+
+    private static FrozenSet<string> Build(IEnumerable<string> processNames) =>
+        processNames
+            .Select(NormalizeName)
+            .Where(name => name.Length > ".exe".Length)
+            .ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 }

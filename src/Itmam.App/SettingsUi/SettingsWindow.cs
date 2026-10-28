@@ -17,6 +17,7 @@ internal enum SettingsPage
     General,
     Appearance,
     Shortcuts,
+    Excluded,
     About,
     Exit,
 }
@@ -164,7 +165,7 @@ internal sealed class SettingsWindow : Form
         _navigation.Controls.Add(header);
 
         var top = 72;
-        foreach (var (page, title) in new[] { (SettingsPage.General, Strings.NavGeneral), (SettingsPage.Appearance, Strings.NavAppearance), (SettingsPage.Shortcuts, Strings.NavShortcuts), (SettingsPage.About, Strings.NavAbout), (SettingsPage.Exit, Strings.NavExit) })
+        foreach (var (page, title) in new[] { (SettingsPage.General, Strings.NavGeneral), (SettingsPage.Appearance, Strings.NavAppearance), (SettingsPage.Shortcuts, Strings.NavShortcuts), (SettingsPage.Excluded, Strings.NavExcluded), (SettingsPage.About, Strings.NavAbout), (SettingsPage.Exit, Strings.NavExit) })
         {
             var item = new NavItem { Text = title, Left = 8, Top = top, Width = _navigation.Width - 16, Height = 40, Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
             item.Click += (_, _) => SelectPage(page);
@@ -203,6 +204,9 @@ internal sealed class SettingsWindow : Form
                 break;
             case SettingsPage.Shortcuts:
                 BuildShortcutsPage();
+                break;
+            case SettingsPage.Excluded:
+                BuildExcludedPage();
                 break;
             case SettingsPage.About:
                 BuildAboutPage();
@@ -485,6 +489,115 @@ internal sealed class SettingsWindow : Form
 
         // A left-to-right embedding keeps "Ctrl+Alt+P" in order inside Arabic text.
         return string.Format(CultureInfo.CurrentCulture, format, "\u202A" + HotkeyNames.Format(hotkey) + "\u202C");
+    }
+
+    // Process names only: nothing about what the user does in these apps is read or stored.
+    private void BuildExcludedPage()
+    {
+        var excluded = _app.Settings.ExcludedApps;
+        var running = RunningApps();
+        AddTitle(Strings.NavExcluded);
+        AddText(Strings.ExcludedIntro, secondary: true);
+
+        var add = new ThemedButton { Text = Strings.AddButton };
+        add.Click += (_, _) => ShowAddAppMenu(add);
+        AddCard(Strings.AddApp, Strings.AddAppHint, add);
+
+        AddSection(string.Format(CultureInfo.CurrentCulture, Strings.SectionExcludedList, excluded.Count));
+        if (excluded.Count == 0)
+        {
+            AddText(Strings.ExcludedEmpty, secondary: true);
+        }
+
+        foreach (var name in excluded)
+        {
+            var remove = new ThemedButton { Text = Strings.RemoveButton };
+            remove.Click += (_, _) =>
+            {
+                Update(s => s with { ExcludedApps = ExcludedApps.Without(s.ExcludedApps, name) });
+                BeginInvoke(RebuildPage); // after this click is handled
+            };
+            AddCard(name, running.TryGetValue(ExcludedApps.NormalizeName(name), out var description) ? description : null, remove);
+        }
+
+        var reset = new ThemedButton { Text = Strings.ResetButton };
+        reset.Click += (_, _) =>
+        {
+            Update(s => s with { ExcludedApps = [.. ExcludedApps.Defaults] });
+            BeginInvoke(RebuildPage);
+        };
+        AddCard(Strings.ResetExcluded, Strings.ResetExcludedHint, reset);
+    }
+
+    // Open apps (with a window) that are not excluded yet, then "Browse…" for any program file.
+    private void ShowAddAppMenu(Control anchor)
+    {
+        var excluded = _app.Settings.ExcludedApps.Select(ExcludedApps.NormalizeName).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var menu = new ContextMenuStrip { RightToLeft = RightToLeft, ShowImageMargin = false };
+        foreach (var (name, description) in RunningApps().Where(a => !excluded.Contains(a.Key)).OrderBy(a => a.Value, StringComparer.CurrentCultureIgnoreCase))
+        {
+            menu.Items.Add($"{description} — {name}", null, (_, _) => AddExcluded(name));
+        }
+
+        if (menu.Items.Count > 0)
+        {
+            menu.Items.Add(new ToolStripSeparator());
+        }
+
+        menu.Items.Add(Strings.BrowseApp, null, (_, _) =>
+        {
+            using var dialog = new OpenFileDialog { Filter = Strings.ExeFilter, CheckFileExists = true };
+            if (dialog.ShowDialog(this) == DialogResult.OK)
+            {
+                AddExcluded(dialog.FileName);
+            }
+        });
+        menu.Closed += (_, _) => BeginInvoke(menu.Dispose);
+        menu.Show(anchor, new Point(0, anchor.Height));
+    }
+
+    private void AddExcluded(string name)
+    {
+        Update(s => s with { ExcludedApps = ExcludedApps.With(s.ExcludedApps, name) });
+        BeginInvoke(RebuildPage);
+    }
+
+    // Executable name → description ("Visual Studio Code") of processes that have a window.
+    private static Dictionary<string, string> RunningApps()
+    {
+        var apps = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var self = Environment.ProcessId;
+        foreach (var process in Process.GetProcesses())
+        {
+            using (process)
+            {
+                try
+                {
+                    if (process.Id == self || process.MainWindowHandle == 0 || ProcessNames.PathOf((uint)process.Id) is not { } path)
+                    {
+                        continue;
+                    }
+
+                    var name = ExcludedApps.NormalizeName(path);
+                    var description = FileVersionInfo.GetVersionInfo(path).FileDescription;
+                    apps.TryAdd(name, string.IsNullOrWhiteSpace(description) ? name : description.Trim());
+                }
+                catch (Exception ex) when (ex is InvalidOperationException or System.ComponentModel.Win32Exception or IOException or UnauthorizedAccessException)
+                {
+                    // The process exited or is protected: skip it.
+                }
+            }
+        }
+
+        return apps;
+    }
+
+    // Rebuilds the current page, keeping the scroll position.
+    private void RebuildPage()
+    {
+        var scroll = -_content.AutoScrollPosition.Y;
+        SelectPage(_page);
+        _content.AutoScrollPosition = new Point(0, scroll);
     }
 
     // Its own page: exiting is different from "Enabled" off, and is explained here.

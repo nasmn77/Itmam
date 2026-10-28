@@ -10,9 +10,9 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
   the bar height kept at 35:14, first-item highlight, number hints, reset, live preview drawn by the same `BarRenderer` as
   the bar); **Shortcuts** page (record by pressing keys; `HotkeyRules` refuses keys that type text, editing keys, common
   Windows shortcuts, duplicates, modifier+digit clashes, and a global toggle without Ctrl/Alt; Itmam's own shortcuts are
-  suspended while recording; accept-N modifier Ctrl or Alt; arrow navigation toggle; reset). Next: Excluded apps, My words. Phases 0–5 merged. User decisions: phase 6 split in two; Windows 11 style settings (side navigation);
+  suspended while recording; accept-N modifier Ctrl or Alt; arrow navigation toggle; reset); **Excluded apps** page (add from open apps or browse for an .exe, remove, default list). Next: My words. Phases 0–5 merged. User decisions: phase 6 split in two; Windows 11 style settings (side navigation);
   diagnostics window in Debug builds only (tray → Diagnostics); "Itmam is running" notice on EVERY start, including start with
-  Windows (user decision, overrides the brief's one-time notice); app icon = concept A (suggestion bar + «ت», tools/IconGenerator). Debug: `--demo-settings [general|appearance|shortcuts|about|exit] [en] [end]`, `--demo-popup x y [navy] [translucent] [large] [hints]`.
+  Windows (user decision, overrides the brief's one-time notice); app icon = concept A (suggestion bar + «ت», tools/IconGenerator). Debug: `--demo-settings [general|appearance|shortcuts|excluded|about|exit] [en] [end]`, `--demo-popup x y [navy] [translucent] [large] [hints]`.
 - Phase 5 decisions: learn words of ≥ 2 letters; silent full screen only for D3D exclusive + presentation mode (not F11
   browser/video); a finished word stays *pending* and is dropped if Backspace/Ctrl+Backspace follows it at once (user question);
   SQLite in Core (`SqliteUserWordStore`, WAL, corrupt file kept as `user.db.corrupt-*`); `ForegroundGuard` silences password
