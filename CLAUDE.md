@@ -4,8 +4,13 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
 `PROMPT.md` is the full brief and the source of truth; this file is the short rule set. Read both at the start of a session.
 
 ## Current status
-- **Current phase:** 5 — learning + persistence (SQLite, approved) + password/elevated/excluded guards. Not started yet;
-  create branch `phase-5-learning` from `main`. Phases 0–4 approved and merged into `main`.
+- **Current phase:** 5 — learning + persistence + guards (branch `phase-5-learning`, awaiting the user's test). Phases 0–4 merged.
+- **Next phase:** 6 — tray app, settings window (incl. "My words" UI over `LearningService`), localization, startup task.
+- Phase 5 decisions: learn words of ≥ 2 letters; silent full screen only for D3D exclusive + presentation mode (not F11
+  browser/video); a finished word stays *pending* and is dropped if Backspace/Ctrl+Backspace follows it at once (user question);
+  SQLite in Core (`SqliteUserWordStore`, WAL, corrupt file kept as `user.db.corrupt-*`); `ForegroundGuard` silences password
+  fields (ES_PASSWORD + UIA IsPassword), elevated, excluded and full-screen apps; right-click or Ctrl+Delete (navigating)
+  blocks a suggestion. Startup does one compacting GC after loading: working set ≈ 90 MB, private ≈ 38 MB.
 - Phase 4 (approved after the user's tests in Notepad; other apps not tested yet): `HotkeyInterceptor` (Core) decides in the hook
   from `PopupState`; Tab/Ctrl+N/Esc only while the bar is visible, Ctrl+Alt+P always; `SendInputInjector` releases a held Ctrl,
   sends backspaces + Delete + unicode in one batch. Native navigation (Up/Left/Right/Enter/Esc) ON by default (user decision).
@@ -26,8 +31,6 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
   user in Notepad, Word and Chrome.
 - Phase 2 notes: input path documented in `docs/ARCHITECTURE.md`; `Program.cs` temporarily runs `DebugWindow` (replaced in
   Phase 6). Key classification (`KeyClassifier`) and layout gating (`InputTracker`) live in Core and are unit-tested.
-- `gh` CLI token on this machine is invalid; read CI status from the public badge
-  (`https://github.com/nasmn77/Itmam/actions/workflows/build.yml/badge.svg?branch=main`) instead of polling the API.
 - **Open questions:** MSIX tooling must be installed in Visual Studio before Phase 7.
 
 ## Build & test

@@ -179,6 +179,46 @@ read lock-free by the hook. Clicking a word on the bar posts the same event; cli
 bar's bounds are not treated as caret moves. While disabled (Ctrl+Alt+P), the hooks publish
 nothing and swallow nothing except the toggle key.
 
+## Learning and storage (Phase 5)
+
+```
+ WordBuffer: word ended by a boundary, or accepted from the bar  → Committed
+        ▼
+ InputPipeline: the word is *pending*. The next event makes it final (PipelineUpdate.WordToLearn),
+                except Backspace/Ctrl+Backspace right after it (the user is correcting it → dropped).
+                On exit/log-off the pending word is final.
+        ▼
+ LearningService.Learn(word)    (Core)
+    skip if paused, < 2 letters or not Arabic; tashkeel removed
+    skip if on data/blocklist.txt and not already added by the user (manual adds are respected)
+    UserWordIndex.RecordUse → count + 1, last-used = now
+        ▼  (2 s after the last change, and on exit / log-off)
+ SqliteUserWordStore  %LOCALAPPDATA%\Itmam\user.db   (MSIX: redirected to the package's private folder)
+    table words(word TEXT PRIMARY KEY, count INTEGER, last_used INTEGER, blocked INTEGER)
+    WAL journal: committed transactions survive crashes. A corrupt file is renamed
+    user.db.corrupt-<timestamp> (kept) and a fresh database is created.
+```
+
+Stored per word: the word, how many times it was used, when it was last used, and whether the user
+blocked it. Never sentences, word order, the app it was typed in, or anything typed in a silenced
+window. A learned word is suggested after `MinUsesToSuggest` uses (default 2). "My words"
+(Phase 6 UI) uses `LearningService`: add, edit, remove, block, import/export (`word<TAB>count`,
+`!word` = blocked), pause, clear all.
+
+## Where Itmam is silent (Phase 5)
+
+`ForegroundGuard` (Win32, implements Core `IInputGuard`) is checked whenever the window, field or
+caret may have changed. While it reports a reason, the pipeline tracks, reads, shows and learns
+nothing:
+
+| Reason | Detection |
+|---|---|
+| Password field | `ES_PASSWORD` on a focused Edit control; UI Automation `IsPassword` when the caret context is read |
+| Elevated app | Mandatory integrity level of the foreground process above ours (or unreadable) |
+| Excluded app | Process name in `ExcludedApps` |
+| Full screen | `SHQueryUserNotificationState`: Direct3D exclusive full screen or presentation mode |
+| IME / other languages | Only Arabic keyboard layouts are ever tracked |
+
 ## Privacy guarantees in the code
 
 - Typed characters exist only in memory: in the channel, in `WordBuffer`, and on screen.
