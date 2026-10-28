@@ -23,7 +23,9 @@ internal enum SettingsPage
 /// </summary>
 internal sealed class SettingsWindow : Form
 {
-    private const string PrivacyUrl = "https://github.com/nasmn77/Itmam/blob/main/docs/PRIVACY.md";
+    private const string RepositoryUrl = "https://github.com/nasmn77/Itmam";
+    private const string PrivacyUrl = RepositoryUrl + "/blob/main/docs/PRIVACY.md";
+    private const string DeveloperEmail = "nasmn77@gmail.com";
     private const int WS_EX_LAYOUTRTL = 0x00400000;
     private const int WS_EX_NOINHERITLAYOUT = 0x00100000;
 
@@ -270,6 +272,14 @@ internal sealed class SettingsWindow : Form
         AddText(Strings.AboutTagline, secondary: false);
         AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutDictionary, _app.Dictionary.Count), secondary: false);
         AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutLearned, _app.UserWords.Count), secondary: false);
+
+        AddSection(Strings.SectionDeveloper);
+        AddText(Strings.DeveloperName, secondary: false);
+        AddLink(DeveloperEmail, $"mailto:{DeveloperEmail}");
+
+        AddSection(Strings.SectionOpenSource);
+        AddText(Strings.AboutOpenSource, secondary: false);
+        AddLink(Strings.AboutSourceCode, RepositoryUrl);
 
         AddSection(Strings.AboutSources);
         foreach (var source in _app.Dictionary.Sources)

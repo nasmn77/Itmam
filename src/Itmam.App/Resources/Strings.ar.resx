@@ -46,4 +46,9 @@
   <data name="ExitHint" xml:space="preserve"><value>يتوقف تمامًا حتى تسجيل الدخول التالي أو تشغيله يدويًا. لإيقاف الاقتراحات فترةً فقط، أطفئ «مفعّل» من قائمة الأيقونة.</value></data>
   <data name="ExitButton" xml:space="preserve"><value>خروج</value></data>
   <data name="NavExit" xml:space="preserve"><value>الخروج</value></data>
+  <data name="SectionDeveloper" xml:space="preserve"><value>المطوّر</value></data>
+  <data name="DeveloperName" xml:space="preserve"><value>ناصر محمد الماضي</value></data>
+  <data name="SectionOpenSource" xml:space="preserve"><value>مفتوح المصدر</value></data>
+  <data name="AboutOpenSource" xml:space="preserve"><value>إتمام برنامج مجاني ومفتوح المصدر برخصة MIT.</value></data>
+  <data name="AboutSourceCode" xml:space="preserve"><value>الشيفرة المصدرية على GitHub</value></data>
 </root>

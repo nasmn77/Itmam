@@ -46,4 +46,9 @@
   <data name="ExitHint" xml:space="preserve"><value>Stops completely until you sign in again or start it. To stop suggestions for a while, turn off “Enabled” in the tray menu instead.</value></data>
   <data name="ExitButton" xml:space="preserve"><value>Exit</value></data>
   <data name="NavExit" xml:space="preserve"><value>Exit</value></data>
+  <data name="SectionDeveloper" xml:space="preserve"><value>Developer</value></data>
+  <data name="DeveloperName" xml:space="preserve"><value>Naser Mohammad Almadi</value></data>
+  <data name="SectionOpenSource" xml:space="preserve"><value>Open source</value></data>
+  <data name="AboutOpenSource" xml:space="preserve"><value>Itmam is free and open source under the MIT license.</value></data>
+  <data name="AboutSourceCode" xml:space="preserve"><value>Source code on GitHub</value></data>
 </root>
