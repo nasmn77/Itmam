@@ -100,6 +100,25 @@ public sealed class InputPipelineTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task Turning_itmam_back_on_inside_a_word_resumes_that_word()
+    {
+        Type("ذهبت ");
+        await DrainAsync();
+
+        // Off and on again with the caret inside "مدر": the hooks raise the toggle with an unknown
+        // layout (0), which must not be mistaken for a switch away from Arabic.
+        _context.Next = "ذهبت إلى مدر";
+        _channel.Writer.TryWrite(new InputRecord(InputEvent.Of(InputEventKind.ToggleEnabled), 0, Stopwatch.GetTimestamp()));
+
+        var probe = await WaitForProbeAsync();
+        probe.Probe.ShouldBe(ProbeOutcome.ResumedWithWord);
+        probe.Word.ShouldBe("مدر");
+
+        Type("سة");
+        (await WaitForAsync(u => u.Word == "مدرسة")).IsDetached.ShouldBeFalse();
+    }
+
+    [Fact]
     public async Task Backspace_to_a_space_resumes_with_an_empty_word()
     {
         Type("ذهبت ");
