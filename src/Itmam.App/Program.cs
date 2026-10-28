@@ -25,6 +25,13 @@ internal static class Program
             return;
         }
 
+        // Store screenshots: real suggestions at the foreground window's caret: --demo-caret <typed> [seconds]
+        if (args is ["--demo-caret", var typed, ..])
+        {
+            Debugging.PopupDemo.RunAtCaret(typed, args is [_, _, var s, ..] ? int.Parse(s, CultureInfo.InvariantCulture) : 6);
+            return;
+        }
+
         // Visual check of the settings window (no hooks installed): --demo-settings [general|appearance|shortcuts|excluded|words|about|exit] [en] [end]
         if (args is ["--demo-settings", ..])
         {

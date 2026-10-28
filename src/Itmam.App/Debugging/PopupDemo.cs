@@ -6,6 +6,30 @@ namespace Itmam.App.Debugging;
 /// <summary>Debug builds only: shows the bar at a fixed caret position for 5 seconds, for screenshots.</summary>
 internal static class PopupDemo
 {
+    /// <summary>
+    /// Store screenshots: the real suggestions for <paramref name="typed"/> (dictionary + learned words),
+    /// shown at the real caret of the foreground window (automated typing is ignored by the hook, so a
+    /// script cannot make the bar appear by typing). Stays for <paramref name="seconds"/>.
+    /// </summary>
+    public static void RunAtCaret(string typed, int seconds)
+    {
+        using var app = new ItmamApp(new SynchronizationContext());
+        IReadOnlyList<string> words;
+        lock (app.Learning.SyncRoot)
+        {
+            words = [.. app.Engine.Suggest(typed).Select(s => s.Word)];
+        }
+
+        var caret = Task.Run(() => new Win32.CaretLocator(app.UiAutomation).LocateAsync(rightToLeft: true, CancellationToken.None)).GetAwaiter().GetResult();
+        _ = app.Popup.Handle;
+        app.Popup.ShowSuggestions(words, caret.Bounds, rightToLeft: true, belowPointer: caret.Source == Win32.CaretSource.Mouse);
+
+        using var timer = new System.Windows.Forms.Timer { Interval = seconds * 1000 };
+        timer.Tick += (_, _) => Application.ExitThread();
+        timer.Start();
+        Application.Run();
+    }
+
     public static void Run(int caretX, int caretY, string[] options)
     {
         var theme = options.Contains("light") ? ThemeMode.Light : options.Contains("dark") ? ThemeMode.Dark : ThemeMode.System;

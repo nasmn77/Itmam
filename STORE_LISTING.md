@@ -81,8 +81,18 @@ Your privacy first: Itmam never connects to the internet and never saves what yo
 | Support contact | nasmn77@gmail.com |
 | Copyright | © 2026 Naser Mohammad Almadi |
 
-Screenshots (at least one, 1366×768 or larger, per language): the bar suggesting words in Notepad, the Appearance
-page, the My words page, the tray menu.
+Screenshots (1920×1032, upload in this order): `docs/store/ar/` for the Arabic listing, `docs/store/en/` for English.
+
+| # | File | Caption (ar) | Caption (en) |
+|---|---|---|---|
+| 1 | `1-suggestions.png` | الاقتراحات فوق المؤشر أثناء الكتابة | Suggestions above the caret as you type |
+| 2 | `2-appearance.png` | ألوان الشريط وحجمه مع معاينة حية | Bar colors and size with a live preview |
+| 3 | `3-general.png` | عدد الاقتراحات والتعلّم | Number of suggestions and learning |
+| 4 | `4-shortcuts.png` | اختصارات قابلة للتغيير | Configurable shortcuts |
+
+They show the real bar and settings window (the bar at the real caret, with real dictionary suggestions, via the
+Debug-only `--demo-caret` option, because the hook ignores scripted typing). "My words" is not shown: it would
+display the developer's own learned words.
 
 ## Notes for certification
 
