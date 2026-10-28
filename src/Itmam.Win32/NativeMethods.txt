@@ -83,3 +83,14 @@ SafeArrayDestroy
 // Text insertion (Phase 4).
 SendInput
 INPUT
+
+// Guards (Phase 5): elevated apps, full screen, classic password edits.
+OpenProcessToken
+GetTokenInformation
+GetSidSubAuthority
+GetSidSubAuthorityCount
+TOKEN_MANDATORY_LABEL
+GetCurrentProcess
+SHQueryUserNotificationState
+GetWindowLong
+GetClassName
