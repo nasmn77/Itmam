@@ -76,8 +76,8 @@ Your privacy first: Itmam never connects to the internet and never saves what yo
 
 | Field | Value |
 |---|---|
-| Privacy policy URL | https://github.com/nasmn77/Itmam/blob/main/docs/PRIVACY.md |
-| Website | https://github.com/nasmn77/Itmam |
+| Privacy policy URL | https://nasmn77.github.io/Itmam/privacy.html (English: https://nasmn77.github.io/Itmam/en/privacy.html) |
+| Website | https://nasmn77.github.io/Itmam/ (source: https://github.com/nasmn77/Itmam) |
 | Support contact | nasmn77@gmail.com |
 | Copyright | © 2026 Naser Mohammad Almadi |
 
@@ -114,7 +114,7 @@ Paste into Partner Center → Submission options → Notes for certification.
 > - Only word → use count / last use is stored, locally (`%LOCALAPPDATA%\Itmam\user.db`), never sentences.
 > - It is silent in password fields (ES_PASSWORD, UI Automation IsPassword), elevated apps, excluded apps and
 >   full-screen games.
-> - Full details: https://github.com/nasmn77/Itmam/blob/main/docs/PRIVACY.md and docs/ARCHITECTURE.md (source code is public).
+> - Full details: https://nasmn77.github.io/Itmam/en/privacy.html and https://github.com/nasmn77/Itmam (source code and docs/ARCHITECTURE.md are public).
 >
 > **Windows App Certification Kit.** "Blocked executables" lists strings such as `cmd` inside the self-contained .NET 10
 > runtime files and the compressed dictionary data, and `Process.Start`, which the About page uses only to open

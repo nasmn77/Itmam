@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>سياسة الخصوصية — إتمام</title>
+<meta name="description" content="سياسة خصوصية إتمام: لا اتصال بالإنترنت، ولا يُحفظ ما تكتبه.">
+<meta name="color-scheme" content="light dark">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="alternate" hreflang="en" href="en/privacy.html">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="wrap top">
+  <a class="brand" href="./"><img src="assets/icon.svg" alt=""><b>إتمام</b></a>
+  <nav aria-label="الأقسام">
+    <a href="./">الرئيسية</a>
+    <a href="https://github.com/nasmn77/Itmam">الشيفرة المصدرية</a>
+    <a class="lang" href="en/privacy.html" hreflang="en" lang="en">English</a>
+  </nav>
+</header>
+
+<main class="wrap doc">
+  <h1 class="reveal">سياسة الخصوصية</h1>
+  <p class="effective reveal d1">تاريخ السريان: 28 أكتوبر 2026</p>
+
+  <p class="promise reveal d2"><strong>إتمام لا يتصل بالإنترنت إطلاقًا.</strong> لا يرسل أي بيانات إلى أي جهة، ولا يجمع إحصاءات استخدام، ولا يتحقق من التحديثات، ولا يرفع تقارير الأعطال. كل ما يفعله يبقى على جهازك.</p>
+
+  <h2>ما الذي يقرؤه التطبيق</h2>
+  <ul>
+    <li><strong>ضغطات لوحة المفاتيح</strong> أثناء الكتابة بلوحة مفاتيح عربية فقط، لمعرفة الكلمة التي تكتبها الآن واقتراح إكمالها. الكتابة بأي لغة أخرى (مثل الإنجليزية) لا تُتتبع.</li>
+    <li><strong>الكلمة الحالية قبل المؤشر فقط:</strong> عندما ينتقل المؤشر إلى نص موجود (Backspace، أو نقرة بالفأرة، أو الأسهم، أو الانتقال إلى حقل أو نافذة أخرى)، يقرأ التطبيق عبر خدمة UI Automation في Windows ما لا يزيد عن 49 حرفًا قبل المؤشر، ليكمل الكلمة التي يقف فيها المؤشر. يحتفظ في الذاكرة بهذه الكلمة وحدها ويتجاهل الباقي فورًا.</li>
+    <li><strong>اسم ملف البرنامج</strong> الذي تكتب فيه (مثل <code>notepad.exe</code>)، لمعرفة هل هو من التطبيقات المستثناة. لا يُحفظ هذا الاسم.</li>
+  </ul>
+
+  <h2>ما الذي لا يفعله</h2>
+  <ul>
+    <li>لا يحفظ ما تكتبه، ولا الجمل، ولا ترتيب الكلمات، ولا يكتب أي حرف تكتبه في أي سجل.</li>
+    <li>لا يعمل إطلاقًا ولا يقرأ أي نص في: حقول كلمات المرور، والتطبيقات المستثناة، والتطبيقات التي تعمل بصلاحيات المسؤول، والألعاب والعروض بملء الشاشة.</li>
+    <li>لا يشارك أي بيانات مع أي طرف، ولا يعرض إعلانات.</li>
+  </ul>
+
+  <h2>ما الذي يُحفظ على جهازك</h2>
+  <ul>
+    <li><strong>كلماتك:</strong> لكل كلمة: الكلمة نفسها، وعدد مرات استعمالها، ووقت آخر استعمال، وهل حظرتها. لا شيء غير ذلك: لا جمل، ولا ترتيب كلمات، ولا اسم التطبيق الذي كتبت فيه. المكان: <code>%LOCALAPPDATA%\Itmam\user.db</code> (عند التثبيت من المتجر يكون داخل المجلد الخاص بالتطبيق).</li>
+    <li><strong>إعداداتك:</strong> مثل الألوان والاختصارات وقائمة التطبيقات المستثناة، في <code>%LOCALAPPDATA%\Itmam\settings.json</code>. لا تحتوي أي نص مما تكتبه.</li>
+    <li><strong>ما لا يُتعلَّم:</strong> الكلمات في حقول كلمات المرور، والتطبيقات المستثناة، والتطبيقات التي تعمل بصلاحيات المسؤول، والألعاب بملء الشاشة، والكلمات المحظورة، وأي كلمة تمسحها مباشرة بعد كتابتها.</li>
+  </ul>
+
+  <h2>تحكّمك في بياناتك</h2>
+  <ul>
+    <li><strong>الحذف:</strong> من الإعدادات ← «كلماتي»: حذف كلمة، أو «حذف كل كلماتي»، أو إيقاف تعلّم الكلمات الجديدة مؤقتًا.</li>
+    <li><strong>التصدير:</strong> لا تُنسخ كلماتك إلى أي مكان إلا إذا اخترت «تصدير…» بنفسك، فتُكتب في الملف الذي تختاره أنت.</li>
+    <li><strong>إلغاء التثبيت:</strong> يحذف التطبيق وملفاته من جهازك.</li>
+  </ul>
+
+  <h2>هذا الموقع</h2>
+  <ul>
+    <li>صفحات ثابتة على GitHub Pages: بلا ملفات تعريف ارتباط (cookies)، وبلا أدوات تتبّع أو إحصاءات، ولا يُحمَّل منها شيء من خوادم أخرى.</li>
+    <li>تسجّل GitHub عناوين IP للزوار لأغراض الأمان، وفق <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement">سياسة خصوصية GitHub</a>.</li>
+  </ul>
+
+  <h2>التواصل</h2>
+  <p>لأي سؤال عن الخصوصية: ناصر محمد الماضي — <a href="mailto:nasmn77@gmail.com">nasmn77@gmail.com</a></p>
+  <p>الشيفرة المصدرية مفتوحة ويمكن مراجعتها: <a href="https://github.com/nasmn77/Itmam">github.com/nasmn77/Itmam</a></p>
+  <p>إذا تغيّرت هذه السياسة، تُنشر النسخة الجديدة في هذه الصفحة مع تاريخ سريانها.</p>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>إتمام — من تطوير ناصر محمد الماضي</span>
+    <span><a href="./">الرئيسية</a> · <a href="https://github.com/nasmn77/Itmam">GitHub</a></span>
+  </div>
+</footer>
+</body>
+</html>

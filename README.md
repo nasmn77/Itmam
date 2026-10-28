@@ -8,7 +8,7 @@
 
 يعمل دون اتصال بالإنترنت إطلاقًا، ويتعلّم كلماتك أنت، ولا يحفظ ما تكتبه.
 
-المستودع: https://github.com/nasmn77/Itmam
+الموقع: https://nasmn77.github.io/Itmam/ · المستودع: https://github.com/nasmn77/Itmam
 
 ## المزايا
 

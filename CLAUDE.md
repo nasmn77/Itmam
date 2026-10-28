@@ -49,6 +49,10 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
   WACK 1.0.0.0: 21/23 pass; "Blocked executables" (strings in .NET files/dictionary, Process.Start for About links) and
   DPI-awareness warning (set by WinForms at runtime) explained in STORE_LISTING.md certification notes.
   User decisions: category Productivity, free, full self-contained size (no trimming), version 1.0.0.0.
+- Website (user decision: design "paper and ink", GitHub Pages): `site/` (ar default + `site/en/`, home + privacy policy),
+  published by `.github/workflows/pages.yml` to https://nasmn77.github.io/Itmam/. No web fonts, no trackers, no external
+  requests (Windows Arabic fonts with fallbacks). The Store privacy URL is https://nasmn77.github.io/Itmam/privacy.html;
+  keep `site/privacy.html`, `site/en/privacy.html` and `docs/PRIVACY.md` in sync.
 - MSIX tooling: VS 2026 → .NET desktop development → optional "MSIX Packaging Tools"
   (`Microsoft.VisualStudio.ComponentGroup.MSIX.Packaging`, not listed under Individual components) + Windows 11 SDK 10.0.26100.
 

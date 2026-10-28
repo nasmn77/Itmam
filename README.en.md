@@ -6,7 +6,7 @@
 
 It works fully offline, learns your own words, and never saves what you type.
 
-Repository: https://github.com/nasmn77/Itmam
+Website: https://nasmn77.github.io/Itmam/en/ · Repository: https://github.com/nasmn77/Itmam
 
 ## Features
 
