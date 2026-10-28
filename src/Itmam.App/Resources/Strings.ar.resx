@@ -159,4 +159,6 @@
   <data name="ClearWordsHint" xml:space="preserve"><value>يحذف من هذا الجهاز كل كلمة تعلّمها إتمام أو أضفتها أو حظرتها، ولا يمكن التراجع عنه.</value></data>
   <data name="ClearAllButton" xml:space="preserve"><value>حذف الكل</value></data>
   <data name="ConfirmClearWords" xml:space="preserve"><value>حذف كل كلماتك؟ لا يمكن التراجع عن ذلك. صدّرها أولًا إن أردت نسخة منها.</value></data>
+  <data name="ConfirmBlockWord" xml:space="preserve"><value>حظر {0}؟ لن تُقترح أبدًا، ولو كانت في القاموس.</value></data>
+  <data name="ConfirmUnblockWord" xml:space="preserve"><value>إلغاء حظر {0}؟ يمكن أن تُقترح من جديد.</value></data>
 </root>

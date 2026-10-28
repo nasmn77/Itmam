@@ -159,4 +159,6 @@
   <data name="ClearWordsHint" xml:space="preserve"><value>Deletes every learned, added and blocked word from this device. This cannot be undone.</value></data>
   <data name="ClearAllButton" xml:space="preserve"><value>Delete all</value></data>
   <data name="ConfirmClearWords" xml:space="preserve"><value>Delete all your words? This cannot be undone. Export them first if you want a copy.</value></data>
+  <data name="ConfirmBlockWord" xml:space="preserve"><value>Block {0}? It will never be suggested, even from the dictionary.</value></data>
+  <data name="ConfirmUnblockWord" xml:space="preserve"><value>Unblock {0}? It can be suggested again.</value></data>
 </root>

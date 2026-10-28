@@ -814,7 +814,7 @@ internal sealed class SettingsWindow : Form
     private void AddWord(bool blocked)
     {
         var word = WordDialog.Ask(this, blocked ? Strings.BlockWord : Strings.AddWord, blocked ? Strings.BlockWordPrompt : Strings.AddWordPrompt, string.Empty, _palette, _mirrored);
-        if (word is null)
+        if (word is null || (blocked && !Confirm(Strings.ConfirmBlockWord, word)))
         {
             return;
         }
@@ -848,7 +848,8 @@ internal sealed class SettingsWindow : Form
 
     private void ToggleSelectedBlock()
     {
-        if (_wordList?.SelectedWord is not { } selected)
+        if (_wordList?.SelectedWord is not { } selected
+            || !Confirm(selected.Blocked ? Strings.ConfirmUnblockWord : Strings.ConfirmBlockWord, selected.Word))
         {
             return;
         }
