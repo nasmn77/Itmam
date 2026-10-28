@@ -203,7 +203,9 @@ Stored per word: the word, how many times it was used, when it was last used, an
 blocked it. Never sentences, word order, the app it was typed in, or anything typed in a silenced
 window. A learned word is suggested after `MinUsesToSuggest` uses (default 2). "My words"
 (Phase 6 UI) uses `LearningService`: add, edit, remove, block, import/export (`word<TAB>count`,
-`!word` = blocked), pause, clear all.
+`!word` = blocked), pause, clear all. On the bar, right-click (or Ctrl+Delete while navigating)
+forgets a learned word (`ForgetSuggestion` → `LearningService.Remove`); it is learned again if
+used. Blocking for good is only offered in "My words".
 
 ## Where Itmam is silent (Phase 5)
 

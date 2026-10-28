@@ -153,6 +153,23 @@ public sealed class LearningServiceTests : IDisposable
     }
 
     [Fact]
+    public void A_forgotten_word_is_learned_again_when_used()
+    {
+        var (learning, index) = Start();
+        var engine = new SuggestionEngine(WordDictionary.Empty, index, new SuggestionOptions { MinUsesToSuggest = 2 }, _time);
+        learning.Learn("كيبوردات");
+        learning.Learn("كيبوردات");
+
+        learning.Remove("كيبوردات");                       // right-click on the bar
+        engine.Suggest("كيب").ShouldBeEmpty();
+
+        learning.Learn("كيبوردات");
+        learning.Learn("كيبوردات");
+        engine.Suggest("كيب").Select(s => s.Word).ShouldBe(["كيبوردات"]);
+        index.IsBlocked("كيبوردات").ShouldBeFalse();
+    }
+
+    [Fact]
     public void Rename_and_remove_are_saved()
     {
         var (learning, _) = Start();

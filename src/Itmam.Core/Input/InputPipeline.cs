@@ -322,7 +322,7 @@ public sealed class InputPipeline(
         var buffer = Tracker.Buffer;
         var kind = record.Input.Kind;
         var contextMayChange = kind is not (InputEventKind.Character or InputEventKind.Backspace or InputEventKind.Escape
-            or InputEventKind.NavigationSelect or InputEventKind.AcceptSuggestion or InputEventKind.DismissSuggestions or InputEventKind.BlockSuggestion);
+            or InputEventKind.NavigationSelect or InputEventKind.AcceptSuggestion or InputEventKind.DismissSuggestions or InputEventKind.ForgetSuggestion);
 
         // Re-check where we are whenever the window, field or caret may have changed.
         if (contextMayChange || !_guardChecked)

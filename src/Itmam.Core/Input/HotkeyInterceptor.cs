@@ -123,12 +123,12 @@ public sealed class HotkeyInterceptor(HotkeySettings settings)
     // Right-to-left bar: the best suggestion is on the right, so Left moves to the next one.
     private InterceptDecision Navigate(int virtualKey, KeyModifiers modifiers, PopupSnapshot popup)
     {
-        // Ctrl+Delete on the selected suggestion: never suggest it again.
+        // Ctrl+Delete on the selected suggestion: forget it as a learned word.
         if (modifiers == KeyModifiers.Ctrl && virtualKey == Delete)
         {
-            var blocked = Selected;
+            var forgotten = Selected;
             Selected = -1;
-            return InterceptDecision.Swallow(InputEvent.Block(blocked, popup.Words[blocked]));
+            return InterceptDecision.Swallow(InputEvent.Forget(forgotten, popup.Words[forgotten]));
         }
 
         if (modifiers != KeyModifiers.None)

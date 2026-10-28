@@ -55,8 +55,8 @@ internal sealed class SuggestionPopup : Form
     /// <summary>A suggestion was clicked: (index, word). Raised on the UI thread.</summary>
     public event Action<int, string>? SuggestionClicked;
 
-    /// <summary>A suggestion was right-clicked: never suggest it again. Raised on the UI thread.</summary>
-    public event Action<int, string>? SuggestionBlockRequested;
+    /// <summary>A suggestion was right-clicked: forget it as a learned word. Raised on the UI thread.</summary>
+    public event Action<int, string>? SuggestionForgetRequested;
 
     protected override bool ShowWithoutActivation => true;
 
@@ -158,7 +158,7 @@ internal sealed class SuggestionPopup : Form
             }
             else if (e.Button == MouseButtons.Right)
             {
-                SuggestionBlockRequested?.Invoke(index, _words[index]);
+                SuggestionForgetRequested?.Invoke(index, _words[index]);
             }
         }
     }

@@ -107,12 +107,12 @@ public class HotkeyInterceptorTests
     }
 
     [Fact]
-    public void Ctrl_delete_while_navigating_blocks_the_selected_suggestion()
+    public void Ctrl_delete_while_navigating_forgets_the_selected_suggestion()
     {
         Key(Up);
         Key(Left);
 
-        Key(0x2E, KeyModifiers.Ctrl).ShouldBe(InterceptDecision.Swallow(InputEvent.Block(1, "مدرسين")));
+        Key(0x2E, KeyModifiers.Ctrl).ShouldBe(InterceptDecision.Swallow(InputEvent.Forget(1, "مدرسين")));
         _interceptor.Selected.ShouldBe(-1);
     }
 

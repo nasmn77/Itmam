@@ -58,10 +58,10 @@ internal static class Program
         using var popup = new SuggestionPopup(popupState);
         _ = popup.Handle; // create the (hidden) window now so the first suggestion is not delayed
         popup.SuggestionClicked += (index, word) => hooks.Post(InputEvent.Accept(index, word));
-        popup.SuggestionBlockRequested += (index, word) => hooks.Post(InputEvent.Block(index, word));
+        popup.SuggestionForgetRequested += (index, word) => hooks.Post(InputEvent.Forget(index, word));
         using var suggestions = new SuggestionController(engine, new CaretLocator(uiAutomation), popup, () => hooks.IsEnabled);
 
-        // Learning first, so a just-blocked word is gone before the bar is recomputed. Same thread as the engine.
+        // Learning first, so a just-forgotten word is gone before the bar is recomputed. Same thread as the engine.
         pipeline.Updated += update => OnPipelineUpdated(update, learning);
         pipeline.Updated += suggestions.OnPipelineUpdated;
 
@@ -86,9 +86,10 @@ internal static class Program
             learning.Learn(word);
         }
 
-        if (update.Input?.Input is { Kind: InputEventKind.BlockSuggestion, Text: { } blocked })
+        // Right-click / Ctrl+Delete: forget the learned word (it can be learned again by using it).
+        if (update.Input?.Input is { Kind: InputEventKind.ForgetSuggestion, Text: { } forgotten })
         {
-            learning.SetBlocked(blocked, blocked: true);
+            learning.Remove(forgotten);
         }
     }
 
