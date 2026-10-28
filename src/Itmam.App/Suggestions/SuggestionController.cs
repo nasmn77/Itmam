@@ -23,6 +23,9 @@ internal sealed class SuggestionController : IDisposable
     private readonly SuggestionPopup _popup;
     private readonly Func<bool> _isEnabled;
     private readonly Lock _userWordsLock;
+
+    /// <summary>Time for the app to insert the typed letter before the caret is read again.</summary>
+    private static readonly TimeSpan SettleDelay = TimeSpan.FromMilliseconds(60);
     private readonly Channel<Request> _requests = Channel.CreateBounded<Request>(
         new BoundedChannelOptions(1) { FullMode = BoundedChannelFullMode.DropOldest, SingleReader = true, SingleWriter = true });
     private readonly CancellationTokenSource _stop = new();
@@ -103,12 +106,51 @@ internal sealed class SuggestionController : IDisposable
                         Shown?.Invoke(new SuggestionShown(request.Words.Count, caret.Source, Stopwatch.GetElapsedTime(request.Started)));
                     }
                 });
+
+                // The hook sees a key before the app inserts the letter, so the caret was read one step early.
+                // Usually that is one character, but an empty field with automatic direction (Google search)
+                // turns right-to-left on the first Arabic letter and its caret jumps to the other side. If no
+                // newer keystroke arrives meanwhile, read the caret again once the app has settled and move the bar.
+                if (await QuietForAsync(SettleDelay, cancellation).ConfigureAwait(false))
+                {
+                    var settled = await _caret.LocateAsync(rightToLeft: true, cancellation).ConfigureAwait(false);
+                    if (Moved(caret.Bounds, settled.Bounds))
+                    {
+                        OnUi(() =>
+                        {
+                            if (request.Sequence == Volatile.Read(ref _sequence))
+                            {
+                                _popup.ShowSuggestions(request.Words, settled.Bounds, rightToLeft: true, belowPointer: settled.Source == CaretSource.Mouse);
+                            }
+                        });
+                    }
+                }
             }
         }
         catch (OperationCanceledException)
         {
         }
     }
+
+    // True when no new request arrived within <paramref name="delay"/>.
+    private async Task<bool> QuietForAsync(TimeSpan delay, CancellationToken cancellation)
+    {
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
+        timeout.CancelAfter(delay);
+        try
+        {
+            await _requests.Reader.WaitToReadAsync(timeout.Token).ConfigureAwait(false);
+            return false;
+        }
+        catch (OperationCanceledException) when (!cancellation.IsCancellationRequested)
+        {
+            return true;
+        }
+    }
+
+    // A few pixels are rounding; a real move is the caret on another character or side.
+    private static bool Moved(Rectangle before, Rectangle after) =>
+        Math.Abs(before.X - after.X) > 4 || Math.Abs(before.Y - after.Y) > 4;
 
     private void OnUi(Action action)
     {

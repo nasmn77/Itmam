@@ -101,6 +101,8 @@
     clamped to the caret monitor's work area; sizes scaled by that monitor's DPI.
 ```
 
+يُقرأ موضع المؤشر لحظة ضغط المفتاح، أي قبل أن يُدرج التطبيق الحرف. لذلك إن لم يصل مفتاح جديد خلال 60 ملّي ثانية، يُقرأ الموضع مرة أخرى ويُنقل الشريط إن تحرك المؤشر؛ فالحقل الفارغ ذو الاتجاه التلقائي (مثل بحث Google) يتحول إلى اليمين لليسار مع أول حرف عربي فيقفز مؤشره إلى الجهة الأخرى.
+
 الشريط لا يأخذ التركيز أبدًا: `ShowWithoutActivation`، و`WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW | WS_EX_TOPMOST`، و`WM_MOUSEACTIVATE → MA_NOACTIVATE`، ويُعرض بـ `SetWindowPos(SWP_NOACTIVATE)`. شكله الافتراضي (ارتفاع 35 بكسل، وخط Segoe UI بحجم 14، و15 بكسل حول كل كلمة، بلا فواصل، و`#2C2C2C` مع نص أبيض في الوضع الداكن) مقيس من لقطة لشريط Windows 11 الأصلي، والنص بتنعيم رمادي مثله. يمكن تغيير الألوان والعتامة والحجم من صفحة «المظهر».
 
 تكلفة UI Automation في Chromium (قيست على نسخة Chrome معزولة بصفحة صغيرة): الطلب الأول لا يجد TextPattern بينما يفعّل Chrome شجرة الوصول، والثاني (بعد 100 ملّي ثانية) ينجح؛ الذاكرة الخاصة 370 ← 354 ميغابايت، والمعالج في الخمول 1.9% ← 0.1% (لا زيادة ملموسة؛ الأرقام تغلب عليها نهاية تشغيل Chrome). الصفحات الكبيرة تبني أشجارًا أكبر.
@@ -331,6 +333,10 @@ typed meanwhile; after Backspace, or if letters were typed, it waits for the nex
     PopupPlacement: above the caret, right edge at the caret (RTL), below if no room,
     clamped to the caret monitor's work area; sizes scaled by that monitor's DPI.
 ```
+
+The caret is read when the key goes down, before the app inserts the letter. So if no newer key arrives within
+60 ms, it is read again and the bar moves if the caret did: an empty field with automatic direction (Google
+search) turns right-to-left on the first Arabic letter and its caret jumps to the other side.
 
 The popup never takes focus: `ShowWithoutActivation`, `WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW |
 WS_EX_TOPMOST`, `WM_MOUSEACTIVATE → MA_NOACTIVATE`, shown with `SetWindowPos(SWP_NOACTIVATE)`.
