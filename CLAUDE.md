@@ -4,8 +4,8 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
 `PROMPT.md` is the full brief and the source of truth; this file is the short rule set. Read both at the start of a session.
 
 ## Current status
-- **Current phase:** 5 — learning + persistence + guards (branch `phase-5-learning`, awaiting the user's test). Phases 0–4 merged.
-- **Next phase:** 6 — tray app, settings window (incl. "My words" UI over `LearningService`), localization, startup task.
+- **Current phase:** 6 — tray app, settings window (incl. "My words"), localization, startup task, single instance. Not started;
+  create branch `phase-6-tray` from `main`. Phases 0–5 approved and merged into `main`.
 - Phase 5 decisions: learn words of ≥ 2 letters; silent full screen only for D3D exclusive + presentation mode (not F11
   browser/video); a finished word stays *pending* and is dropped if Backspace/Ctrl+Backspace follows it at once (user question);
   SQLite in Core (`SqliteUserWordStore`, WAL, corrupt file kept as `user.db.corrupt-*`); `ForegroundGuard` silences password
