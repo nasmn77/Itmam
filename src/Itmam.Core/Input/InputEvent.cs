@@ -43,6 +43,9 @@ public enum InputEventKind
 
     /// <summary>The global enable/disable hotkey was pressed.</summary>
     ToggleEnabled,
+
+    /// <summary>Never suggest <see cref="InputEvent.Text"/> again (right-click on the bar, or Ctrl+Delete while navigating it).</summary>
+    BlockSuggestion,
 }
 
 /// <param name="Kind">What happened.</param>
@@ -58,4 +61,6 @@ public readonly record struct InputEvent(InputEventKind Kind, char Character = '
     public static InputEvent Accept(int index, string word) => new(InputEventKind.AcceptSuggestion, Index: index, Text: word);
 
     public static InputEvent Select(int index) => new(InputEventKind.NavigationSelect, Index: index);
+
+    public static InputEvent Block(int index, string word) => new(InputEventKind.BlockSuggestion, Index: index, Text: word);
 }

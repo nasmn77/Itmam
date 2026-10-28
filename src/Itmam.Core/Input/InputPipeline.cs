@@ -11,8 +11,8 @@ public readonly record struct InputRecord(InputEvent Input, nint KeyboardLayout,
 
 /// <summary>
 /// Reads the few characters immediately before the caret in the focused app (UI Automation in
-/// production). Implementations must return null for password fields, unsupported apps and
-/// timeouts, and must not keep the text.
+/// production). Implementations must never read password fields or excluded apps, and must not
+/// keep the text.
 /// </summary>
 public interface ICaretContextSource
 {
@@ -24,11 +24,34 @@ public enum CaretContextStatus
     /// <summary>The text before the caret was read.</summary>
     Text,
 
-    /// <summary>Not readable: no UI Automation text support, password field, excluded app, timeout.</summary>
+    /// <summary>Not readable: no UI Automation text support, excluded app, timeout.</summary>
     Unavailable,
 
     /// <summary>Text is selected: typing replaces it, so there is no word to continue.</summary>
     Selection,
+
+    /// <summary>The focused field is a password field: nothing was read, and Itmam stays silent there.</summary>
+    Password,
+}
+
+/// <summary>Why Itmam is silent (tracks, shows and learns nothing) in the current window.</summary>
+public enum SilenceReason
+{
+    None,
+    PasswordField,
+    ElevatedApp,
+    ExcludedApp,
+    FullScreen,
+}
+
+/// <summary>
+/// Decides whether Itmam may work in the current foreground window and focused field
+/// (password fields, elevated apps, excluded apps, full-screen games and presentations).
+/// Called on the pipeline thread whenever the context may have changed; must be fast.
+/// </summary>
+public interface IInputGuard
+{
+    SilenceReason Check();
 }
 
 /// <summary>Result of reading the caret context.</summary>
@@ -40,6 +63,8 @@ public readonly record struct CaretContext(CaretContextStatus Status, string Tex
     public static CaretContext Unavailable => new(CaretContextStatus.Unavailable);
 
     public static CaretContext Selection => new(CaretContextStatus.Selection);
+
+    public static CaretContext Password => new(CaretContextStatus.Password);
 
     public static CaretContext Of(string text, char? charAfter = null) => new(CaretContextStatus.Text, text, charAfter);
 }
@@ -67,7 +92,7 @@ public enum ProbeOutcome
     /// <summary>Keys arrived while reading, so the text may already include them; result discarded.</summary>
     Discarded,
 
-    /// <summary>The foreground app is excluded (or reading is not allowed): nothing was read.</summary>
+    /// <summary>Itmam is silent here (see <see cref="SilenceReason"/>): nothing was read.</summary>
     NotAllowed,
 
     /// <summary>
@@ -90,6 +115,12 @@ public enum ProbeOutcome
 /// <param name="Layout">The HKL.</param>
 /// <param name="IsDetached">Context unknown; nothing is tracked.</param>
 /// <param name="SuggestionsSuppressed">Esc hid the bar for this word, or a suggestion was just accepted.</param>
+/// <param name="Silenced">Why nothing is tracked here, or <see cref="SilenceReason.None"/>.</param>
+/// <param name="WordToLearn">
+/// A finished word that is now final and should be learned. A word ended by a boundary (or
+/// accepted) stays pending until the next event: Backspace or Ctrl+Backspace right after it means
+/// the user is correcting it, so it is dropped instead of learned.
+/// </param>
 public readonly record struct PipelineUpdate(
     InputRecord? Input,
     BufferResult Result,
@@ -99,7 +130,9 @@ public readonly record struct PipelineUpdate(
     bool IsArabicLayout,
     nint Layout,
     bool IsDetached,
-    bool SuggestionsSuppressed = false);
+    bool SuggestionsSuppressed = false,
+    SilenceReason Silenced = SilenceReason.None,
+    string? WordToLearn = null);
 
 public sealed record InputPipelineOptions
 {
@@ -117,12 +150,6 @@ public sealed record InputPipelineOptions
 
     /// <summary>Characters read before the caret: enough for any word plus the boundary before it.</summary>
     public int ProbeChars { get; init; } = WordBuffer.MaxLength + 1;
-
-    /// <summary>
-    /// Checked right before every read of the caret context; false (e.g. the foreground app is
-    /// excluded) means nothing is read from the app.
-    /// </summary>
-    public Func<bool> CanReadContext { get; init; } = static () => true;
 }
 
 /// <summary>
@@ -132,14 +159,20 @@ public sealed record InputPipelineOptions
 /// processed the event, the characters before the caret are read and tracking resumes with the
 /// word the caret is in. Without that context: after a caret move, tracking resumes with an empty
 /// word if nothing was typed meanwhile; otherwise it waits for the next boundary.
+/// Where <see cref="IInputGuard"/> (or a password field found while reading) says so, nothing is
+/// tracked, read, shown or learned until the context changes.
 /// </summary>
 public sealed class InputPipeline(
     ChannelReader<InputRecord> input,
     ICaretContextSource context,
     InputPipelineOptions? options = null,
-    ITextInjector? injector = null)
+    ITextInjector? injector = null,
+    IInputGuard? guard = null)
 {
     private readonly InputPipelineOptions _options = options ?? new InputPipelineOptions();
+    private SilenceReason _silence;
+    private bool _guardChecked;
+    private string? _pendingWord;
 
     private enum Suppression
     {
@@ -226,11 +259,11 @@ public sealed class InputPipeline(
             while (input.TryRead(out var record))
             {
                 var result = Process(record);
-                Raise(record, result, probe: null);
+                var wordToLearn = AdvancePendingWord(record.Input.Kind, result);
+                Raise(record, result, probe: null, wordToLearn);
 
-                // Keyboard selection: nothing to read until the selection ends (a plain caret move,
-                // click or boundary).
-                if (record.Input.Kind == InputEventKind.Selection)
+                // Keyboard selection or a silenced window: nothing to read.
+                if (record.Input.Kind == InputEventKind.Selection || _silence != SilenceReason.None)
                 {
                     probeDue = null;
                     continue;
@@ -253,10 +286,61 @@ public sealed class InputPipeline(
         }
     }
 
+    /// <summary>
+    /// The word finished last, not yet learned: it becomes final with the next event, unless that
+    /// event is Backspace/Ctrl+Backspace (the user is correcting it). Call on exit to learn it.
+    /// </summary>
+    public string? TakePendingWord() => Interlocked.Exchange(ref _pendingWord, null);
+
+    // Returns the word that just became final (to learn), if any.
+    private string? AdvancePendingWord(InputEventKind kind, BufferResult result)
+    {
+        string? final = null;
+        if (_pendingWord is not null)
+        {
+            if (kind is InputEventKind.Backspace or InputEventKind.CtrlBackspace)
+            {
+                _pendingWord = null; // deleting right after finishing the word: do not learn it
+            }
+            else if (result.Outcome != BufferOutcome.Committed)
+            {
+                final = TakePendingWord();
+            }
+        }
+
+        if (result is { Outcome: BufferOutcome.Committed, CommittedWord: { } committed })
+        {
+            final ??= TakePendingWord();
+            _pendingWord = committed;
+        }
+
+        return final;
+    }
+
     private BufferResult Process(InputRecord record)
     {
         var buffer = Tracker.Buffer;
-        switch (record.Input.Kind)
+        var kind = record.Input.Kind;
+        var contextMayChange = kind is not (InputEventKind.Character or InputEventKind.Backspace or InputEventKind.Escape
+            or InputEventKind.NavigationSelect or InputEventKind.AcceptSuggestion or InputEventKind.DismissSuggestions or InputEventKind.BlockSuggestion);
+
+        // Re-check where we are whenever the window, field or caret may have changed.
+        if (contextMayChange || !_guardChecked)
+        {
+            _silence = guard?.Check() ?? SilenceReason.None;
+            _guardChecked = true;
+        }
+
+        if (_silence != SilenceReason.None)
+        {
+            // Password field, elevated or excluded app, full-screen game: track nothing at all.
+            buffer.Reset();
+            _suppression = Suppression.None;
+            _charAfterCaret = null;
+            return BufferResult.None;
+        }
+
+        switch (kind)
         {
             case InputEventKind.AcceptSuggestion:
                 return Accept(record);
@@ -265,7 +349,7 @@ public sealed class InputPipeline(
                 return BufferResult.None;
         }
 
-        if (record.Input.Kind is not (InputEventKind.Character or InputEventKind.Backspace or InputEventKind.Escape or InputEventKind.NavigationSelect))
+        if (contextMayChange)
         {
             _charAfterCaret = null; // the caret may have moved: what follows it is unknown
         }
@@ -321,7 +405,9 @@ public sealed class InputPipeline(
             return ProbeOutcome.Discarded;
         }
 
-        if (!_options.CanReadContext())
+        // The foreground may have changed without an event we saw (e.g. a game went full screen).
+        _silence = guard?.Check() ?? SilenceReason.None;
+        if (_silence != SilenceReason.None)
         {
             Raise(null, BufferResult.None, ProbeOutcome.NotAllowed);
             return ProbeOutcome.NotAllowed;
@@ -334,6 +420,13 @@ public sealed class InputPipeline(
         if (HasPendingInput())
         {
             outcome = ProbeOutcome.Discarded;
+        }
+        else if (caret.Status == CaretContextStatus.Password)
+        {
+            // Found while reading (UI Automation IsPassword): silent until the focus moves elsewhere.
+            _silence = SilenceReason.PasswordField;
+            Tracker.Buffer.Reset();
+            outcome = ProbeOutcome.NotAllowed;
         }
         else if (caret.Status == CaretContextStatus.Selection)
         {
@@ -369,7 +462,7 @@ public sealed class InputPipeline(
 
     private bool HasPendingInput() => input.CanCount ? input.Count > 0 : input.TryPeek(out _);
 
-    private void Raise(InputRecord? record, BufferResult result, ProbeOutcome? probe)
+    private void Raise(InputRecord? record, BufferResult result, ProbeOutcome? probe, string? wordToLearn = null)
     {
         var buffer = Tracker.Buffer;
         Updated?.Invoke(new PipelineUpdate(
@@ -381,6 +474,8 @@ public sealed class InputPipeline(
             Tracker.IsArabicLayout,
             Tracker.Layout,
             buffer.IsDetached,
-            _suppression != Suppression.None));
+            _suppression != Suppression.None,
+            _silence,
+            wordToLearn));
     }
 }

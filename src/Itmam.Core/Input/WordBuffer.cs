@@ -69,7 +69,7 @@ public sealed class WordBuffer
         InputEventKind.Escape => Reset(),
 
         // Handled by InputPipeline; the word itself is unchanged.
-        InputEventKind.AcceptSuggestion or InputEventKind.DismissSuggestions or InputEventKind.NavigationSelect => BufferResult.None,
+        InputEventKind.AcceptSuggestion or InputEventKind.DismissSuggestions or InputEventKind.NavigationSelect or InputEventKind.BlockSuggestion => BufferResult.None,
         _ => Detach(), // the caret may have moved anywhere (toggling off/on included)
     };
 

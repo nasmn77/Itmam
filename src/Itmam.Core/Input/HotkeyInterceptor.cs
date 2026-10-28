@@ -57,6 +57,7 @@ public sealed class HotkeyInterceptor(HotkeySettings settings)
     private const int Up = 0x26;
     private const int Right = 0x27;
     private const int Down = 0x28;
+    private const int Delete = 0x2E;
     private const int Digit1 = 0x31;
     private const int Digit9 = 0x39;
 
@@ -122,6 +123,14 @@ public sealed class HotkeyInterceptor(HotkeySettings settings)
     // Right-to-left bar: the best suggestion is on the right, so Left moves to the next one.
     private InterceptDecision Navigate(int virtualKey, KeyModifiers modifiers, PopupSnapshot popup)
     {
+        // Ctrl+Delete on the selected suggestion: never suggest it again.
+        if (modifiers == KeyModifiers.Ctrl && virtualKey == Delete)
+        {
+            var blocked = Selected;
+            Selected = -1;
+            return InterceptDecision.Swallow(InputEvent.Block(blocked, popup.Words[blocked]));
+        }
+
         if (modifiers != KeyModifiers.None)
         {
             return Leave(InterceptAction.Pass);

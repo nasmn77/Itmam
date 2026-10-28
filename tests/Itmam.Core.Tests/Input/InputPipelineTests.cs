@@ -16,15 +16,16 @@ public sealed class InputPipelineTests : IAsyncDisposable
     private readonly CancellationTokenSource _stop = new();
     private readonly Task _run;
     private readonly FakeInjector _injector = new();
-    private volatile bool _foregroundExcluded;
+    private readonly FakeGuard _guard = new();
 
     public InputPipelineTests()
     {
         var pipeline = new InputPipeline(
             _channel.Reader,
             _context,
-            new InputPipelineOptions { ProbeDelay = TimeSpan.FromMilliseconds(10), CanReadContext = () => !_foregroundExcluded },
-            _injector);
+            new InputPipelineOptions { ProbeDelay = TimeSpan.FromMilliseconds(10) },
+            _injector,
+            _guard);
         pipeline.Updated += _updates.Enqueue;
         _run = Task.Run(() => pipeline.RunAsync(_stop.Token));
     }
@@ -247,20 +248,88 @@ public sealed class InputPipelineTests : IAsyncDisposable
         _context.Calls.ShouldBe(2);
     }
 
-    [Fact]
-    public async Task Context_is_never_read_in_an_excluded_app()
+    [Theory]
+    [InlineData(SilenceReason.ExcludedApp)]
+    [InlineData(SilenceReason.PasswordField)]
+    [InlineData(SilenceReason.ElevatedApp)]
+    [InlineData(SilenceReason.FullScreen)]
+    public async Task Silenced_windows_track_read_and_learn_nothing(SilenceReason reason)
     {
-        _foregroundExcluded = true;
-        Type("كلمة ");
+        _guard.Reason = reason;
         _context.Next = "secret text";
+        Send(InputEvent.Of(InputEventKind.FocusChanged));
+        Type("كلمة ");
         Backspace();
+        Type("سر ");
+        await DrainAsync();
+        await Task.Delay(50, TestContext.Current.CancellationToken);
 
-        var probe = await WaitForProbeAsync();
-        await Task.Delay(30, TestContext.Current.CancellationToken);
-
-        probe.Probe.ShouldBe(ProbeOutcome.NotAllowed);
-        probe.IsDetached.ShouldBeTrue();
         _context.Calls.ShouldBe(0);
+        Commits().ShouldBeEmpty();
+        _updates.ShouldNotContain(u => u.WordToLearn != null);
+        _updates.Where(u => u.Input?.Input.Kind == InputEventKind.Character).ShouldAllBe(u => u.Silenced == reason && u.Letters == 0);
+    }
+
+    [Fact]
+    public async Task Password_field_found_while_reading_silences_until_the_focus_moves()
+    {
+        _context.Password = true;
+        Send(InputEvent.Of(InputEventKind.FocusChanged));
+        (await WaitForProbeAsync()).Silenced.ShouldBe(SilenceReason.PasswordField);
+
+        Type("سرية ");
+        await DrainAsync();
+        Commits().ShouldBeEmpty();
+
+        _context.Password = false;
+        _context.Next = "";
+        Send(InputEvent.Of(InputEventKind.FocusChanged));   // moved to an ordinary field
+        await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedEmpty);
+        Type("كلمة ");
+        await DrainAsync();
+        Commits().ShouldBe(["كلمة"]);
+    }
+
+    [Fact]
+    public async Task A_finished_word_is_learned_when_the_next_event_arrives()
+    {
+        Type("كلمة ");
+        await DrainAsync(); // Escape after the space finalizes it
+
+        _updates.Select(u => u.WordToLearn).OfType<string>().ShouldBe(["كلمة"]);
+    }
+
+    [Fact]
+    public async Task Deleting_a_word_right_after_finishing_it_does_not_learn_it()
+    {
+        _context.Next = "كتبا";
+        Type("كتبا ");
+        Backspace();                                          // the user is correcting it
+        await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedWithWord);
+        Backspace(2);
+        Type("اب ");
+        await DrainAsync();
+
+        _updates.Select(u => u.WordToLearn).OfType<string>().ShouldBe(["كتاب"]);
+    }
+
+    [Fact]
+    public async Task An_accepted_suggestion_deleted_at_once_is_not_learned()
+    {
+        Type("مدر");
+        Send(InputEvent.Accept(0, "مدرسة"));
+        Send(InputEvent.Of(InputEventKind.CtrlBackspace));     // wrong suggestion: removed at once
+        await DrainAsync();
+
+        _updates.ShouldNotContain(u => u.WordToLearn != null);
+    }
+
+    [Fact]
+    public void Pending_word_can_be_taken_on_exit()
+    {
+        var pipeline = new InputPipeline(Channel.CreateUnbounded<InputRecord>().Reader, _context);
+
+        pipeline.TakePendingWord().ShouldBeNull();
     }
 
     [Fact]
@@ -396,6 +465,13 @@ public sealed class InputPipelineTests : IAsyncDisposable
         _updates.ShouldNotContain(u => u.Probe == ProbeOutcome.AssumedEmpty);
     }
 
+    private sealed class FakeGuard : IInputGuard
+    {
+        public volatile SilenceReason Reason;
+
+        public SilenceReason Check() => Reason;
+    }
+
     private sealed class FakeInjector : ITextInjector
     {
         public List<TextEdit> Edits { get; } = [];
@@ -429,12 +505,20 @@ public sealed class InputPipelineTests : IAsyncDisposable
         /// <summary>Text is selected in the app (overrides <see cref="Next"/>).</summary>
         public bool HasSelection { get; set; }
 
+        /// <summary>The focused field is a password field.</summary>
+        public volatile bool Password;
+
         public async Task<CaretContext> ReadBeforeCaretAsync(int maxChars, CancellationToken cancellation)
         {
             var call = Interlocked.Increment(ref _calls);
             if (Delay > TimeSpan.Zero)
             {
                 await Task.Delay(Delay, cancellation);
+            }
+
+            if (Password)
+            {
+                return CaretContext.Password;
             }
 
             if (HasSelection)
