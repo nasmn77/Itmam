@@ -70,8 +70,7 @@ internal sealed class TrayApplication : ApplicationContext
 
         if (!app.Settings.FirstRunNoticeShown && !startedAtSignIn)
         {
-            _icon.ShowBalloonTip(10_000, Strings.FirstRunTitle, Strings.FirstRunText, ToolTipIcon.Info);
-            app.UpdateSettings(app.Settings with { FirstRunNoticeShown = true });
+            ShowFirstRunNoticeSoon();
         }
     }
 
@@ -85,6 +84,25 @@ internal sealed class TrayApplication : ApplicationContext
 
         _settings ??= new SettingsWindow(_app, ExitLater);
         _settings.ShowPage(page);
+    }
+
+    // One-time "Itmam is running in the tray" notification. Shown a moment after the icon is added:
+    // a notification requested in the same instant the icon appears can be dropped by Windows.
+    private void ShowFirstRunNoticeSoon()
+    {
+        var delay = new System.Windows.Forms.Timer { Interval = 1500 };
+        delay.Tick += (_, _) =>
+        {
+            delay.Dispose();
+            if (_exited)
+            {
+                return;
+            }
+
+            _icon.ShowBalloonTip(10_000, Strings.FirstRunTitle, Strings.FirstRunText, ToolTipIcon.Info);
+            _app.UpdateSettings(_app.Settings with { FirstRunNoticeShown = true });
+        };
+        delay.Start();
     }
 
     // The settings window's exit button: exit after its click has finished (it is disposed by Exit).
