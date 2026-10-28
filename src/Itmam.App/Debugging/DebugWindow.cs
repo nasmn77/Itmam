@@ -1,3 +1,4 @@
+#if DEBUG
 using System.Diagnostics;
 using Itmam.App.Suggestions;
 using Itmam.Core.Input;
@@ -7,15 +8,16 @@ using Itmam.Win32;
 namespace Itmam.App.Debugging;
 
 /// <summary>
-/// Temporary Phase 2 window: shows the live word buffer, the layout state and hook health.
-/// The event list shows event kinds and latencies only, never typed characters.
-/// Replaced by the tray application in Phase 6.
+/// Diagnostics window, Debug builds only (tray → Diagnostics): the live word buffer, the layout
+/// state and hook health. The event list shows event kinds and latencies only, never characters.
 /// </summary>
 internal sealed class DebugWindow : Form
 {
     private const int MaxLogLines = 200;
 
     private readonly InputHookService _hooks;
+    private readonly InputPipeline _pipeline;
+    private readonly SuggestionController _suggestions;
     private readonly Label _word = new() { Dock = DockStyle.Top, Height = 70, Font = new Font("Segoe UI", 28f), TextAlign = ContentAlignment.MiddleRight, RightToLeft = RightToLeft.Yes };
     private readonly Label _state = new() { Dock = DockStyle.Top, Height = 66, Font = new Font("Segoe UI", 10f) };
     private readonly Label _health = new() { Dock = DockStyle.Top, Height = 66, Font = new Font("Consolas", 9.5f) };
@@ -29,11 +31,12 @@ internal sealed class DebugWindow : Form
     public DebugWindow(InputHookService hooks, InputPipeline pipeline, SuggestionController suggestions, string? recoveredBackup, Func<int> learnedCount)
     {
         _hooks = hooks;
+        _pipeline = pipeline;
+        _suggestions = suggestions;
         _learnedCount = learnedCount;
         pipeline.Updated += OnPipelineUpdated;
-        suggestions.Shown += shown => _lastShown =
-            $"{shown.Count} suggestions, caret via {shown.Source}, {shown.Latency.TotalMilliseconds:F1} ms after the key";
-        Text = "Itmam — debug (Phase 5)";
+        suggestions.Shown += OnShown;
+        Text = "Itmam — diagnostics";
         if (recoveredBackup is not null)
         {
             _log.Items.Add($"user.db was damaged: kept as {Path.GetFileName(recoveredBackup)}, started fresh");
@@ -61,9 +64,14 @@ internal sealed class DebugWindow : Form
 
     protected override void OnFormClosed(FormClosedEventArgs e)
     {
+        _pipeline.Updated -= OnPipelineUpdated;
+        _suggestions.Shown -= OnShown;
         _healthTimer.Dispose();
         base.OnFormClosed(e);
     }
+
+    private void OnShown(SuggestionShown shown) => _lastShown =
+        $"{shown.Count} suggestions, caret via {shown.Source}, {shown.Latency.TotalMilliseconds:F1} ms after the key";
 
     // Pipeline thread: only the snapshot crosses to the UI thread.
     private void OnPipelineUpdated(PipelineUpdate update)
@@ -137,3 +145,4 @@ internal sealed class DebugWindow : Form
         _ => input.Kind.ToString(),
     };
 }
+#endif

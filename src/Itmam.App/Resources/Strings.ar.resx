@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AppName" xml:space="preserve"><value>إتمام</value></data>
+  <data name="TrayOn" xml:space="preserve"><value>إتمام — يعمل</value></data>
+  <data name="TrayOff" xml:space="preserve"><value>إتمام — متوقف (Ctrl+Alt+P للتشغيل)</value></data>
+  <data name="TrayPausedUntil" xml:space="preserve"><value>إتمام — متوقف مؤقتًا حتى {0}</value></data>
+  <data name="MenuEnabled" xml:space="preserve"><value>مفعّل</value></data>
+  <data name="MenuPauseHour" xml:space="preserve"><value>إيقاف مؤقت لساعة</value></data>
+  <data name="MenuResume" xml:space="preserve"><value>استئناف الآن</value></data>
+  <data name="MenuSettings" xml:space="preserve"><value>الإعدادات</value></data>
+  <data name="MenuAbout" xml:space="preserve"><value>حول</value></data>
+  <data name="MenuDiagnostics" xml:space="preserve"><value>التشخيص</value></data>
+  <data name="MenuExit" xml:space="preserve"><value>خروج</value></data>
+  <data name="FirstRunTitle" xml:space="preserve"><value>إتمام يعمل</value></data>
+  <data name="FirstRunText" xml:space="preserve"><value>إتمام يقترح الكلمات العربية أثناء الكتابة. يعمل من منطقة الإشعارات: انقر أيقونته بالزر الأيمن للإعدادات.</value></data>
+  <data name="SettingsTitle" xml:space="preserve"><value>إعدادات إتمام</value></data>
+  <data name="NavGeneral" xml:space="preserve"><value>عام</value></data>
+  <data name="NavAbout" xml:space="preserve"><value>حول</value></data>
+  <data name="SectionStartup" xml:space="preserve"><value>التشغيل</value></data>
+  <data name="StartWithWindows" xml:space="preserve"><value>التشغيل مع Windows</value></data>
+  <data name="StartWithWindowsHint" xml:space="preserve"><value>يمكن إيقافه أيضًا من إعدادات Windows ← التطبيقات ← بدء التشغيل.</value></data>
+  <data name="SectionSuggestions" xml:space="preserve"><value>الاقتراحات</value></data>
+  <data name="MaxSuggestions" xml:space="preserve"><value>عدد الاقتراحات</value></data>
+  <data name="MinLetters" xml:space="preserve"><value>عدد الحروف قبل ظهور الاقتراحات</value></data>
+  <data name="AddSpace" xml:space="preserve"><value>إضافة مسافة بعد قبول الاقتراح</value></data>
+  <data name="SectionLearning" xml:space="preserve"><value>التعلم</value></data>
+  <data name="PauseLearning" xml:space="preserve"><value>إيقاف تعلم الكلمات الجديدة مؤقتًا</value></data>
+  <data name="MinUses" xml:space="preserve"><value>مرات الاستخدام قبل اقتراح كلمة جديدة</value></data>
+  <data name="SectionLanguage" xml:space="preserve"><value>اللغة</value></data>
+  <data name="UiLanguage" xml:space="preserve"><value>لغة الواجهة</value></data>
+  <data name="LanguageRestart" xml:space="preserve"><value>يُطبَّق عند تشغيل إتمام في المرة القادمة.</value></data>
+  <data name="AboutVersion" xml:space="preserve"><value>الإصدار {0}</value></data>
+  <data name="AboutTagline" xml:space="preserve"><value>اقتراح الكلمات العربية أثناء الكتابة على لوحة المفاتيح.</value></data>
+  <data name="AboutDictionary" xml:space="preserve"><value>القاموس: {0:N0} كلمة</value></data>
+  <data name="AboutLearned" xml:space="preserve"><value>كلماتك: {0:N0}</value></data>
+  <data name="AboutSources" xml:space="preserve"><value>المصادر</value></data>
+  <data name="AboutPrivacy" xml:space="preserve"><value>إتمام يعمل دون اتصال: لا يغادر جهازك شيء مما تكتبه.</value></data>
+  <data name="AboutPrivacyLink" xml:space="preserve"><value>سياسة الخصوصية</value></data>
+  <data name="LanguageArabic" xml:space="preserve"><value>العربية</value></data>
+  <data name="LanguageEnglish" xml:space="preserve"><value>English</value></data>
+</root>

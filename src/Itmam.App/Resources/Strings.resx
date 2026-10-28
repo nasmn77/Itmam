@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AppName" xml:space="preserve"><value>Itmam</value></data>
+  <data name="TrayOn" xml:space="preserve"><value>Itmam — on</value></data>
+  <data name="TrayOff" xml:space="preserve"><value>Itmam — off (Ctrl+Alt+P to turn on)</value></data>
+  <data name="TrayPausedUntil" xml:space="preserve"><value>Itmam — paused until {0}</value></data>
+  <data name="MenuEnabled" xml:space="preserve"><value>Enabled</value></data>
+  <data name="MenuPauseHour" xml:space="preserve"><value>Pause for 1 hour</value></data>
+  <data name="MenuResume" xml:space="preserve"><value>Resume now</value></data>
+  <data name="MenuSettings" xml:space="preserve"><value>Settings</value></data>
+  <data name="MenuAbout" xml:space="preserve"><value>About</value></data>
+  <data name="MenuDiagnostics" xml:space="preserve"><value>Diagnostics</value></data>
+  <data name="MenuExit" xml:space="preserve"><value>Exit</value></data>
+  <data name="FirstRunTitle" xml:space="preserve"><value>Itmam is running</value></data>
+  <data name="FirstRunText" xml:space="preserve"><value>Itmam suggests Arabic words as you type. It runs in the notification area: right-click its icon for settings.</value></data>
+  <data name="SettingsTitle" xml:space="preserve"><value>Itmam settings</value></data>
+  <data name="NavGeneral" xml:space="preserve"><value>General</value></data>
+  <data name="NavAbout" xml:space="preserve"><value>About</value></data>
+  <data name="SectionStartup" xml:space="preserve"><value>Startup</value></data>
+  <data name="StartWithWindows" xml:space="preserve"><value>Start with Windows</value></data>
+  <data name="StartWithWindowsHint" xml:space="preserve"><value>You can also turn this off in Windows Settings → Apps → Startup.</value></data>
+  <data name="SectionSuggestions" xml:space="preserve"><value>Suggestions</value></data>
+  <data name="MaxSuggestions" xml:space="preserve"><value>Number of suggestions</value></data>
+  <data name="MinLetters" xml:space="preserve"><value>Letters before suggestions appear</value></data>
+  <data name="AddSpace" xml:space="preserve"><value>Add a space after accepting a suggestion</value></data>
+  <data name="SectionLearning" xml:space="preserve"><value>Learning</value></data>
+  <data name="PauseLearning" xml:space="preserve"><value>Pause learning new words</value></data>
+  <data name="MinUses" xml:space="preserve"><value>Uses before a new word is suggested</value></data>
+  <data name="SectionLanguage" xml:space="preserve"><value>Language</value></data>
+  <data name="UiLanguage" xml:space="preserve"><value>Interface language</value></data>
+  <data name="LanguageRestart" xml:space="preserve"><value>Takes effect the next time Itmam starts.</value></data>
+  <data name="AboutVersion" xml:space="preserve"><value>Version {0}</value></data>
+  <data name="AboutTagline" xml:space="preserve"><value>Arabic word suggestions as you type, on the physical keyboard.</value></data>
+  <data name="AboutDictionary" xml:space="preserve"><value>Dictionary: {0:N0} words</value></data>
+  <data name="AboutLearned" xml:space="preserve"><value>Your words: {0:N0}</value></data>
+  <data name="AboutSources" xml:space="preserve"><value>Sources</value></data>
+  <data name="AboutPrivacy" xml:space="preserve"><value>Itmam works offline: nothing you type leaves this device.</value></data>
+  <data name="AboutPrivacyLink" xml:space="preserve"><value>Privacy policy</value></data>
+  <data name="LanguageArabic" xml:space="preserve"><value>العربية</value></data>
+  <data name="LanguageEnglish" xml:space="preserve"><value>English</value></data>
+</root>

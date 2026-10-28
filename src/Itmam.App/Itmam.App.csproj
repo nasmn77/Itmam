@@ -12,6 +12,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- User-facing strings: English (neutral) + Arabic. The Strings class is generated at build time. -->
+    <EmbeddedResource Update="Resources\Strings.resx"
+                      StronglyTypedLanguage="CSharp"
+                      StronglyTypedNamespace="Itmam.App.Resources"
+                      StronglyTypedClassName="Strings"
+                      StronglyTypedFileName="$(IntermediateOutputPath)Strings.g.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\..\data\itmam-ar.dict" Link="itmam-ar.dict" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\data\blocklist.txt" Link="blocklist.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
