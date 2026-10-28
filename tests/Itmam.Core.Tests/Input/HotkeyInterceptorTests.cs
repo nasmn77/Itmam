@@ -107,6 +107,20 @@ public class HotkeyInterceptorTests
     }
 
     [Fact]
+    public void Ctrl_delete_while_navigating_forgets_the_selected_suggestion()
+    {
+        Key(Up);
+        Key(Left);
+
+        Key(0x2E, KeyModifiers.Ctrl).ShouldBe(InterceptDecision.Swallow(InputEvent.Forget(1, "مدرسين")));
+        _interceptor.Selected.ShouldBe(-1);
+    }
+
+    [Fact]
+    public void Ctrl_delete_without_navigating_passes_to_the_app() =>
+        Key(0x2E, KeyModifiers.Ctrl).ShouldBe(InterceptDecision.Pass);
+
+    [Fact]
     public void A_new_bar_ends_navigation()
     {
         var interceptor = new HotkeyInterceptor(new HotkeySettings { NativeNavigation = true });

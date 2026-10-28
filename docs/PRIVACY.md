@@ -16,7 +16,10 @@
 - لا يعمل في حقول كلمات المرور، ولا في التطبيقات المستثناة، ولا يقرأ منها أي نص.
 
 ### ما الذي يُحفظ على جهازك
-سيُضاف في المرحلة 5: الكلمات التي تتعلمها (الكلمة وعدد مرات استخدامها وآخر استخدام فقط) في ملف على جهازك، مع طريقة حذفها.
+- **الكلمات التي تكتبها:** لكل كلمة: الكلمة نفسها، وعدد مرات استخدامها، ووقت آخر استخدام، وهل حظرتها. لا شيء غير ذلك: لا جمل، ولا ترتيب كلمات، ولا اسم التطبيق الذي كتبت فيه.
+- **المكان:** ملف واحد على جهازك فقط: `%LOCALAPPDATA%\Itmam\user.db` (عند التثبيت من المتجر يكون داخل المجلد الخاص بالتطبيق).
+- **ما لا يُتعلم:** الكلمات في حقول كلمات المرور، والتطبيقات المستثناة، والتطبيقات التي تعمل بصلاحيات المسؤول، والألعاب بملء الشاشة، والكلمات المحظورة، وأي كلمة تمسحها مباشرة بعد كتابتها.
+- **الحذف:** من الإعدادات ← "كلماتي": حذف كلمة، أو "مسح كل البيانات المتعلَّمة"، أو إيقاف التعلم مؤقتًا. ويُحذف الملف نهائيًا بإلغاء تثبيت التطبيق.
 
 ## English
 
@@ -31,4 +34,7 @@
 - It does nothing in password fields or excluded apps, and never reads any text from them.
 
 ### What is stored on your device
-To be completed in Phase 5: learned words (the word, its use count and last-used time only) in a file on your device, and how to delete it.
+- **Words you type:** for each word: the word itself, how many times you used it, when you last used it, and whether you blocked it. Nothing else: no sentences, no word order, not the app you typed in.
+- **Where:** one file on your device only: `%LOCALAPPDATA%\Itmam\user.db` (inside the app's private folder when installed from the Store).
+- **Never learned:** words in password fields, excluded apps, apps running as administrator, full-screen games, blocked words, and any word you delete right after typing it.
+- **Deleting it:** Settings → "My words": delete a word, "Clear all learned data", or pause learning. Uninstalling the app removes the file.

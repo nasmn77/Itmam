@@ -10,4 +10,9 @@
     <InternalsVisibleTo Include="Itmam.Core.Tests" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Embedded SQLite (native e_sqlite3 shipped inside the app; no server, no install). -->
+    <PackageReference Include="Microsoft.Data.Sqlite" />
+  </ItemGroup>
+
 </Project>

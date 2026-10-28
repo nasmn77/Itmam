@@ -30,11 +30,15 @@ public sealed class UiaCaretContextSource(UiaWorker worker, Func<string?, bool> 
     private CaretContext Read(IUIAutomation automation, int maxChars)
     {
         var element = automation.GetFocusedElement();
-        if (element is null
-            || isExcludedProcess(ProcessNames.Of((uint)element.CurrentProcessId))
-            || element.CurrentIsPassword)
+        if (element is null || isExcludedProcess(ProcessNames.Of((uint)element.CurrentProcessId)))
         {
             return CaretContext.Unavailable;
+        }
+
+        // Password field: read nothing, and tell the pipeline to stay silent in this field.
+        if (element.CurrentIsPassword)
+        {
+            return CaretContext.Password;
         }
 
         // Selected text (e.g. dragged with the mouse) is replaced by typing: no word to continue.

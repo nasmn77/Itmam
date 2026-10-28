@@ -43,6 +43,13 @@ public enum InputEventKind
 
     /// <summary>The global enable/disable hotkey was pressed.</summary>
     ToggleEnabled,
+
+    /// <summary>
+    /// Forget the learned word <see cref="InputEvent.Text"/> (right-click on the bar, or Ctrl+Delete while
+    /// navigating it): it is removed from "My words" and is learned again if used. Blocking for good is
+    /// done in Settings → My words.
+    /// </summary>
+    ForgetSuggestion,
 }
 
 /// <param name="Kind">What happened.</param>
@@ -58,4 +65,6 @@ public readonly record struct InputEvent(InputEventKind Kind, char Character = '
     public static InputEvent Accept(int index, string word) => new(InputEventKind.AcceptSuggestion, Index: index, Text: word);
 
     public static InputEvent Select(int index) => new(InputEventKind.NavigationSelect, Index: index);
+
+    public static InputEvent Forget(int index, string word) => new(InputEventKind.ForgetSuggestion, Index: index, Text: word);
 }
