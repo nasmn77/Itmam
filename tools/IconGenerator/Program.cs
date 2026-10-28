@@ -6,16 +6,20 @@ using Itmam.App.Tray;
 // Renders the Itmam icon (src/Itmam.App/Tray/AppIconArt.cs):
 //   dotnet run --project tools/IconGenerator -- src/Itmam.App/Assets/Itmam.ico
 //   dotnet run --project tools/IconGenerator -- --store src/Itmam.Package/Images
+//   dotnet run --project tools/IconGenerator -- --listing docs/store/logos
 switch (args)
 {
     case ["--store", var folder]:
         WriteStoreImages(folder);
         return 0;
+    case ["--listing", var folder]:
+        WriteListingLogos(folder);
+        return 0;
     case [var output] when !output.StartsWith('-'):
         WriteIco(output);
         return 0;
     default:
-        Console.Error.WriteLine("Usage: IconGenerator <output.ico> | --store <folder>");
+        Console.Error.WriteLine("Usage: IconGenerator <output.ico> | --store <folder> | --listing <folder>");
         return 2;
 }
 
@@ -124,3 +128,41 @@ static void Save(Bitmap image, string folder, string fileName)
 
 // Windows expects 71 px at 125 % to be 89 px (88.75 rounded half up), 150 px at 125 % to be 188, …
 static int Scaled(int pixels, int scale) => (int)Math.Round(pixels * scale / 100.0, MidpointRounding.AwayFromZero);
+
+// Partner Center → Store listings → Store logos: the 300×300 tile icon, and box/poster art on the
+// brand gradient (full bleed, no transparency) with the icon centered.
+static void WriteListingLogos(string folder)
+{
+    Directory.CreateDirectory(folder);
+    Save(AppIconArt.Render(300), folder, "app-tile-icon-300x300.png");
+    Save(Art(1080, 1080, 0.56f), folder, "box-art-1080x1080.png");
+    Save(Art(720, 1080, 0.62f), folder, "poster-art-720x1080.png");
+    Console.WriteLine($"Wrote 3 listing logos to {folder}");
+}
+
+static Bitmap Art(int width, int height, float iconShare)
+{
+    var canvas = new Bitmap(width, height);
+    using var g = Graphics.FromImage(canvas);
+    g.SmoothingMode = SmoothingMode.AntiAlias;
+    g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+    using (var gradient = new LinearGradientBrush(new Rectangle(0, 0, width, height), Color.FromArgb(0x13, 0x8F, 0x9C), Color.FromArgb(0x08, 0x4A, 0x5E), 60f))
+    {
+        g.FillRectangle(gradient, 0, 0, width, height);
+    }
+
+    // A soft light behind the icon, then the icon.
+    var size = (int)Math.Round(width * iconShare);
+    var x = (width - size) / 2;
+    var y = (height - size) / 2;
+    using (var glow = new GraphicsPath())
+    {
+        glow.AddEllipse(x - size * 0.35f, y - size * 0.35f, size * 1.7f, size * 1.7f);
+        using var brush = new PathGradientBrush(glow) { CenterColor = Color.FromArgb(70, 0x9F, 0xF5, 0xEA), SurroundColors = [Color.FromArgb(0, 0x9F, 0xF5, 0xEA)] };
+        g.FillPath(brush, glow);
+    }
+
+    using var icon = AppIconArt.Render(size);
+    g.DrawImage(icon, x, y, size, size);
+    return canvas;
+}
