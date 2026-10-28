@@ -3,6 +3,8 @@
   <!-- Hooks, caret locator, text injection, focus tracking, layout detection. -->
   <PropertyGroup>
     <TargetFramework>$(ItmamWindowsTargetFramework)</TargetFramework>
+    <!-- Restored for the MSIX architectures too (the packaged app is self-contained per RID). -->
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
     <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
     <RootNamespace>Itmam.Win32</RootNamespace>
     <!-- CsWin32 generates unsafe interop code. -->
