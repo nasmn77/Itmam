@@ -115,4 +115,7 @@
   <data name="ResetExcludedHint" xml:space="preserve"><value>Remote desktops, virtual machines, terminals and game launchers.</value></data>
   <data name="SearchApps" xml:space="preserve"><value>Search apps</value></data>
   <data name="NoMatchingApps" xml:space="preserve"><value>No matching apps.</value></data>
+  <data name="ConfirmAddExcluded" xml:space="preserve"><value>Exclude {0}? Itmam will stay completely silent in it: no suggestions and no learning.</value></data>
+  <data name="ConfirmRemoveExcluded" xml:space="preserve"><value>Remove {0} from the excluded apps? Itmam will suggest and learn words in it again.</value></data>
+  <data name="ConfirmResetExcluded" xml:space="preserve"><value>Restore the default list? Apps you added will be removed from it, and removed default apps will be excluded again.</value></data>
 </root>

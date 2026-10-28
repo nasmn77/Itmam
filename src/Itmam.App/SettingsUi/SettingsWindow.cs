@@ -529,6 +529,11 @@ internal sealed class SettingsWindow : Form
             var remove = new ThemedButton { Text = Strings.RemoveButton };
             remove.Click += (_, _) =>
             {
+                if (!Confirm(Strings.ConfirmRemoveExcluded, name))
+                {
+                    return;
+                }
+
                 Update(s => s with { ExcludedApps = ExcludedApps.Without(s.ExcludedApps, name) });
                 BeginInvoke(RebuildPage); // after this click is handled
             };
@@ -574,6 +579,11 @@ internal sealed class SettingsWindow : Form
         var reset = new ThemedButton { Text = Strings.ResetButton };
         reset.Click += (_, _) =>
         {
+            if (!Confirm(Strings.ConfirmResetExcluded, null))
+            {
+                return;
+            }
+
             Update(s => s with { ExcludedApps = [.. ExcludedApps.Defaults] });
             BeginInvoke(RebuildPage);
         };
@@ -609,8 +619,21 @@ internal sealed class SettingsWindow : Form
 
     private void AddExcluded(string name)
     {
+        if (!Confirm(Strings.ConfirmAddExcluded, ExcludedApps.NormalizeName(name)))
+        {
+            return;
+        }
+
         Update(s => s with { ExcludedApps = ExcludedApps.With(s.ExcludedApps, name) });
         BeginInvoke(RebuildPage);
+    }
+
+    // Warning before a change to where Itmam works; "No" is the default button.
+    private bool Confirm(string format, string? appName)
+    {
+        var text = appName is null ? format : string.Format(CultureInfo.CurrentCulture, format, "‪" + appName + "‬");
+        var options = _mirrored ? MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign : 0;
+        return MessageBox.Show(this, text, Strings.AppName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2, options) == DialogResult.Yes;
     }
 
     // Executable name → description ("Visual Studio Code") of processes that have a window.
