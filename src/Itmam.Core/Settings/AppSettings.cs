@@ -51,6 +51,21 @@ public sealed record AppSettings
 
     public bool ShowHotkeyHints { get; init; }
 
+    /// <summary>Bar background "#RRGGBB"; null = the theme's color (System/Light/Dark, like the native bar).</summary>
+    public string? BarBackground { get; init; }
+
+    /// <summary>Highlight (first suggestion, navigation selection) "#RRGGBB"; null = Windows accent / theme default.</summary>
+    public string? BarHighlight { get; init; }
+
+    /// <summary>Text "#RRGGBB"; null = automatic, readable on the background (WCAG AA).</summary>
+    public string? BarText { get; init; }
+
+    /// <summary>Bar opacity in percent (80–100).</summary>
+    public int BarOpacity { get; init; } = 100;
+
+    /// <summary>Suggestion text size in pixels at 100% scaling (12–20; the native bar uses 14).</summary>
+    public int BarFontSize { get; init; } = 14;
+
     public IReadOnlyList<string> ExcludedApps { get; init; } = ExcludedAppsDefaults();
 
     /// <summary>Values out of range (hand-edited file, older version) are brought back into range.</summary>
@@ -59,6 +74,11 @@ public sealed record AppSettings
         MaxSuggestions = Math.Clamp(MaxSuggestions, 1, 5),
         MinLetters = Math.Clamp(MinLetters, 1, 4),
         MinUsesToSuggest = Math.Clamp(MinUsesToSuggest, 1, 5),
+        BarOpacity = Math.Clamp(BarOpacity, 80, 100),
+        BarFontSize = Math.Clamp(BarFontSize, 12, 20),
+        BarBackground = Presentation.ColorContrast.Parse(BarBackground) is null ? null : BarBackground,
+        BarHighlight = Presentation.ColorContrast.Parse(BarHighlight) is null ? null : BarHighlight,
+        BarText = Presentation.ColorContrast.Parse(BarText) is null ? null : BarText,
         Hotkeys = Hotkeys ?? new HotkeySettings(),
         ExcludedApps = ExcludedApps ?? ExcludedAppsDefaults(),
     };

@@ -18,14 +18,14 @@ internal static class Program
         ApplicationConfiguration.Initialize();
 
 #if DEBUG
-        // Visual check of the bar without typing: --demo-popup <x> <y> [light|dark] [nohighlight] [hints] [hide]
+        // Visual check of the bar without typing: --demo-popup <x> <y> [light|dark] [nohighlight] [hints] [navy] [translucent] [large] [hide]
         if (args is ["--demo-popup", var x, var y, ..])
         {
             Debugging.PopupDemo.Run(int.Parse(x, CultureInfo.InvariantCulture), int.Parse(y, CultureInfo.InvariantCulture), args[3..]);
             return;
         }
 
-        // Visual check of the settings window (no hooks installed): --demo-settings [general|about] [en]
+        // Visual check of the settings window (no hooks installed): --demo-settings [general|appearance|about|exit] [en] [end]
         if (args is ["--demo-settings", ..])
         {
             SynchronizationContext.SetSynchronizationContext(new WindowsFormsSynchronizationContext());
@@ -33,7 +33,11 @@ internal static class Program
             var english = args.Contains("en");
             UiCulture.Apply(english ? UiLanguage.English : UiLanguage.Arabic);
             using var window = new SettingsWindow(demoApp, Application.ExitThread, english ? UiLanguage.English : UiLanguage.Arabic) { TopMost = true };
-            window.ShowPage(args.Contains("about") ? SettingsPage.About : args.Contains("exit") ? SettingsPage.Exit : SettingsPage.General);
+            window.ShowPage(
+                args.Contains("about") ? SettingsPage.About
+                : args.Contains("exit") ? SettingsPage.Exit
+                : args.Contains("appearance") ? SettingsPage.Appearance
+                : SettingsPage.General);
             if (args.Contains("end"))
             {
                 window.ScrollToEnd();

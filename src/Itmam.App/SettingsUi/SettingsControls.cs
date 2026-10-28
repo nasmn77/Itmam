@@ -372,12 +372,15 @@ internal sealed class SettingCard : Panel
 {
     private readonly Label _title = new() { AutoSize = false, TextAlign = ContentAlignment.BottomLeft, UseMnemonic = false };
     private readonly Label _description = new() { AutoSize = false, TextAlign = ContentAlignment.TopLeft, UseMnemonic = false };
+    private readonly bool _stacked;
     private SettingsPalette _palette = SettingsPalette.For(Core.Settings.ThemeChoice.System);
 
-    public SettingCard(string title, string? description, Control? control)
+    /// <param name="stacked">The control goes under the text (wide controls such as color swatches).</param>
+    public SettingCard(string title, string? description, Control? control, bool stacked = false)
     {
         DoubleBuffered = true;
         Control = control;
+        _stacked = stacked && control is not null;
         _title.Text = title;
         _description.Text = description ?? string.Empty;
         _description.Visible = description is not null;
@@ -392,6 +395,14 @@ internal sealed class SettingCard : Panel
     }
 
     public Control? Control { get; }
+
+    /// <summary>Replaces the description (e.g. a contrast warning).</summary>
+    public void SetDescription(string? description)
+    {
+        _description.Text = description ?? string.Empty;
+        _description.Visible = description is not null;
+        PerformLayout();
+    }
 
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public SettingsPalette Palette
@@ -424,6 +435,12 @@ internal sealed class SettingCard : Panel
         var scale = DeviceDpi / 96f;
         var padding = (int)(16 * scale);
         var rtl = RightToLeft == RightToLeft.Yes;
+        if (_stacked)
+        {
+            LayoutStacked(scale, padding, rtl);
+            return;
+        }
+
         var controlWidth = Control?.Width ?? 0;
         if (Control is not null)
         {
@@ -461,6 +478,30 @@ internal sealed class SettingCard : Panel
         {
             _title.SetBounds(textLeft, 0, textWidth, Height);
             _title.TextAlign = ContentAlignment.MiddleLeft;
+        }
+    }
+
+    // Title and description on top, the control below them at the start of the line.
+    private void LayoutStacked(float scale, int padding, bool rtl)
+    {
+        var top = (int)(12 * scale);
+        var textWidth = Math.Max(1, Width - (2 * padding));
+        var titleHeight = TextRenderer.MeasureText(_title.Text, _title.Font).Height;
+        var descriptionHeight = _description.Visible
+            ? TextRenderer.MeasureText(_description.Text, _description.Font, new Size(textWidth, int.MaxValue), TextFormatFlags.WordBreak).Height
+            : 0;
+        _title.SetBounds(padding, top, textWidth, titleHeight);
+        _title.TextAlign = ContentAlignment.BottomLeft;
+        _description.SetBounds(padding, top + titleHeight, textWidth, descriptionHeight);
+        _description.TextAlign = ContentAlignment.TopLeft;
+
+        var control = Control!;
+        control.Top = top + titleHeight + descriptionHeight + (int)(10 * scale);
+        control.Left = rtl ? Width - padding - control.Width : padding;
+        var needed = control.Bottom + top + (int)(2 * scale);
+        if (Height != needed)
+        {
+            Height = needed; // the page re-stacks the cards (SizeChanged)
         }
     }
 

@@ -4,11 +4,13 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
 `PROMPT.md` is the full brief and the source of truth; this file is the short rule set. Read both at the start of a session.
 
 ## Current status
-- **Current phase:** 6a — tray, menu, exit, single instance, settings.json, start with Windows, settings window shell with
-  General + About pages (branch `phase-6-tray`, awaiting review). Then 6b: Shortcuts, Appearance, Excluded apps, My words pages,
-  live ar/en switching. Phases 0–5 merged. User decisions: phase 6 split in two; Windows 11 style settings (side navigation);
+- **Current phase:** 6b on branch `phase-6-tray` (6a done: tray, menu, exit, single instance, settings.json, start with
+  Windows, General/About/Exit pages, live ar/en switching). 6b done so far: **Appearance** page (theme, bar/text/selection
+  colors with presets + custom picker, automatic WCAG text color, contrast warning, opacity 80–100 %, text size 12–20 with
+  the bar height kept at 35:14, first-item highlight, number hints, reset, live preview drawn by the same `BarRenderer` as
+  the bar). Next: Shortcuts, Excluded apps, My words pages. Phases 0–5 merged. User decisions: phase 6 split in two; Windows 11 style settings (side navigation);
   diagnostics window in Debug builds only (tray → Diagnostics); "Itmam is running" notice on EVERY start, including start with
-  Windows (user decision, overrides the brief's one-time notice); app icon = concept A (suggestion bar + «ت», tools/IconGenerator). Debug: `--demo-settings [general|about] [en]`.
+  Windows (user decision, overrides the brief's one-time notice); app icon = concept A (suggestion bar + «ت», tools/IconGenerator). Debug: `--demo-settings [general|appearance|about|exit] [en] [end]`, `--demo-popup x y [navy] [translucent] [large] [hints]`.
 - Phase 5 decisions: learn words of ≥ 2 letters; silent full screen only for D3D exclusive + presentation mode (not F11
   browser/video); a finished word stays *pending* and is dropped if Backspace/Ctrl+Backspace follows it at once (user question);
   SQLite in Core (`SqliteUserWordStore`, WAL, corrupt file kept as `user.db.corrupt-*`); `ForegroundGuard` silences password

@@ -1,5 +1,3 @@
-using System.Drawing.Drawing2D;
-using System.Drawing.Text;
 using Itmam.Core.Presentation;
 using Itmam.Win32;
 using Microsoft.Win32;
@@ -23,14 +21,13 @@ internal sealed class SuggestionPopup : Form
     private const int WM_DPICHANGED = 0x02E0;
     private const int WS_POPUP = unchecked((int)0x80000000);
 
-    private static readonly SuggestionBarMetrics BaseMetrics = new();
     private readonly Dictionary<float, Font> _fonts = [];
     private readonly PopupState _state;
     private IReadOnlyList<string> _words = [];
     private SuggestionBarLayout? _layout;
-    private SuggestionBarMetrics _metrics = BaseMetrics;
+    private SuggestionBarMetrics _metrics = new();
     private PopupColors _colors = PopupColors.Dark;
-    private Color _accent = PopupColors.AccentColor();
+    private PopupAppearance _appearance = new();
     private bool _rightToLeft = true;
     private int _selected = -1;
     private int _hovered = -1;
@@ -50,7 +47,21 @@ internal sealed class SuggestionPopup : Form
     }
 
     [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
-    public PopupAppearance Appearance { get; set; } = new();
+    public PopupAppearance Appearance
+    {
+        get => _appearance;
+        set
+        {
+            _appearance = value;
+            if (Math.Abs(Opacity - value.Opacity) > 0.001)
+            {
+                Opacity = value.Opacity; // layered window; never shows or activates it
+            }
+
+            ApplyTheme();
+            Invalidate();
+        }
+    }
 
     /// <summary>A suggestion was clicked: (index, word). Raised on the UI thread.</summary>
     public event Action<int, string>? SuggestionClicked;
@@ -79,17 +90,14 @@ internal sealed class SuggestionPopup : Form
     public void ShowSuggestions(IReadOnlyList<string> words, Rectangle caret, bool rightToLeft, bool belowPointer)
     {
         var monitor = Monitors.FromPoint(new Point(caret.X, caret.Y + (caret.Height / 2)));
-        _metrics = BaseMetrics.Scale(monitor.Scale);
+        _metrics = SuggestionBarMetrics.ForFontSize(_appearance.FontPixels).Scale(monitor.Scale);
         _words = words;
         _rightToLeft = rightToLeft;
         ApplyTheme();
 
-        var font = FontFor(_metrics.FontPixels);
-        using (var format = TextFormat(centered: false))
         using (var measure = Graphics.FromHwnd(Handle))
         {
-            var widths = words.Select(w => (int)Math.Ceiling(measure.MeasureString(w, font, PointF.Empty, format).Width)).ToArray();
-            _layout = SuggestionBarLayout.Compute(widths, _metrics, rightToLeft);
+            _layout = BarRenderer.Measure(measure, words, FontFor(_metrics.FontPixels), _metrics, rightToLeft);
         }
 
         var position = PopupPlacement.Place(caret, _layout.Size, monitor.WorkArea, rightToLeft, _metrics.CaretGap, belowPointer);
@@ -203,58 +211,12 @@ internal sealed class SuggestionPopup : Form
 
     protected override void OnPaint(PaintEventArgs e)
     {
-        var g = e.Graphics;
-        g.Clear(_colors.Background);
-        if (_layout is null)
+        e.Graphics.Clear(_colors.Background);
+        if (_layout is not null)
         {
-            return;
+            var frame = new BarRenderer.Frame(_words, _layout, _metrics, _colors, _appearance, _rightToLeft, _selected, _hovered);
+            BarRenderer.Paint(e.Graphics, frame, FontFor(_metrics.FontPixels), FontFor(_metrics.FontPixels * 0.7f));
         }
-
-        // Grayscale antialiasing like the native (DirectWrite) bar, not ClearType color fringes.
-        g.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
-        var font = FontFor(_metrics.FontPixels);
-        using var format = TextFormat(centered: true);
-        using var textBrush = new SolidBrush(_colors.Text);
-        for (var i = 0; i < _words.Count; i++)
-        {
-            var item = _layout.Items[i];
-            if (i == _selected)
-            {
-                FillHighlight(g, item, Color.FromArgb(0x60, _accent));
-            }
-            else if (i == _hovered || (i == 0 && _selected < 0 && Appearance.HighlightFirst && _words.Count > 1))
-            {
-                FillHighlight(g, item, _colors.FirstHighlight);
-            }
-
-            g.DrawString(_words[i], font, textBrush, item, format);
-
-            if (Appearance.ShowHotkeyHints)
-            {
-                var hintFont = FontFor(_metrics.FontPixels * 0.7f);
-                var hint = new Rectangle(item.Right - _metrics.ItemPadding, item.Top + 2, _metrics.ItemPadding, item.Height / 2);
-                using var hintBrush = new SolidBrush(_colors.Hint);
-                g.DrawString((i + 1).ToString(System.Globalization.CultureInfo.InvariantCulture), hintFont, hintBrush, hint, format);
-            }
-        }
-    }
-
-    private StringFormat TextFormat(bool centered)
-    {
-        var format = (StringFormat)StringFormat.GenericTypographic.Clone();
-        format.FormatFlags |= StringFormatFlags.NoWrap | StringFormatFlags.MeasureTrailingSpaces;
-        if (_rightToLeft)
-        {
-            format.FormatFlags |= StringFormatFlags.DirectionRightToLeft;
-        }
-
-        if (centered)
-        {
-            format.Alignment = StringAlignment.Center;
-            format.LineAlignment = StringAlignment.Center;
-        }
-
-        return format;
     }
 
     protected override void Dispose(bool disposing)
@@ -271,23 +233,6 @@ internal sealed class SuggestionPopup : Form
         base.Dispose(disposing);
     }
 
-    private void FillHighlight(Graphics g, Rectangle item, Color color)
-    {
-        var inset = _metrics.HighlightInset;
-        var area = Rectangle.Inflate(item, -inset / 2, -inset);
-        var radius = _metrics.HighlightRadius * 2;
-        using var path = new GraphicsPath();
-        path.AddArc(area.Left, area.Top, radius, radius, 180, 90);
-        path.AddArc(area.Right - radius, area.Top, radius, radius, 270, 90);
-        path.AddArc(area.Right - radius, area.Bottom - radius, radius, radius, 0, 90);
-        path.AddArc(area.Left, area.Bottom - radius, radius, radius, 90, 90);
-        path.CloseFigure();
-        g.SmoothingMode = SmoothingMode.AntiAlias;
-        using var brush = new SolidBrush(color);
-        g.FillPath(brush, path);
-        g.SmoothingMode = SmoothingMode.Default;
-    }
-
     private Font FontFor(float pixels)
     {
         if (!_fonts.TryGetValue(pixels, out var font))
@@ -301,8 +246,7 @@ internal sealed class SuggestionPopup : Form
 
     private void ApplyTheme()
     {
-        _colors = PopupColors.For(Appearance.Theme);
-        _accent = PopupColors.AccentColor();
+        _colors = PopupColors.For(_appearance);
         if (IsHandleCreated)
         {
             PopupWindows.ApplyWindows11Style(Handle, _colors.Border);

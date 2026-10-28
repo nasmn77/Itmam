@@ -3,6 +3,8 @@ using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.Reflection;
 using Itmam.App.Resources;
+using Itmam.App.Suggestions;
+using Itmam.Core.Presentation;
 using Itmam.Core.Settings;
 using Itmam.Win32;
 using Microsoft.Win32;
@@ -12,6 +14,7 @@ namespace Itmam.App.SettingsUi;
 internal enum SettingsPage
 {
     General,
+    Appearance,
     About,
     Exit,
 }
@@ -39,6 +42,8 @@ internal sealed class SettingsWindow : Form
     private SettingsPalette _palette;
     private SettingsPage _page;
     private bool _loading;
+    private BarPreview? _preview;
+    private SettingCard? _textCard;
 
     /// <param name="app">The running app (settings are read and saved through it).</param>
     /// <param name="exit">Exits Itmam (the "Close Itmam" section).</param>
@@ -157,7 +162,7 @@ internal sealed class SettingsWindow : Form
         _navigation.Controls.Add(header);
 
         var top = 72;
-        foreach (var (page, title) in new[] { (SettingsPage.General, Strings.NavGeneral), (SettingsPage.About, Strings.NavAbout), (SettingsPage.Exit, Strings.NavExit) })
+        foreach (var (page, title) in new[] { (SettingsPage.General, Strings.NavGeneral), (SettingsPage.Appearance, Strings.NavAppearance), (SettingsPage.About, Strings.NavAbout), (SettingsPage.Exit, Strings.NavExit) })
         {
             var item = new NavItem { Text = title, Left = 8, Top = top, Width = _navigation.Width - 16, Height = 40, Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
             item.Click += (_, _) => SelectPage(page);
@@ -183,11 +188,16 @@ internal sealed class SettingsWindow : Form
         }
 
         _pageControls.Clear();
+        _preview = null;
+        _textCard = null;
         _loading = true;
         switch (page)
         {
             case SettingsPage.General:
                 BuildGeneralPage();
+                break;
+            case SettingsPage.Appearance:
+                BuildAppearancePage();
                 break;
             case SettingsPage.About:
                 BuildAboutPage();
@@ -253,6 +263,131 @@ internal sealed class SettingsWindow : Form
         language.SelectedIndex = settings.Language == UiLanguage.Arabic ? 0 : 1;
         language.SelectedIndexChanged += (_, _) => Update(s => s with { Language = language.SelectedIndex == 0 ? UiLanguage.Arabic : UiLanguage.English });
         AddCard(Strings.UiLanguage, null, language);
+    }
+
+    // Every change shows at once in the preview (and in the real bar).
+    private void BuildAppearancePage()
+    {
+        var settings = _app.Settings;
+        AddTitle(Strings.NavAppearance);
+
+        AddSection(Strings.SectionPreview);
+        _preview = new BarPreview { Appearance = PopupAppearance.From(settings) };
+        AddPageControl(_preview);
+
+        AddSection(Strings.SectionTheme);
+        var theme = new SegmentedChoice { Options = [Strings.ThemeSystem, Strings.ThemeLight, Strings.ThemeDark] };
+        theme.SelectedIndex = (int)settings.Theme;
+        theme.SelectedIndexChanged += (_, _) => UpdateLook(s => s with { Theme = (ThemeChoice)theme.SelectedIndex });
+        AddCard(Strings.ThemeLabel, null, theme);
+
+        AddSection(Strings.SectionColors);
+        var background = Swatches(BarColorPresets.All.Select(p => p.Hex), settings.BarBackground);
+        background.ValueChanged += (_, _) => UpdateLook(s => s with { BarBackground = Hex(background.Value) });
+        AddCard(Strings.BarBackground, Strings.BarBackgroundHint, background, stacked: true);
+
+        var text = Swatches(BarColorPresets.Texts, settings.BarText);
+        text.ValueChanged += (_, _) => UpdateLook(s => s with { BarText = Hex(text.Value) });
+        _textCard = AddCard(Strings.BarText, Strings.BarTextHint, text, stacked: true);
+
+        var highlight = Swatches(BarColorPresets.Highlights, settings.BarHighlight);
+        highlight.ValueChanged += (_, _) => UpdateLook(s => s with { BarHighlight = Hex(highlight.Value) });
+        AddCard(Strings.BarHighlight, Strings.BarHighlightHint, highlight, stacked: true);
+
+        AddSection(Strings.SectionBarLook);
+        int[] opacities = [100, 95, 90, 85, 80];
+        var opacity = new SegmentedChoice { Options = [.. opacities.Select(o => $"{o}%")] };
+        opacity.SelectedIndex = Math.Max(0, Array.IndexOf(opacities, settings.BarOpacity - (settings.BarOpacity % 5)));
+        opacity.SelectedIndexChanged += (_, _) => UpdateLook(s => s with { BarOpacity = opacities[opacity.SelectedIndex] });
+        AddCard(Strings.BarOpacity, null, opacity);
+
+        int[] sizes = [12, 13, 14, 16, 18, 20];
+        var size = new SegmentedChoice { Options = [.. sizes.Select(n => n.ToString(CultureInfo.CurrentCulture))] };
+        size.SelectedIndex = Array.IndexOf(sizes, settings.BarFontSize) is var index and >= 0 ? index : Array.IndexOf(sizes, 14);
+        size.SelectedIndexChanged += (_, _) => UpdateLook(s => s with { BarFontSize = sizes[size.SelectedIndex] });
+        AddCard(Strings.BarFontSize, null, size);
+
+        var first = new ToggleSwitch { Checked = settings.HighlightFirstSuggestion };
+        first.CheckedChanged += (_, _) => UpdateLook(s => s with { HighlightFirstSuggestion = first.Checked });
+        AddCard(Strings.HighlightFirst, Strings.HighlightFirstHint, first);
+
+        var hints = new ToggleSwitch { Checked = settings.ShowHotkeyHints };
+        hints.CheckedChanged += (_, _) => UpdateLook(s => s with { ShowHotkeyHints = hints.Checked });
+        AddCard(Strings.HotkeyHints, Strings.HotkeyHintsHint, hints);
+
+        var reset = new ThemedButton { Text = Strings.ResetButton };
+        reset.Click += (_, _) =>
+        {
+            var defaults = new AppSettings();
+            UpdateLook(s => s with
+            {
+                Theme = defaults.Theme,
+                BarBackground = null,
+                BarHighlight = null,
+                BarText = null,
+                BarOpacity = defaults.BarOpacity,
+                BarFontSize = defaults.BarFontSize,
+                HighlightFirstSuggestion = defaults.HighlightFirstSuggestion,
+                ShowHotkeyHints = defaults.ShowHotkeyHints,
+            });
+            BeginInvoke(() => SelectPage(SettingsPage.Appearance)); // rebuild after this click is handled
+        };
+        AddCard(Strings.ResetLook, Strings.ResetLookHint, reset);
+        UpdateContrastWarning();
+    }
+
+    private ColorSwatches Swatches(IEnumerable<string> presets, string? selected)
+    {
+        var swatches = new ColorSwatches([.. presets.Select(h => ColorContrast.Parse(h)!.Value)], Strings.ColorAuto, Strings.ColorCustom)
+        {
+            Value = ColorContrast.Parse(selected),
+        };
+        swatches.CustomRequested += (_, _) =>
+        {
+            using var dialog = new ColorDialog { FullOpen = true, AnyColor = true, Color = swatches.Value ?? Color.White };
+            if (dialog.ShowDialog(this) == DialogResult.OK)
+            {
+                swatches.Value = Color.FromArgb(dialog.Color.R, dialog.Color.G, dialog.Color.B);
+            }
+        };
+        return swatches;
+    }
+
+    private static string? Hex(Color? color) => color is { } c ? ColorContrast.ToHex(c) : null;
+
+    // Saves, then refreshes the preview, the window's own theme and the contrast warning.
+    private void UpdateLook(Func<AppSettings, AppSettings> change)
+    {
+        if (_loading)
+        {
+            return;
+        }
+
+        var theme = _app.Settings.Theme;
+        Update(change);
+        if (_preview is not null)
+        {
+            _preview.Appearance = PopupAppearance.From(_app.Settings);
+        }
+
+        if (_app.Settings.Theme != theme)
+        {
+            _palette = SettingsPalette.For(_app.Settings.Theme);
+            ApplyPalette();
+            Invalidate(invalidateChildren: true);
+        }
+
+        UpdateContrastWarning();
+    }
+
+    // A custom text color can be hard to read on the bar: say so under "Text color".
+    private void UpdateContrastWarning()
+    {
+        var colors = PopupColors.For(PopupAppearance.From(_app.Settings));
+        var ratio = ColorContrast.Ratio(colors.Background, colors.Text);
+        _textCard?.SetDescription(ratio < ColorContrast.MinimumReadable
+            ? string.Format(CultureInfo.CurrentCulture, Strings.ContrastWarning, ratio)
+            : Strings.BarTextHint);
     }
 
     // Its own page: exiting is different from "Enabled" off, and is explained here.
@@ -332,11 +467,12 @@ internal sealed class SettingsWindow : Form
         AddPageControl(link);
     }
 
-    private void AddCard(string title, string? description, Control control)
+    private SettingCard AddCard(string title, string? description, Control control, bool stacked = false)
     {
-        var card = new SettingCard(title, description, control);
+        var card = new SettingCard(title, description, control, stacked);
         card.SizeChanged += (_, _) => LayoutPage(); // a wrapped description made it taller
         AddPageControl(card);
+        return card;
     }
 
     private void AddPageControl(Control control)
@@ -394,6 +530,9 @@ internal sealed class SettingsWindow : Form
             {
                 case SettingCard card:
                     card.Palette = _palette;
+                    break;
+                case ThemedControl themed:
+                    themed.Palette = _palette;
                     break;
                 case LinkLabel link:
                     link.BackColor = _palette.Window;

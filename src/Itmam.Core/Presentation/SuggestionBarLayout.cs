@@ -27,6 +27,20 @@ public sealed record SuggestionBarMetrics
     /// <summary>Gap between the caret and the bar.</summary>
     public int CaretGap { get; init; } = 6;
 
+    /// <summary>
+    /// Metrics for a text size other than the native 14 px: the bar height keeps the native
+    /// 35 : 14 proportion; padding stays the same.
+    /// </summary>
+    public static SuggestionBarMetrics ForFontSize(int pixels)
+    {
+        var standard = new SuggestionBarMetrics();
+        return standard with
+        {
+            FontPixels = pixels,
+            Height = Round(standard.Height * pixels / standard.FontPixels),
+        };
+    }
+
     public SuggestionBarMetrics Scale(float factor) => new()
     {
         Height = Round(Height * factor),

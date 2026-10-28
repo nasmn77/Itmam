@@ -199,17 +199,7 @@ internal sealed class ItmamApp : IDisposable
         Pipeline.Options = Pipeline.Options with { AppendSpaceOnAccept = settings.AddSpaceAfterAccept };
         Learning.IsPaused = settings.LearningPaused;
         ExcludedApps.Replace(settings.ExcludedApps);
-        Popup.Appearance = new PopupAppearance
-        {
-            Theme = settings.Theme switch
-            {
-                ThemeChoice.Light => ThemeMode.Light,
-                ThemeChoice.Dark => ThemeMode.Dark,
-                _ => ThemeMode.System,
-            },
-            HighlightFirst = settings.HighlightFirstSuggestion,
-            ShowHotkeyHints = settings.ShowHotkeyHints,
-        };
+        Popup.Appearance = PopupAppearance.From(settings);
     }
 
     private void PersistEnabled()

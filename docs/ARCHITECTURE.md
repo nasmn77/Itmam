@@ -235,6 +235,10 @@ nothing:
   icon. NotifyIcon re-adds itself when Explorer restarts (TaskbarCreated).
 - Settings: `%LOCALAPPDATA%\Itmam\settings.json` (`SettingsStore`: temp file + replace; a corrupt file
   is kept as `settings.json.corrupt-*` and defaults are used). Preferences only — no typed text.
+- Appearance: `PopupAppearance.From(AppSettings)` → `PopupColors.For(appearance)` (theme colors, or a custom
+  background with black/white text chosen by WCAG contrast, `ColorContrast`). `BarRenderer` paints the bar's
+  items for both the real bar and the live preview on the Appearance page. Opacity uses a layered window
+  (`Form.Opacity`), which never activates or shows the bar.
 - Start with Windows (`StartupRegistration`): MSIX `StartupTask` "ItmamStartup" when packaged
   (synced with the setting at start-up); `HKCU\…\Run` when unpackaged, only when the user switches it
   on in Settings (development builds are never registered automatically).

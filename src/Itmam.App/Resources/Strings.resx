@@ -51,4 +51,31 @@
   <data name="SectionOpenSource" xml:space="preserve"><value>Open source</value></data>
   <data name="AboutOpenSource" xml:space="preserve"><value>Itmam is free and open source under the MIT license.</value></data>
   <data name="AboutSourceCode" xml:space="preserve"><value>Source code on GitHub</value></data>
+  <data name="NavAppearance" xml:space="preserve"><value>Appearance</value></data>
+  <data name="SectionTheme" xml:space="preserve"><value>Theme</value></data>
+  <data name="ThemeLabel" xml:space="preserve"><value>Theme of the bar and this window</value></data>
+  <data name="ThemeSystem" xml:space="preserve"><value>System</value></data>
+  <data name="ThemeLight" xml:space="preserve"><value>Light</value></data>
+  <data name="ThemeDark" xml:space="preserve"><value>Dark</value></data>
+  <data name="SectionPreview" xml:space="preserve"><value>Preview</value></data>
+  <data name="SectionColors" xml:space="preserve"><value>Colors</value></data>
+  <data name="BarBackground" xml:space="preserve"><value>Bar color</value></data>
+  <data name="BarBackgroundHint" xml:space="preserve"><value>Automatic follows the theme, like the Windows suggestion bar.</value></data>
+  <data name="BarHighlight" xml:space="preserve"><value>Selection color</value></data>
+  <data name="BarHighlightHint" xml:space="preserve"><value>Shown when you choose a suggestion with the arrow keys. Automatic uses your Windows accent color.</value></data>
+  <data name="BarText" xml:space="preserve"><value>Text color</value></data>
+  <data name="BarTextHint" xml:space="preserve"><value>Automatic picks the most readable color for the bar.</value></data>
+  <data name="ContrastWarning" xml:space="preserve"><value>Low contrast ({0:0.0}:1): the suggestions may be hard to read.</value></data>
+  <data name="ColorAuto" xml:space="preserve"><value>Automatic</value></data>
+  <data name="ColorCustom" xml:space="preserve"><value>Custom color…</value></data>
+  <data name="SectionBarLook" xml:space="preserve"><value>Bar</value></data>
+  <data name="BarOpacity" xml:space="preserve"><value>Opacity</value></data>
+  <data name="BarFontSize" xml:space="preserve"><value>Text size</value></data>
+  <data name="HighlightFirst" xml:space="preserve"><value>Highlight the first suggestion</value></data>
+  <data name="HighlightFirstHint" xml:space="preserve"><value>The one Tab accepts. The Windows bar has no highlight.</value></data>
+  <data name="HotkeyHints" xml:space="preserve"><value>Show suggestion numbers</value></data>
+  <data name="HotkeyHintsHint" xml:space="preserve"><value>Small numbers for the shortcut that accepts suggestion 1, 2, 3…</value></data>
+  <data name="ResetLook" xml:space="preserve"><value>Reset to the Windows look</value></data>
+  <data name="ResetLookHint" xml:space="preserve"><value>Theme, colors, opacity and text size go back to the defaults.</value></data>
+  <data name="ResetButton" xml:space="preserve"><value>Reset</value></data>
 </root>
