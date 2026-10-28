@@ -80,6 +80,8 @@ dotnet test --solution Itmam.CI.slnf -c Release
 ```
 
 ثم شغّل `src\Itmam.App\bin\Release\net10.0-windows10.0.19041.0\Itmam.exe`.
+
+**حزمة المتجر (MSIX):** تحتاج Visual Studio 2026 مع «MSIX Packaging Tools» وWindows 11 SDK، ثم `./tools/Build-Package.ps1`. طريقة البناء والتجربة المحلية بشهادة موقّعة ذاتيًا في [src/Itmam.Package/README.md](src/Itmam.Package/README.md).
 بنية المشروع وطريقة عمله في [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (بالإنجليزية).
 
 ## المساهمة

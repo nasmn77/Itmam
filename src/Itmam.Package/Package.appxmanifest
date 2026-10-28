@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Itmam MSIX manifest. Identity values come from Partner Center (product 9P08F7KGRJB0 → Product identity)
+  and must match it exactly. Capabilities: runFullTrust only (a Win32 desktop app); no internetClient —
+  Itmam never uses the network. The names and description are localized in Strings\<lang>\Resources.resw.
+-->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap desktop rescap">
+
+  <Identity
+    Name="NasserAlmadi.563063310BE3D"
+    Publisher="CN=9260B530-9E02-440E-8E99-B74323B1CE93"
+    Version="1.0.0.0" />
+
+  <Properties>
+    <DisplayName>ms-resource:AppName</DisplayName>
+    <PublisherDisplayName>Nasser Almadi</PublisherDisplayName>
+    <Logo>Images\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="ar" />
+    <Resource Language="en-US" />
+  </Resources>
+
+  <Applications>
+    <Application Id="Itmam"
+      Executable="$targetnametoken$.exe"
+      EntryPoint="$targetentrypoint$">
+      <uap:VisualElements
+        DisplayName="ms-resource:AppName"
+        Description="ms-resource:AppDescription"
+        BackgroundColor="transparent"
+        Square150x150Logo="Images\Square150x150Logo.png"
+        Square44x44Logo="Images\Square44x44Logo.png">
+        <uap:DefaultTile
+          Wide310x150Logo="Images\Wide310x150Logo.png"
+          Square71x71Logo="Images\Square71x71Logo.png"
+          Square310x310Logo="Images\Square310x310Logo.png"
+          ShortName="ms-resource:AppName" />
+        <uap:SplashScreen Image="Images\SplashScreen.png" />
+      </uap:VisualElements>
+
+      <Extensions>
+        <!-- "Start with Windows": TaskId must match Itmam.Win32.StartupRegistration.TaskId. The packaging
+             project only replaces $targetnametoken$ on Application, so the packaged path is written here. -->
+        <desktop:Extension
+          Category="windows.startupTask"
+          Executable="Itmam.App\Itmam.exe"
+          EntryPoint="Windows.FullTrustApplication">
+          <desktop:StartupTask TaskId="ItmamStartup" Enabled="true" DisplayName="ms-resource:AppName" />
+        </desktop:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+</Package>

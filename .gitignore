@@ -68,3 +68,6 @@ data/raw/
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# MSIX build output (tools/Build-Package.ps1)
+artifacts/
