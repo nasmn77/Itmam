@@ -17,11 +17,14 @@ public sealed class InputTracker
     public bool IsArabicLayout { get; private set; }
 
     /// <param name="input">The event.</param>
-    /// <param name="keyboardLayout">Layout (HKL) of the foreground window when the event happened.</param>
+    /// <param name="keyboardLayout">
+    /// Layout (HKL) of the foreground window when the event happened; 0 = unknown (events raised
+    /// outside typing, e.g. Itmam turned back on), which keeps the current layout.
+    /// </param>
     public BufferResult Process(InputEvent input, nint keyboardLayout)
     {
         var layoutReset = BufferResult.None;
-        if (_layout != keyboardLayout)
+        if (keyboardLayout != 0 && _layout != keyboardLayout)
         {
             if (_layout is not null)
             {

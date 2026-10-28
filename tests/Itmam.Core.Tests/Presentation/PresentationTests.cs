@@ -18,6 +18,19 @@ public class SuggestionBarLayoutTests
         layout.Items[2].Left.ShouldBe(Metrics.BarPadding);
     }
 
+    [Theory]
+    [InlineData(14, 35)]
+    [InlineData(12, 30)]
+    [InlineData(20, 50)]
+    public void Bar_height_follows_the_text_size(int fontPixels, int height)
+    {
+        var metrics = SuggestionBarMetrics.ForFontSize(fontPixels);
+
+        metrics.FontPixels.ShouldBe(fontPixels);
+        metrics.Height.ShouldBe(height);
+        metrics.ItemPadding.ShouldBe(Metrics.ItemPadding);
+    }
+
     [Fact]
     public void Left_to_right_puts_the_best_suggestion_on_the_left()
     {

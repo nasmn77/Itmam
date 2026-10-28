@@ -40,7 +40,7 @@ public sealed unsafe class InputHookService : IDisposable
         Channel.CreateUnbounded<InputRecord>(new UnboundedChannelOptions { SingleReader = true });
 
     private readonly PopupState _popup;
-    private readonly HotkeyInterceptor _interceptor;
+    private volatile HotkeyInterceptor _interceptor;
     private readonly bool[] _swallowedKeys = new bool[256];
     private volatile bool _enabled = true;
 
@@ -91,6 +91,13 @@ public sealed unsafe class InputHookService : IDisposable
                 Publish(InputEvent.Of(InputEventKind.ToggleEnabled), 0);
             }
         }
+    }
+
+    /// <summary>Keys acting on the bar; replaced live from Settings (the hook reads the new instance on the next key).</summary>
+    public HotkeySettings Hotkeys
+    {
+        get => _interceptor.Settings;
+        set => _interceptor = new HotkeyInterceptor(value);
     }
 
     /// <summary>Publishes an event from another thread (e.g. a click on a suggestion).</summary>
@@ -198,6 +205,9 @@ public sealed unsafe class InputHookService : IDisposable
         warmInterceptor.OnKeyDown(0x09, KeyModifiers.None, bar);
         warmInterceptor.OnKeyDown(0x32, KeyModifiers.Ctrl, bar);
         warmInterceptor.OnKeyDown(0x41, KeyModifiers.None, _popup.Current);
+        warmInterceptor.OnKeyDown(0xA2, KeyModifiers.Alt, _popup.Current);
+        warmInterceptor.OnKeyUp(0xA2);
+        warmInterceptor.CancelChord();
 
         // Channel write/read code for InputRecord, on a throwaway channel so no fake event is published.
         var probe = Channel.CreateUnbounded<InputRecord>(new UnboundedChannelOptions { SingleReader = true });
@@ -301,11 +311,20 @@ public sealed unsafe class InputHookService : IDisposable
                         Diagnostics.KeyEvents++;
                         swallow = OnKeyDownIntercept(data);
                     }
-                    else if ((message == WM_KEYUP || message == WM_SYSKEYUP) && data->vkCode < 256 && _swallowedKeys[data->vkCode])
+                    else if (message == WM_KEYUP || message == WM_SYSKEYUP)
                     {
-                        // The app never saw this key go down, so it must not see it go up either.
-                        _swallowedKeys[data->vkCode] = false;
-                        swallow = true;
+                        if (data->vkCode < 256 && _swallowedKeys[data->vkCode])
+                        {
+                            // The app never saw this key go down, so it must not see it go up either.
+                            _swallowedKeys[data->vkCode] = false;
+                            swallow = true;
+                        }
+                        else if (_interceptor.OnKeyUp((int)data->vkCode))
+                        {
+                            // Modifiers-only toggle (Ctrl+Alt released): the key-up still reaches the app.
+                            _enabled = !_enabled;
+                            Publish(InputEvent.Of(InputEventKind.ToggleEnabled), 0);
+                        }
                     }
                 }
             }
@@ -460,6 +479,11 @@ public sealed unsafe class InputHookService : IDisposable
             {
                 Volatile.Write(ref _lastHookTick, (uint)Environment.TickCount);
                 var message = (uint)wParam.Value;
+                if (message is PInvoke.WM_LBUTTONDOWN or PInvoke.WM_RBUTTONDOWN or PInvoke.WM_MBUTTONDOWN or PInvoke.WM_XBUTTONDOWN)
+                {
+                    _interceptor.CancelChord(); // Ctrl+Alt+click is not the toggle
+                }
+
                 if (_enabled && message is PInvoke.WM_LBUTTONDOWN or PInvoke.WM_RBUTTONDOWN or PInvoke.WM_MBUTTONDOWN or PInvoke.WM_XBUTTONDOWN)
                 {
                     // A click on the suggestion bar is handled by the bar (accepts a word); the

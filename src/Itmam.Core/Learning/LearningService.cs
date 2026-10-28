@@ -38,8 +38,9 @@ public readonly record struct ImportResult(int Added, int Updated, int Skipped);
 /// the shipped blocklist are never learned automatically, but a word the user added or kept on
 /// purpose is respected. Changes are saved in the background <see cref="LearningOptions.SaveDelay"/>
 /// after the last one, and by <see cref="Flush"/> on exit.
-/// All members are thread-safe; the <see cref="UserWordIndex"/> itself must only be read by the
-/// thread that calls <see cref="Learn"/> (the input pipeline thread).
+/// All members are thread-safe. Changes to the <see cref="UserWordIndex"/> happen under
+/// <see cref="SyncRoot"/>: whoever reads the index directly (the suggestion engine) must hold it too,
+/// because "My words" in Settings changes words from the UI thread.
 /// </remarks>
 public sealed class LearningService : IDisposable
 {
@@ -66,6 +67,18 @@ public sealed class LearningService : IDisposable
 
     /// <summary>"Pause learning" setting: nothing new is learned while true.</summary>
     public bool IsPaused { get; set; }
+
+    /// <summary>Held by every change to the index; hold it to read the index directly (reentrant).</summary>
+    public Lock SyncRoot => _lock;
+
+    /// <summary>A copy of every stored word ("My words" list), taken under the lock.</summary>
+    public IReadOnlyList<StoredWord> Snapshot()
+    {
+        lock (_lock)
+        {
+            return [.. _index.All.Select(w => new StoredWord(w.Word, w.Count, w.LastUsed, w.IsBlocked))];
+        }
+    }
 
     /// <summary>Loads the stored words into the index (call once at start-up).</summary>
     public void Load()

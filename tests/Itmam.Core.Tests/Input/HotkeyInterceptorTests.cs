@@ -60,13 +60,84 @@ public class HotkeyInterceptorTests
             .OnKeyDown(Up, KeyModifiers.None, Bar).ShouldBe(InterceptDecision.Pass);
     }
 
-    [Fact]
-    public void Global_toggle_works_whether_or_not_the_bar_is_shown()
+    private const int LCtrl = 0xA2, RCtrl = 0xA3, LAlt = 0xA4, RAlt = 0xA5, LShift = 0xA0, Delete = 0x2E;
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Ctrl_alt_pressed_and_released_alone_toggles(bool barShown)
     {
+        var popup = barShown ? Bar : PopupSnapshot.Hidden;
+
+        // Modifier keys always pass: nothing is swallowed.
+        Key(LCtrl, KeyModifiers.None, popup).ShouldBe(InterceptDecision.Pass);
+        Key(LAlt, KeyModifiers.Ctrl, popup).ShouldBe(InterceptDecision.Pass);
+
+        _interceptor.OnKeyUp(LAlt).ShouldBeTrue();
+        _interceptor.OnKeyUp(LCtrl).ShouldBeFalse(); // once per press
+    }
+
+    [Fact]
+    public void Ctrl_alt_works_in_either_order_and_with_right_hand_keys()
+    {
+        Key(RAlt);
+        Key(RCtrl, KeyModifiers.Alt);
+        _interceptor.OnKeyUp(RCtrl).ShouldBeTrue();
+    }
+
+    [Theory]
+    [InlineData(Delete)]   // Ctrl+Alt+Del
+    [InlineData(Left)]     // Ctrl+Alt+arrow (screen rotation on some PCs)
+    [InlineData(KeyP)]     // AltGr+letter on European layouts
+    public void Ctrl_alt_with_another_key_does_not_toggle(int other)
+    {
+        Key(LCtrl);
+        Key(LAlt, KeyModifiers.Ctrl);
+        Key(other, KeyModifiers.Ctrl | KeyModifiers.Alt);
+
+        _interceptor.OnKeyUp(other).ShouldBeFalse();
+        _interceptor.OnKeyUp(LAlt).ShouldBeFalse();
+    }
+
+    [Fact]
+    public void Ctrl_alt_shift_or_a_click_does_not_toggle()
+    {
+        Key(LCtrl);
+        Key(LAlt, KeyModifiers.Ctrl);
+        Key(LShift, KeyModifiers.Ctrl | KeyModifiers.Alt);
+        _interceptor.OnKeyUp(LAlt).ShouldBeFalse();
+
+        Key(LCtrl);
+        Key(LAlt, KeyModifiers.Ctrl);
+        _interceptor.CancelChord();
+        _interceptor.OnKeyUp(LAlt).ShouldBeFalse();
+    }
+
+    [Fact]
+    public void Ctrl_alone_does_not_toggle()
+    {
+        Key(LCtrl);
+        _interceptor.OnKeyUp(LCtrl).ShouldBeFalse();
+    }
+
+    [Fact]
+    public void A_toggle_with_a_key_still_works_and_is_swallowed()
+    {
+        var interceptor = new HotkeyInterceptor(new HotkeySettings { ToggleEnabled = new(KeyP, KeyModifiers.Ctrl | KeyModifiers.Alt) });
         var toggle = InterceptDecision.Swallow(InputEvent.Of(InputEventKind.ToggleEnabled));
 
-        Key(KeyP, KeyModifiers.Ctrl | KeyModifiers.Alt, PopupSnapshot.Hidden).ShouldBe(toggle);
-        Key(KeyP, KeyModifiers.Ctrl | KeyModifiers.Alt).ShouldBe(toggle);
+        interceptor.OnKeyDown(KeyP, KeyModifiers.Ctrl | KeyModifiers.Alt, PopupSnapshot.Hidden).ShouldBe(toggle);
+        interceptor.OnKeyDown(KeyP, KeyModifiers.Ctrl | KeyModifiers.Alt, Bar).ShouldBe(toggle);
+        interceptor.OnKeyUp(LAlt).ShouldBeFalse(); // not a modifiers-only toggle
+    }
+
+    [Fact]
+    public void Pressing_ctrl_while_navigating_keeps_the_selection_for_ctrl_delete()
+    {
+        Key(Up);
+        Key(LCtrl).ShouldBe(InterceptDecision.Pass);
+        _interceptor.Selected.ShouldBe(0);
+        Key(Delete, KeyModifiers.Ctrl).ShouldBe(InterceptDecision.Swallow(InputEvent.Forget(0, "مدرسة")));
     }
 
     [Fact]

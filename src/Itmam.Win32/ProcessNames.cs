@@ -44,7 +44,8 @@ public static class ProcessNames
             }
         }
 
-        var name = Query(processId);
+        var path = PathOf(processId);
+        var name = path?[(path.LastIndexOf('\\') + 1)..];
         lock (CacheLock)
         {
             // Process ids are reused; a small bounded cache keeps stale entries short-lived.
@@ -59,7 +60,8 @@ public static class ProcessNames
         return name;
     }
 
-    private static unsafe string? Query(uint processId)
+    /// <summary>Full path of the process's executable, or null if it cannot be read (e.g. protected process).</summary>
+    public static unsafe string? PathOf(uint processId)
     {
         var process = PInvoke.OpenProcess(PROCESS_ACCESS_RIGHTS.PROCESS_QUERY_LIMITED_INFORMATION, false, processId);
         if (process.IsNull)
@@ -77,8 +79,7 @@ public static class ProcessNames
                 return null;
             }
 
-            var path = new ReadOnlySpan<char>(buffer, (int)length);
-            return path[(path.LastIndexOf('\\') + 1)..].ToString();
+            return new string(buffer, 0, (int)length);
         }
         finally
         {

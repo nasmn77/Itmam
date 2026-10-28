@@ -4,15 +4,24 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
 `PROMPT.md` is the full brief and the source of truth; this file is the short rule set. Read both at the start of a session.
 
 ## Current status
-- **Current phase:** 6 — tray app, settings window (incl. "My words"), localization, startup task, single instance. Not started;
-  create branch `phase-6-tray` from `main`. Phases 0–5 approved and merged into `main`.
+- **Current phase:** 6b on branch `phase-6-tray` (6a done: tray, menu, exit, single instance, settings.json, start with
+  Windows, General/About/Exit pages, live ar/en switching). 6b done so far: **Appearance** page (theme, bar/text/selection
+  colors with presets + custom picker, automatic WCAG text color, contrast warning, opacity 80–100 %, text size 12–20 with
+  the bar height kept at 35:14, first-item highlight, number hints, reset, live preview drawn by the same `BarRenderer` as
+  the bar); **Shortcuts** page (record by pressing keys; `HotkeyRules` refuses keys that type text, editing keys, common
+  Windows shortcuts, duplicates, modifier+digit clashes, and a global toggle without Ctrl/Alt; Itmam's own shortcuts are
+  suspended while recording; accept-N modifier Ctrl or Alt; arrow navigation toggle; reset); **Excluded apps** page (add from open apps or browse for an .exe, remove, default list, search, open apps first, confirmation before add/remove/reset); **My words** page (pause learning, add/block
+  a word, import/export, sort, search, virtual word list with edit/block/delete, delete all with confirmation; index guarded by
+  `LearningService.SyncRoot`, also held by `SuggestionController`). 6b complete: awaiting the user's review. Phases 0–5 merged. User decisions: phase 6 split in two; Windows 11 style settings (side navigation);
+  diagnostics window in Debug builds only (tray → Diagnostics); "Itmam is running" notice on EVERY start, including start with
+  Windows (user decision, overrides the brief's one-time notice); app icon = concept A (suggestion bar + «ت», tools/IconGenerator). Debug: `--demo-settings [general|appearance|shortcuts|excluded|words|about|exit] [en] [end]`, `--demo-popup x y [navy] [translucent] [large] [hints]`.
 - Phase 5 decisions: learn words of ≥ 2 letters; silent full screen only for D3D exclusive + presentation mode (not F11
   browser/video); a finished word stays *pending* and is dropped if Backspace/Ctrl+Backspace follows it at once (user question);
   SQLite in Core (`SqliteUserWordStore`, WAL, corrupt file kept as `user.db.corrupt-*`); `ForegroundGuard` silences password
   fields (ES_PASSWORD + UIA IsPassword), elevated, excluded and full-screen apps; right-click or Ctrl+Delete (navigating)
   FORGETS a learned word (user decision: removed, re-learned if used again); permanent blocking only in "My words". Startup does one compacting GC after loading: working set ≈ 90 MB, private ≈ 38 MB.
 - Phase 4 (approved after the user's tests in Notepad; other apps not tested yet): `HotkeyInterceptor` (Core) decides in the hook
-  from `PopupState`; Tab/Ctrl+N/Esc only while the bar is visible, Ctrl+Alt+P always; `SendInputInjector` releases a held Ctrl,
+  from `PopupState`; Tab/Ctrl+N/Esc only while the bar is visible, the toggle always (default Ctrl+Alt pressed and released alone, fired on key-up, nothing swallowed — user decision; Ctrl+Alt+P failed with the Arabic layout); `SendInputInjector` releases a held Ctrl,
   sends backspaces + Delete + unicode in one batch. Native navigation (Up/Left/Right/Enter/Esc) ON by default (user decision).
   No suggestions while text is selected (Shift+arrows, Ctrl+A, mouse drag). Accepting mid-line never doubles a space: the char
   after the caret is read with the context (space → Delete + word + space; punctuation → no space).

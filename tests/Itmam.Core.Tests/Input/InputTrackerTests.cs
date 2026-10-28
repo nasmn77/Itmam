@@ -32,6 +32,19 @@ public class InputTrackerTests
         KeyboardLayoutId.IsArabic((nint)hkl).ShouldBe(arabic);
 
     [Fact]
+    public void An_unknown_layout_keeps_the_current_one()
+    {
+        Type("كتا", ArabicSaudi);
+
+        _tracker.Process(InputEvent.Of(InputEventKind.ToggleEnabled), 0);
+
+        _tracker.IsArabicLayout.ShouldBeTrue();
+        _tracker.Buffer.IsDetached.ShouldBeTrue(); // the caret may have moved while Itmam was off
+        Type("ب", ArabicSaudi);
+        _tracker.Buffer.IsDetached.ShouldBeTrue(); // no layout switch: still waiting for the context read
+    }
+
+    [Fact]
     public void Arabic_layout_tracks_the_word()
     {
         Type("كتا", ArabicSaudi);

@@ -10,7 +10,7 @@
 
     <Product>Itmam</Product>
     <Company>Itmam</Company>
-    <Copyright>Copyright © 2026 Naser AlMadi</Copyright>
+    <Copyright>Copyright © 2026 Naser Mohammad Almadi</Copyright>
     <NeutralLanguage>en</NeutralLanguage>
 
     <!-- Windows-specific projects use this TFM; Itmam.Core stays on plain net10.0. -->

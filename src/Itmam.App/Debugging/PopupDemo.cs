@@ -11,7 +11,15 @@ internal static class PopupDemo
         var theme = options.Contains("light") ? ThemeMode.Light : options.Contains("dark") ? ThemeMode.Dark : ThemeMode.System;
         using var popup = new SuggestionPopup(new Core.Presentation.PopupState())
         {
-            Appearance = new PopupAppearance { Theme = theme, HighlightFirst = !options.Contains("nohighlight"), ShowHotkeyHints = options.Contains("hints") },
+            Appearance = new PopupAppearance
+            {
+                Theme = theme,
+                HighlightFirst = !options.Contains("nohighlight"),
+                ShowHotkeyHints = options.Contains("hints"),
+                Background = options.Contains("navy") ? Color.FromArgb(0x1E, 0x2A, 0x44) : null,
+                Opacity = options.Contains("translucent") ? 0.85 : 1,
+                FontPixels = options.Contains("large") ? 18 : 14,
+            },
         };
         _ = popup.Handle;
         popup.ShowSuggestions(["مرحبا", "مرحلة", "مرحى"], new Rectangle(caretX, caretY, 2, 20), rightToLeft: true, belowPointer: false);

@@ -154,7 +154,7 @@ increase; numbers dominated by Chrome finishing start-up). Large pages build lar
         │    Tab                   → Swallow + AcceptSuggestion(0, word)
         │    Ctrl+1…9 (≤ shown)    → Swallow + AcceptSuggestion(n, word)
         │    Esc                   → Swallow + DismissSuggestions
-        │    Ctrl+Alt+P (always)   → Swallow + ToggleEnabled
+        │    Ctrl+Alt released alone (always) → ToggleEnabled (key-up, nothing swallowed)
         │    native navigation (setting, off): Up enters, ←/→ select, Enter accepts, Esc/↓ leave
         │  a swallowed key's key-up is swallowed too
         ▼
@@ -176,7 +176,7 @@ punctuation gets no space before it, and otherwise a space is appended.
 The word in `AcceptSuggestion` is captured from the bar snapshot the hook saw, so exactly the
 word on screen is inserted. `PopupState` is published by the UI thread on every show/hide and
 read lock-free by the hook. Clicking a word on the bar posts the same event; clicks inside the
-bar's bounds are not treated as caret moves. While disabled (Ctrl+Alt+P), the hooks publish
+bar's bounds are not treated as caret moves. While disabled (Ctrl+Alt by default), the hooks publish
 nothing and swallow nothing except the toggle key.
 
 ## Learning and storage (Phase 5)
@@ -207,6 +207,11 @@ window. A learned word is suggested after `MinUsesToSuggest` uses (default 2). "
 forgets a learned word (`ForgetSuggestion` → `LearningService.Remove`); it is learned again if
 used. Blocking for good is only offered in "My words".
 
+Thread safety: the pipeline thread learns words while "My words" edits them from the UI thread.
+Every change goes through `LearningService` under its lock (`SyncRoot`); `SuggestionController`
+holds the same lock while `SuggestionEngine` reads the index, and the page lists a copy
+(`LearningService.Snapshot`).
+
 ## Where Itmam is silent (Phase 5)
 
 `ForegroundGuard` (Win32, implements Core `IInputGuard`) is checked whenever the window, field or
@@ -220,6 +225,31 @@ nothing:
 | Excluded app | Process name in `ExcludedApps` |
 | Full screen | `SHQueryUserNotificationState`: Direct3D exclusive full screen or presentation mode |
 | IME / other languages | Only Arabic keyboard layouts are ever tracked |
+
+## Tray app and settings (Phase 6)
+
+- `Program`: single instance via the `Local\Itmam.SingleInstance` mutex; a second launch calls
+  `AllowSetForegroundWindow(ASFW_ANY)` and signals `Local\Itmam.ShowSettings`, so the running copy
+  opens Settings in front, then exits. The UI culture (ar/en) comes from the settings.
+- `ItmamApp` (composition root) builds every component, applies `AppSettings` live (hotkeys,
+  suggestion counts, space after accept, learning, excluded apps, bar look) and shuts down once:
+  unhook → stop pipeline → learn the pending word → flush and close user.db → dispose.
+- `TrayApplication` (`ApplicationContext`, no main window, nothing in the taskbar or Alt+Tab):
+  NotifyIcon menu Enabled · Pause for 1 hour · Settings · About · (Diagnostics, Debug builds) · Exit.
+  Exit and Windows log-off (`SystemEvents.SessionEnding`) run the same clean shutdown and remove the
+  icon. NotifyIcon re-adds itself when Explorer restarts (TaskbarCreated).
+- Settings: `%LOCALAPPDATA%\Itmam\settings.json` (`SettingsStore`: temp file + replace; a corrupt file
+  is kept as `settings.json.corrupt-*` and defaults are used). Preferences only — no typed text.
+- Appearance: `PopupAppearance.From(AppSettings)` → `PopupColors.For(appearance)` (theme colors, or a custom
+  background with black/white text chosen by WCAG contrast, `ColorContrast`). `BarRenderer` paints the bar's
+  items for both the real bar and the live preview on the Appearance page. Opacity uses a layered window
+  (`Form.Opacity`), which never activates or shows the bar.
+- Shortcuts: recorded on the Shortcuts page and checked by `HotkeyRules` (Core) before saving. While a
+  shortcut is recorded, `ItmamApp.SuspendHotkeys` gives the hook an empty `HotkeySettings`, so the keys
+  reach the settings window instead of acting on Itmam.
+- Start with Windows (`StartupRegistration`): MSIX `StartupTask` "ItmamStartup" when packaged
+  (synced with the setting at start-up); `HKCU\…\Run` when unpackaged, only when the user switches it
+  on in Settings (development builds are never registered automatically).
 
 ## Privacy guarantees in the code
 

@@ -1,106 +1,118 @@
-using System.Runtime;
-using Itmam.App.Debugging;
-using Itmam.App.Suggestions;
-using Itmam.Core.Dictionary;
-using Itmam.Core.Dictionary.Building;
-using Itmam.Core.Input;
-using Itmam.Core.Learning;
-using Itmam.Core.Presentation;
-using Itmam.Core.Suggestions;
+using System.Globalization;
+using Itmam.App.SettingsUi;
+using Itmam.App.Tray;
+using Itmam.Core.Settings;
 using Itmam.Win32;
-using Microsoft.Win32;
 
 namespace Itmam.App;
 
 internal static class Program
 {
+    // Per sign-in session: each user on a shared PC can run their own Itmam.
+    private const string InstanceMutexName = @"Local\Itmam.SingleInstance";
+    private const string ShowSettingsEventName = @"Local\Itmam.ShowSettings";
+
     [STAThread]
     private static void Main(string[] args)
     {
         ApplicationConfiguration.Initialize();
 
 #if DEBUG
-        // Visual check of the bar without typing: --demo-popup <x> <y> [light|dark] [nohighlight] [hints] [hide]
+        // Visual check of the bar without typing: --demo-popup <x> <y> [light|dark] [nohighlight] [hints] [navy] [translucent] [large] [hide]
         if (args is ["--demo-popup", var x, var y, ..])
         {
-            PopupDemo.Run(int.Parse(x, System.Globalization.CultureInfo.InvariantCulture), int.Parse(y, System.Globalization.CultureInfo.InvariantCulture), args[3..]);
+            Debugging.PopupDemo.Run(int.Parse(x, CultureInfo.InvariantCulture), int.Parse(y, CultureInfo.InvariantCulture), args[3..]);
+            return;
+        }
+
+        // Visual check of the settings window (no hooks installed): --demo-settings [general|appearance|shortcuts|excluded|words|about|exit] [en] [end]
+        if (args is ["--demo-settings", ..])
+        {
+            SynchronizationContext.SetSynchronizationContext(new WindowsFormsSynchronizationContext());
+            using var demoApp = new ItmamApp(SynchronizationContext.Current!);
+            var english = args.Contains("en");
+            UiCulture.Apply(english ? UiLanguage.English : UiLanguage.Arabic);
+            using var window = new SettingsWindow(demoApp, Application.ExitThread, english ? UiLanguage.English : UiLanguage.Arabic) { TopMost = true };
+            window.ShowPage(
+                args.Contains("about") ? SettingsPage.About
+                : args.Contains("exit") ? SettingsPage.Exit
+                : args.Contains("appearance") ? SettingsPage.Appearance
+                : args.Contains("shortcuts") ? SettingsPage.Shortcuts
+                : args.Contains("excluded") ? SettingsPage.Excluded
+                : args.Contains("words") ? SettingsPage.Words
+                : SettingsPage.General);
+            if (args.Contains("end"))
+            {
+                window.ScrollToEnd();
+            }
+            using var timer = new System.Windows.Forms.Timer { Interval = 6000 };
+            timer.Tick += (_, _) => Application.ExitThread();
+            timer.Start();
+            Application.Run();
             return;
         }
 #endif
 
-        // Defaults until the settings window exists (Phase 6).
-        var excludedApps = new ExcludedApps();
-        var hotkeys = new HotkeySettings();
-        var dictionary = DictionaryFile.Load(Path.Combine(AppContext.BaseDirectory, "itmam-ar.dict"));
-        var blocklist = Blocklist.Load(Path.Combine(AppContext.BaseDirectory, "blocklist.txt"));
+        // Single instance: a second launch asks the running copy to open its Settings, then exits.
+        using var instance = new Mutex(initiallyOwned: true, InstanceMutexName, out var isFirst);
+        if (!isFirst)
+        {
+            if (EventWaitHandle.TryOpenExisting(ShowSettingsEventName, out var signal))
+            {
+                using (signal)
+                {
+                    WindowChrome.AllowAnyProcessToSetForeground();
+                    signal.Set();
+                }
+            }
 
-        // Learned words: %LOCALAPPDATA%\Itmam\user.db (MSIX redirects it into the package's private folder).
-        var dataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Itmam");
-        using var store = new SqliteUserWordStore(Path.Combine(dataFolder, "user.db"));
-        var userWords = new UserWordIndex();
-        using var learning = new LearningService(userWords, store, blocklist);
-        learning.Load();
+            return;
+        }
 
-        var engine = new SuggestionEngine(dictionary, userWords);
-        var popupState = new PopupState();
+        using var showSettings = new EventWaitHandle(false, EventResetMode.AutoReset, ShowSettingsEventName);
+        SynchronizationContext.SetSynchronizationContext(new WindowsFormsSynchronizationContext());
+        var ui = SynchronizationContext.Current!;
 
-        // Loading the dictionary leaves ~tens of MB of temporary buffers: compact once now, before any
-        // typing, then avoid blocking full (gen2) collections — a GC pauses the hook thread too.
-        GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
-        GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, blocking: true, compacting: true);
-        GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+        using var app = new ItmamApp(ui);
+        UiCulture.Apply(app.Settings.Language);
 
-        using var hooks = new InputHookService(popupState, hotkeys);
-        using var uiAutomation = new UiaWorker();
-        var caretContext = new UiaCaretContextSource(uiAutomation, excludedApps.IsExcluded);
-        var pipeline = new InputPipeline(hooks.Events, caretContext, new InputPipelineOptions(), new SendInputInjector(), new ForegroundGuard(excludedApps));
+        using var tray = new TrayApplication(app);
+        var wait = ThreadPool.RegisterWaitForSingleObject(
+            showSettings,
+            (_, _) => ui.Post(_ => tray.ShowSettings(SettingsPage.General), null),
+            null,
+            Timeout.Infinite,
+            executeOnlyOnce: false);
 
-        using var popup = new SuggestionPopup(popupState);
-        _ = popup.Handle; // create the (hidden) window now so the first suggestion is not delayed
-        popup.SuggestionClicked += (index, word) => hooks.Post(InputEvent.Accept(index, word));
-        popup.SuggestionForgetRequested += (index, word) => hooks.Post(InputEvent.Forget(index, word));
-        using var suggestions = new SuggestionController(engine, new CaretLocator(uiAutomation), popup, () => hooks.IsEnabled);
+        _ = SyncStartupAsync(app);
+        app.Start();
+        Application.Run(tray);
 
-        // Learning first, so a just-forgotten word is gone before the bar is recomputed. Same thread as the engine.
-        pipeline.Updated += update => OnPipelineUpdated(update, learning);
-        pipeline.Updated += suggestions.OnPipelineUpdated;
-
-        // Phase 2–5: hooks + temporary debug window. The tray ApplicationContext replaces it in Phase 6.
-        using var debug = new DebugWindow(hooks, pipeline, suggestions, store.RecoveredBackupPath, () => userWords.Count);
-        hooks.Start();
-        using var stop = new CancellationTokenSource();
-        var running = Task.Run(() => pipeline.RunAsync(stop.Token));
-
-        // Log-off/shutdown: save everything (the process may not get to the end of Main).
-        SystemEvents.SessionEnding += (_, _) => SaveOnExit(pipeline, learning);
-        Application.Run(debug);
-        stop.Cancel();
-        running.Wait(TimeSpan.FromSeconds(1));
-        SaveOnExit(pipeline, learning);
+        wait.Unregister(null);
+        app.Shutdown();
+        instance.ReleaseMutex();
     }
 
-    private static void OnPipelineUpdated(PipelineUpdate update, LearningService learning)
+    // Installed from the Store, "start with Windows" follows the setting (on by default).
+    // Unpackaged development builds are never registered automatically: only from Settings.
+    private static async Task SyncStartupAsync(ItmamApp app)
     {
-        if (update.WordToLearn is { } word)
+        if (!StartupRegistration.IsPackaged)
         {
-            learning.Learn(word);
+            return;
         }
 
-        // Right-click / Ctrl+Delete: forget the learned word (it can be learned again by using it).
-        if (update.Input?.Input is { Kind: InputEventKind.ForgetSuggestion, Text: { } forgotten })
+        try
         {
-            learning.Remove(forgotten);
+            if (await StartupRegistration.IsEnabledAsync() != app.Settings.StartWithWindows)
+            {
+                var actual = await StartupRegistration.SetEnabledAsync(app.Settings.StartWithWindows);
+                app.UpdateSettings(app.Settings with { StartWithWindows = actual });
+            }
         }
-    }
-
-    // The word finished last is still pending (it could have been deleted); on exit it is final.
-    private static void SaveOnExit(InputPipeline pipeline, LearningService learning)
-    {
-        if (pipeline.TakePendingWord() is { } word)
+        catch (Exception ex) when (ex is InvalidOperationException or System.Runtime.InteropServices.COMException or ArgumentException)
         {
-            learning.Learn(word);
+            // The StartupTask is missing from the manifest or blocked by policy: keep running without it.
         }
-
-        learning.Flush();
     }
 }

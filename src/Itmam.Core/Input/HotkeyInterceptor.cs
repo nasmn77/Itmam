@@ -2,7 +2,11 @@ using Itmam.Core.Presentation;
 
 namespace Itmam.Core.Input;
 
-public readonly record struct Hotkey(int VirtualKey, KeyModifiers Modifiers);
+/// <summary>A shortcut. <see cref="VirtualKey"/> 0 means the modifiers alone, pressed and released (e.g. Ctrl+Alt).</summary>
+public readonly record struct Hotkey(int VirtualKey, KeyModifiers Modifiers)
+{
+    public bool IsModifiersOnly => VirtualKey == 0 && Modifiers != KeyModifiers.None;
+}
 
 /// <summary>Keys that act on the suggestion bar (configurable in Settings, Phase 6).</summary>
 public sealed record HotkeySettings
@@ -16,8 +20,11 @@ public sealed record HotkeySettings
     /// <summary>Hide the bar until the current word ends. Default Esc.</summary>
     public Hotkey Dismiss { get; init; } = new(0x1B, KeyModifiers.None);
 
-    /// <summary>Enable/disable Itmam from anywhere. Default Ctrl+Alt+P.</summary>
-    public Hotkey ToggleEnabled { get; init; } = new(0x50, KeyModifiers.Ctrl | KeyModifiers.Alt);
+    /// <summary>
+    /// Enable/disable Itmam from anywhere. Default Ctrl+Alt pressed and released on its own (user
+    /// decision: no letter, so it works with any keyboard layout; Ctrl+Alt+P did not work with Arabic).
+    /// </summary>
+    public Hotkey ToggleEnabled { get; init; } = new(0, KeyModifiers.Ctrl | KeyModifiers.Alt);
 
     /// <summary>
     /// On by default (user decision, like the native Windows suggestions for English). While the
@@ -62,6 +69,7 @@ public sealed class HotkeyInterceptor(HotkeySettings settings)
     private const int Digit9 = 0x39;
 
     private PopupSnapshot? _navigatedSnapshot;
+    private bool _chordArmed;
 
     public HotkeySettings Settings { get; } = settings;
 
@@ -70,6 +78,27 @@ public sealed class HotkeyInterceptor(HotkeySettings settings)
 
     public InterceptDecision OnKeyDown(int virtualKey, KeyModifiers modifiers, PopupSnapshot popup)
     {
+        // Modifier keys never act on the bar (Ctrl+Delete while navigating starts with Ctrl);
+        // they only arm a modifiers-only toggle once exactly its modifiers are held.
+        var own = HotkeyRules.ModifierOf(virtualKey);
+        if (own != KeyModifiers.None)
+        {
+            var held = modifiers | own;
+            var toggle = Settings.ToggleEnabled;
+            if (!toggle.IsModifiersOnly || (held & ~toggle.Modifiers) != 0)
+            {
+                _chordArmed = false;
+            }
+            else if (held == toggle.Modifiers)
+            {
+                _chordArmed = true;
+            }
+
+            return InterceptDecision.Pass;
+        }
+
+        _chordArmed = false; // Ctrl+Alt+Del, Ctrl+Alt+arrows, AltGr+letter… are not the toggle
+
         if (Matches(Settings.ToggleEnabled, virtualKey, modifiers))
         {
             Selected = -1;
@@ -119,6 +148,25 @@ public sealed class HotkeyInterceptor(HotkeySettings settings)
 
         return InterceptDecision.Pass;
     }
+
+    /// <summary>
+    /// Key released. True when a modifiers-only toggle (e.g. Ctrl+Alt) was pressed and is now being
+    /// released without another key in between: toggle Itmam. The key itself is never swallowed.
+    /// </summary>
+    public bool OnKeyUp(int virtualKey)
+    {
+        if (_chordArmed && (HotkeyRules.ModifierOf(virtualKey) & Settings.ToggleEnabled.Modifiers) != 0)
+        {
+            _chordArmed = false;
+            Selected = -1;
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>A mouse click while the modifiers are held (Ctrl+Alt+click) is not the toggle.</summary>
+    public void CancelChord() => _chordArmed = false;
 
     // Right-to-left bar: the best suggestion is on the right, so Left moves to the next one.
     private InterceptDecision Navigate(int virtualKey, KeyModifiers modifiers, PopupSnapshot popup)

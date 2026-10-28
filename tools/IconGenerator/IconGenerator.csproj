@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Renders the Itmam icon (src/Itmam.App/Tray/AppIconArt.cs) into Itmam.ico; Store logos in Phase 7. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>$(ItmamWindowsTargetFramework)</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>Itmam.IconGenerator</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\src\Itmam.App\Tray\AppIconArt.cs" Link="AppIconArt.cs" />
+  </ItemGroup>
+
+</Project>

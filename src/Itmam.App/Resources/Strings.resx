@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AppName" xml:space="preserve"><value>Itmam</value></data>
+  <data name="TrayOn" xml:space="preserve"><value>Itmam — on</value></data>
+  <data name="TrayOff" xml:space="preserve"><value>Itmam — off ({0} to turn on)</value></data>
+  <data name="TrayPausedUntil" xml:space="preserve"><value>Itmam — paused until {0}</value></data>
+  <data name="MenuEnabled" xml:space="preserve"><value>Enabled</value></data>
+  <data name="MenuPauseHour" xml:space="preserve"><value>Pause for 1 hour</value></data>
+  <data name="MenuResume" xml:space="preserve"><value>Resume now</value></data>
+  <data name="MenuSettings" xml:space="preserve"><value>Settings</value></data>
+  <data name="MenuAbout" xml:space="preserve"><value>About</value></data>
+  <data name="MenuDiagnostics" xml:space="preserve"><value>Diagnostics</value></data>
+  <data name="MenuExit" xml:space="preserve"><value>Exit</value></data>
+  <data name="FirstRunTitle" xml:space="preserve"><value>Itmam is running</value></data>
+  <data name="FirstRunText" xml:space="preserve"><value>Itmam suggests Arabic words as you type. It runs in the notification area: right-click its icon for settings.</value></data>
+  <data name="SettingsTitle" xml:space="preserve"><value>Itmam settings</value></data>
+  <data name="NavGeneral" xml:space="preserve"><value>General</value></data>
+  <data name="NavAbout" xml:space="preserve"><value>About</value></data>
+  <data name="SectionStartup" xml:space="preserve"><value>Startup</value></data>
+  <data name="StartWithWindows" xml:space="preserve"><value>Start with Windows</value></data>
+  <data name="StartWithWindowsHint" xml:space="preserve"><value>You can also turn this off in Windows Settings → Apps → Startup.</value></data>
+  <data name="SectionSuggestions" xml:space="preserve"><value>Suggestions</value></data>
+  <data name="MaxSuggestions" xml:space="preserve"><value>Number of suggestions</value></data>
+  <data name="MinLetters" xml:space="preserve"><value>Letters before suggestions appear</value></data>
+  <data name="AddSpace" xml:space="preserve"><value>Add a space after accepting a suggestion</value></data>
+  <data name="SectionLearning" xml:space="preserve"><value>Learning</value></data>
+  <data name="PauseLearning" xml:space="preserve"><value>Pause learning new words</value></data>
+  <data name="MinUses" xml:space="preserve"><value>Uses before a new word is suggested</value></data>
+  <data name="SectionLanguage" xml:space="preserve"><value>Language</value></data>
+  <data name="UiLanguage" xml:space="preserve"><value>Interface language</value></data>
+  <data name="AboutVersion" xml:space="preserve"><value>Version {0}</value></data>
+  <data name="AboutTagline" xml:space="preserve"><value>Arabic word suggestions as you type, on the physical keyboard.</value></data>
+  <data name="AboutDictionary" xml:space="preserve"><value>Dictionary: {0:N0} words</value></data>
+  <data name="AboutLearned" xml:space="preserve"><value>Your words: {0:N0}</value></data>
+  <data name="AboutSources" xml:space="preserve"><value>Sources</value></data>
+  <data name="AboutPrivacy" xml:space="preserve"><value>Itmam works offline: nothing you type leaves this device.</value></data>
+  <data name="AboutPrivacyLink" xml:space="preserve"><value>Privacy policy</value></data>
+  <data name="LanguageArabic" xml:space="preserve"><value>العربية</value></data>
+  <data name="LanguageEnglish" xml:space="preserve"><value>English</value></data>
+  <data name="SectionExit" xml:space="preserve"><value>Close Itmam</value></data>
+  <data name="ExitTitle" xml:space="preserve"><value>Exit Itmam</value></data>
+  <data name="ExitHint" xml:space="preserve"><value>Stops completely until you sign in again or start it. To stop suggestions for a while, turn off “Enabled” in the tray menu instead.</value></data>
+  <data name="ExitButton" xml:space="preserve"><value>Exit</value></data>
+  <data name="NavExit" xml:space="preserve"><value>Exit</value></data>
+  <data name="SectionDeveloper" xml:space="preserve"><value>Developer</value></data>
+  <data name="DeveloperName" xml:space="preserve"><value>Naser Mohammad Almadi</value></data>
+  <data name="SectionOpenSource" xml:space="preserve"><value>Open source</value></data>
+  <data name="AboutOpenSource" xml:space="preserve"><value>Itmam is free and open source under the MIT license.</value></data>
+  <data name="AboutSourceCode" xml:space="preserve"><value>Source code on GitHub</value></data>
+  <data name="NavAppearance" xml:space="preserve"><value>Appearance</value></data>
+  <data name="SectionTheme" xml:space="preserve"><value>Theme</value></data>
+  <data name="ThemeLabel" xml:space="preserve"><value>Theme of the bar and this window</value></data>
+  <data name="ThemeSystem" xml:space="preserve"><value>System</value></data>
+  <data name="ThemeLight" xml:space="preserve"><value>Light</value></data>
+  <data name="ThemeDark" xml:space="preserve"><value>Dark</value></data>
+  <data name="SectionPreview" xml:space="preserve"><value>Preview</value></data>
+  <data name="SectionColors" xml:space="preserve"><value>Colors</value></data>
+  <data name="BarBackground" xml:space="preserve"><value>Bar color</value></data>
+  <data name="BarBackgroundHint" xml:space="preserve"><value>Automatic follows the theme, like the Windows suggestion bar.</value></data>
+  <data name="BarHighlight" xml:space="preserve"><value>Selection color</value></data>
+  <data name="BarHighlightHint" xml:space="preserve"><value>Shown when you choose a suggestion with the arrow keys. Automatic uses your Windows accent color.</value></data>
+  <data name="BarText" xml:space="preserve"><value>Text color</value></data>
+  <data name="BarTextHint" xml:space="preserve"><value>Automatic picks the most readable color for the bar.</value></data>
+  <data name="ContrastWarning" xml:space="preserve"><value>Low contrast ({0:0.0}:1): the suggestions may be hard to read.</value></data>
+  <data name="ColorAuto" xml:space="preserve"><value>Automatic</value></data>
+  <data name="ColorCustom" xml:space="preserve"><value>Custom color…</value></data>
+  <data name="SectionBarLook" xml:space="preserve"><value>Bar</value></data>
+  <data name="BarOpacity" xml:space="preserve"><value>Opacity</value></data>
+  <data name="BarFontSize" xml:space="preserve"><value>Text size</value></data>
+  <data name="HighlightFirst" xml:space="preserve"><value>Highlight the first suggestion</value></data>
+  <data name="HighlightFirstHint" xml:space="preserve"><value>The one Tab accepts. The Windows bar has no highlight.</value></data>
+  <data name="HotkeyHints" xml:space="preserve"><value>Show suggestion numbers</value></data>
+  <data name="HotkeyHintsHint" xml:space="preserve"><value>Small numbers for the shortcut that accepts suggestion 1, 2, 3…</value></data>
+  <data name="ResetLook" xml:space="preserve"><value>Reset to the Windows look</value></data>
+  <data name="ResetLookHint" xml:space="preserve"><value>Theme, colors, opacity and text size go back to the defaults.</value></data>
+  <data name="ResetButton" xml:space="preserve"><value>Reset</value></data>
+  <data name="NavShortcuts" xml:space="preserve"><value>Shortcuts</value></data>
+  <data name="ShortcutsIntro" xml:space="preserve"><value>Click a shortcut, then press the new keys. Click elsewhere to cancel.</value></data>
+  <data name="ShortcutRecording" xml:space="preserve"><value>Press the new shortcut…</value></data>
+  <data name="SectionBarKeys" xml:space="preserve"><value>While the bar is shown</value></data>
+  <data name="SectionEverywhere" xml:space="preserve"><value>Everywhere</value></data>
+  <data name="ShortcutAcceptFirst" xml:space="preserve"><value>Insert the first suggestion</value></data>
+  <data name="ShortcutAcceptNth" xml:space="preserve"><value>Insert suggestion 1–9</value></data>
+  <data name="ShortcutAcceptNthHint" xml:space="preserve"><value>This key held with the suggestion's number.</value></data>
+  <data name="ShortcutDismiss" xml:space="preserve"><value>Hide the suggestions</value></data>
+  <data name="ShortcutDismissHint" xml:space="preserve"><value>Until you start the next word.</value></data>
+  <data name="ShortcutToggle" xml:space="preserve"><value>Turn Itmam on or off</value></data>
+  <data name="ShortcutToggleHint" xml:space="preserve"><value>Works in any app.</value></data>
+  <data name="NativeNavigation" xml:space="preserve"><value>Choose with the arrow keys</value></data>
+  <data name="NativeNavigationHint" xml:space="preserve"><value>↑ moves into the bar, ← → choose, Enter inserts, Esc or ↓ leaves. Ctrl+Delete forgets the chosen learned word.</value></data>
+  <data name="ResetShortcuts" xml:space="preserve"><value>Default shortcuts</value></data>
+  <data name="ResetShortcutsHint" xml:space="preserve"><value>Tab to insert, Esc to hide, Ctrl+Alt (pressed and released) to turn on or off, and the arrow keys to choose.</value></data>
+  <data name="HotkeyProblemDuplicate" xml:space="preserve"><value>{0} is already used by another Itmam shortcut.</value></data>
+  <data name="HotkeyProblemTypesText" xml:space="preserve"><value>{0} types text: add Ctrl or Alt.</value></data>
+  <data name="HotkeyProblemEditingKey" xml:space="preserve"><value>{0} is needed for editing text: choose another key.</value></data>
+  <data name="HotkeyProblemNeedsModifier" xml:space="preserve"><value>{0} would be blocked in every app: add Ctrl or Alt.</value></data>
+  <data name="HotkeyProblemCommonShortcut" xml:space="preserve"><value>{0} is a common Windows shortcut: choose another.</value></data>
+  <data name="HotkeyProblemAcceptsNth" xml:space="preserve"><value>{0} already inserts a suggestion by number.</value></data>
+  <data name="HotkeyProblemModifiersOnly" xml:space="preserve"><value>Ctrl, Alt or Shift alone works only for turning Itmam on or off: add a key.</value></data>
+  <data name="NavExcluded" xml:space="preserve"><value>Excluded apps</value></data>
+  <data name="ExcludedIntro" xml:space="preserve"><value>Itmam stays completely silent in these apps: no suggestions, no learning, nothing read.</value></data>
+  <data name="AddApp" xml:space="preserve"><value>Add an app</value></data>
+  <data name="AddAppHint" xml:space="preserve"><value>Choose an open app, or browse for its program file.</value></data>
+  <data name="AddButton" xml:space="preserve"><value>Add</value></data>
+  <data name="BrowseApp" xml:space="preserve"><value>Browse…</value></data>
+  <data name="ExeFilter" xml:space="preserve"><value>Programs (*.exe)|*.exe</value></data>
+  <data name="SectionExcludedList" xml:space="preserve"><value>Excluded ({0})</value></data>
+  <data name="ExcludedEmpty" xml:space="preserve"><value>No apps are excluded.</value></data>
+  <data name="RemoveButton" xml:space="preserve"><value>Remove</value></data>
+  <data name="ResetExcluded" xml:space="preserve"><value>Default list</value></data>
+  <data name="ResetExcludedHint" xml:space="preserve"><value>Remote desktops, virtual machines, terminals and game launchers.</value></data>
+  <data name="SearchApps" xml:space="preserve"><value>Search apps</value></data>
+  <data name="NoMatchingApps" xml:space="preserve"><value>No matching apps.</value></data>
+  <data name="ConfirmAddExcluded" xml:space="preserve"><value>Exclude {0}? Itmam will stay completely silent in it: no suggestions and no learning.</value></data>
+  <data name="ConfirmRemoveExcluded" xml:space="preserve"><value>Remove {0} from the excluded apps? Itmam will suggest and learn words in it again.</value></data>
+  <data name="ConfirmResetExcluded" xml:space="preserve"><value>Restore the default list? Apps you added will be removed from it, and removed default apps will be excluded again.</value></data>
+  <data name="NavWords" xml:space="preserve"><value>My words</value></data>
+  <data name="WordsIntro" xml:space="preserve"><value>Words Itmam learned from you. Only the word, how many times you used it and when are kept, on this device.</value></data>
+  <data name="PauseLearningHint" xml:space="preserve"><value>Nothing new is learned; your words are still suggested.</value></data>
+  <data name="AddWord" xml:space="preserve"><value>Add a word</value></data>
+  <data name="AddWordHint" xml:space="preserve"><value>Added words are suggested at once. Blocked words are never suggested, even from the dictionary.</value></data>
+  <data name="AddWordButton" xml:space="preserve"><value>Add…</value></data>
+  <data name="BlockWordButton" xml:space="preserve"><value>Block…</value></data>
+  <data name="AddWordPrompt" xml:space="preserve"><value>Type the word to add:</value></data>
+  <data name="BlockWord" xml:space="preserve"><value>Block a word</value></data>
+  <data name="BlockWordPrompt" xml:space="preserve"><value>Type the word that should never be suggested:</value></data>
+  <data name="EditWord" xml:space="preserve"><value>Edit word</value></data>
+  <data name="EditWordPrompt" xml:space="preserve"><value>Correct the spelling (its uses are kept):</value></data>
+  <data name="NotAnArabicWord" xml:space="preserve"><value>Type one Arabic word, without spaces.</value></data>
+  <data name="OkButton" xml:space="preserve"><value>OK</value></data>
+  <data name="CancelButton" xml:space="preserve"><value>Cancel</value></data>
+  <data name="ImportExport" xml:space="preserve"><value>Import and export</value></data>
+  <data name="ImportExportHint" xml:space="preserve"><value>A text file with one word per line, to back up your words or move them to another PC.</value></data>
+  <data name="ImportButton" xml:space="preserve"><value>Import…</value></data>
+  <data name="ExportButton" xml:space="preserve"><value>Export…</value></data>
+  <data name="WordsFileFilter" xml:space="preserve"><value>Text files (*.txt)|*.txt</value></data>
+  <data name="WordsFileName" xml:space="preserve"><value>itmam-words.txt</value></data>
+  <data name="ImportDone" xml:space="preserve"><value>Added {0}, updated {1}, skipped {2}.</value></data>
+  <data name="FileError" xml:space="preserve"><value>The file could not be read or written.</value></data>
+  <data name="SectionWordsList" xml:space="preserve"><value>Your words ({0:N0})</value></data>
+  <data name="SortWords" xml:space="preserve"><value>Sort by</value></data>
+  <data name="SortMostUsed" xml:space="preserve"><value>Most used</value></data>
+  <data name="SortRecent" xml:space="preserve"><value>Recent</value></data>
+  <data name="SortAlphabetical" xml:space="preserve"><value>A–Z</value></data>
+  <data name="SearchWords" xml:space="preserve"><value>Search your words</value></data>
+  <data name="WordUses" xml:space="preserve"><value>Used {0:N0}× · last {1:d}</value></data>
+  <data name="WordBlocked" xml:space="preserve"><value>Blocked: never suggested</value></data>
+  <data name="EditWordButton" xml:space="preserve"><value>Edit…</value></data>
+  <data name="BlockButton" xml:space="preserve"><value>Block</value></data>
+  <data name="UnblockButton" xml:space="preserve"><value>Unblock</value></data>
+  <data name="DeleteButton" xml:space="preserve"><value>Delete</value></data>
+  <data name="ConfirmDeleteWord" xml:space="preserve"><value>Delete {0}? It can be learned again if you use it.</value></data>
+  <data name="SectionClearWords" xml:space="preserve"><value>Delete all</value></data>
+  <data name="ClearWords" xml:space="preserve"><value>Delete all my words</value></data>
+  <data name="ClearWordsHint" xml:space="preserve"><value>Deletes every learned, added and blocked word from this device. This cannot be undone.</value></data>
+  <data name="ClearAllButton" xml:space="preserve"><value>Delete all</value></data>
+  <data name="ConfirmClearWords" xml:space="preserve"><value>Delete all your words? This cannot be undone. Export them first if you want a copy.</value></data>
+  <data name="ConfirmBlockWord" xml:space="preserve"><value>Block {0}? It will never be suggested, even from the dictionary.</value></data>
+  <data name="ConfirmUnblockWord" xml:space="preserve"><value>Unblock {0}? It can be suggested again.</value></data>
+</root>

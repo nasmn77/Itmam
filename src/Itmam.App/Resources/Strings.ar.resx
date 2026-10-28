@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AppName" xml:space="preserve"><value>إتمام</value></data>
+  <data name="TrayOn" xml:space="preserve"><value>إتمام — يعمل</value></data>
+  <data name="TrayOff" xml:space="preserve"><value>إتمام — متوقف ({0} للتشغيل)</value></data>
+  <data name="TrayPausedUntil" xml:space="preserve"><value>إتمام — متوقف مؤقتًا حتى {0}</value></data>
+  <data name="MenuEnabled" xml:space="preserve"><value>مفعّل</value></data>
+  <data name="MenuPauseHour" xml:space="preserve"><value>إيقاف مؤقت لساعة</value></data>
+  <data name="MenuResume" xml:space="preserve"><value>استئناف الآن</value></data>
+  <data name="MenuSettings" xml:space="preserve"><value>الإعدادات</value></data>
+  <data name="MenuAbout" xml:space="preserve"><value>حول</value></data>
+  <data name="MenuDiagnostics" xml:space="preserve"><value>التشخيص</value></data>
+  <data name="MenuExit" xml:space="preserve"><value>خروج</value></data>
+  <data name="FirstRunTitle" xml:space="preserve"><value>إتمام يعمل</value></data>
+  <data name="FirstRunText" xml:space="preserve"><value>إتمام يقترح الكلمات العربية أثناء الكتابة. يعمل من منطقة الإشعارات: انقر أيقونته بالزر الأيمن للإعدادات.</value></data>
+  <data name="SettingsTitle" xml:space="preserve"><value>إعدادات إتمام</value></data>
+  <data name="NavGeneral" xml:space="preserve"><value>عام</value></data>
+  <data name="NavAbout" xml:space="preserve"><value>حول</value></data>
+  <data name="SectionStartup" xml:space="preserve"><value>التشغيل</value></data>
+  <data name="StartWithWindows" xml:space="preserve"><value>التشغيل مع Windows</value></data>
+  <data name="StartWithWindowsHint" xml:space="preserve"><value>يمكن إيقافه أيضًا من إعدادات Windows ← التطبيقات ← بدء التشغيل.</value></data>
+  <data name="SectionSuggestions" xml:space="preserve"><value>الاقتراحات</value></data>
+  <data name="MaxSuggestions" xml:space="preserve"><value>عدد الاقتراحات</value></data>
+  <data name="MinLetters" xml:space="preserve"><value>عدد الحروف قبل ظهور الاقتراحات</value></data>
+  <data name="AddSpace" xml:space="preserve"><value>إضافة مسافة بعد قبول الاقتراح</value></data>
+  <data name="SectionLearning" xml:space="preserve"><value>التعلم</value></data>
+  <data name="PauseLearning" xml:space="preserve"><value>إيقاف تعلم الكلمات الجديدة مؤقتًا</value></data>
+  <data name="MinUses" xml:space="preserve"><value>مرات الاستخدام قبل اقتراح كلمة جديدة</value></data>
+  <data name="SectionLanguage" xml:space="preserve"><value>اللغة</value></data>
+  <data name="UiLanguage" xml:space="preserve"><value>لغة الواجهة</value></data>
+  <data name="AboutVersion" xml:space="preserve"><value>الإصدار {0}</value></data>
+  <data name="AboutTagline" xml:space="preserve"><value>اقتراح الكلمات العربية أثناء الكتابة على لوحة المفاتيح.</value></data>
+  <data name="AboutDictionary" xml:space="preserve"><value>القاموس: {0:N0} كلمة</value></data>
+  <data name="AboutLearned" xml:space="preserve"><value>كلماتك: {0:N0}</value></data>
+  <data name="AboutSources" xml:space="preserve"><value>المصادر</value></data>
+  <data name="AboutPrivacy" xml:space="preserve"><value>إتمام يعمل دون اتصال: لا يغادر جهازك شيء مما تكتبه.</value></data>
+  <data name="AboutPrivacyLink" xml:space="preserve"><value>سياسة الخصوصية</value></data>
+  <data name="LanguageArabic" xml:space="preserve"><value>العربية</value></data>
+  <data name="LanguageEnglish" xml:space="preserve"><value>English</value></data>
+  <data name="SectionExit" xml:space="preserve"><value>إغلاق إتمام</value></data>
+  <data name="ExitTitle" xml:space="preserve"><value>الخروج من إتمام</value></data>
+  <data name="ExitHint" xml:space="preserve"><value>يتوقف تمامًا حتى تسجيل الدخول التالي أو تشغيله يدويًا. لإيقاف الاقتراحات فترةً فقط، أطفئ «مفعّل» من قائمة الأيقونة.</value></data>
+  <data name="ExitButton" xml:space="preserve"><value>خروج</value></data>
+  <data name="NavExit" xml:space="preserve"><value>الخروج</value></data>
+  <data name="SectionDeveloper" xml:space="preserve"><value>المطوّر</value></data>
+  <data name="DeveloperName" xml:space="preserve"><value>ناصر محمد الماضي</value></data>
+  <data name="SectionOpenSource" xml:space="preserve"><value>مفتوح المصدر</value></data>
+  <data name="AboutOpenSource" xml:space="preserve"><value>إتمام برنامج مجاني ومفتوح المصدر برخصة MIT.</value></data>
+  <data name="AboutSourceCode" xml:space="preserve"><value>الشيفرة المصدرية على GitHub</value></data>
+  <data name="NavAppearance" xml:space="preserve"><value>المظهر</value></data>
+  <data name="SectionTheme" xml:space="preserve"><value>السمة</value></data>
+  <data name="ThemeLabel" xml:space="preserve"><value>سمة الشريط وهذه النافذة</value></data>
+  <data name="ThemeSystem" xml:space="preserve"><value>النظام</value></data>
+  <data name="ThemeLight" xml:space="preserve"><value>فاتح</value></data>
+  <data name="ThemeDark" xml:space="preserve"><value>داكن</value></data>
+  <data name="SectionPreview" xml:space="preserve"><value>معاينة</value></data>
+  <data name="SectionColors" xml:space="preserve"><value>الألوان</value></data>
+  <data name="BarBackground" xml:space="preserve"><value>لون الشريط</value></data>
+  <data name="BarBackgroundHint" xml:space="preserve"><value>«تلقائي» يتبع السمة، مثل شريط الاقتراحات في Windows.</value></data>
+  <data name="BarHighlight" xml:space="preserve"><value>لون التحديد</value></data>
+  <data name="BarHighlightHint" xml:space="preserve"><value>يظهر عند اختيار اقتراح بالأسهم. «تلقائي» يستخدم لون التمييز في Windows.</value></data>
+  <data name="BarText" xml:space="preserve"><value>لون النص</value></data>
+  <data name="BarTextHint" xml:space="preserve"><value>«تلقائي» يختار اللون الأوضح على الشريط.</value></data>
+  <data name="ContrastWarning" xml:space="preserve"><value>التباين منخفض ({0:0.0}:1): قد تصعب قراءة الاقتراحات.</value></data>
+  <data name="ColorAuto" xml:space="preserve"><value>تلقائي</value></data>
+  <data name="ColorCustom" xml:space="preserve"><value>لون مخصص…</value></data>
+  <data name="SectionBarLook" xml:space="preserve"><value>الشريط</value></data>
+  <data name="BarOpacity" xml:space="preserve"><value>العتامة</value></data>
+  <data name="BarFontSize" xml:space="preserve"><value>حجم النص</value></data>
+  <data name="HighlightFirst" xml:space="preserve"><value>تمييز الاقتراح الأول</value></data>
+  <data name="HighlightFirstHint" xml:space="preserve"><value>وهو الذي يُقبل بـ Tab. شريط Windows لا يميّزه.</value></data>
+  <data name="HotkeyHints" xml:space="preserve"><value>إظهار أرقام الاقتراحات</value></data>
+  <data name="HotkeyHintsHint" xml:space="preserve"><value>أرقام صغيرة للاختصار الذي يقبل الاقتراح 1، 2، 3…</value></data>
+  <data name="ResetLook" xml:space="preserve"><value>استعادة مظهر Windows</value></data>
+  <data name="ResetLookHint" xml:space="preserve"><value>تعود السمة والألوان والعتامة وحجم النص إلى الافتراضي.</value></data>
+  <data name="ResetButton" xml:space="preserve"><value>استعادة</value></data>
+  <data name="NavShortcuts" xml:space="preserve"><value>الاختصارات</value></data>
+  <data name="ShortcutsIntro" xml:space="preserve"><value>انقر على اختصار ثم اضغط المفاتيح الجديدة. للإلغاء انقر في مكان آخر.</value></data>
+  <data name="ShortcutRecording" xml:space="preserve"><value>اضغط الاختصار الجديد…</value></data>
+  <data name="SectionBarKeys" xml:space="preserve"><value>أثناء ظهور الشريط</value></data>
+  <data name="SectionEverywhere" xml:space="preserve"><value>في أي مكان</value></data>
+  <data name="ShortcutAcceptFirst" xml:space="preserve"><value>إدراج الاقتراح الأول</value></data>
+  <data name="ShortcutAcceptNth" xml:space="preserve"><value>إدراج الاقتراح برقمه (‪1–9‬)</value></data>
+  <data name="ShortcutAcceptNthHint" xml:space="preserve"><value>هذا المفتاح مع رقم الاقتراح.</value></data>
+  <data name="ShortcutDismiss" xml:space="preserve"><value>إخفاء الاقتراحات</value></data>
+  <data name="ShortcutDismissHint" xml:space="preserve"><value>حتى تبدأ الكلمة التالية.</value></data>
+  <data name="ShortcutToggle" xml:space="preserve"><value>تشغيل إتمام وإيقافه</value></data>
+  <data name="ShortcutToggleHint" xml:space="preserve"><value>يعمل في أي تطبيق.</value></data>
+  <data name="NativeNavigation" xml:space="preserve"><value>الاختيار بالأسهم</value></data>
+  <data name="NativeNavigationHint" xml:space="preserve"><value>↑ للدخول إلى الشريط، ← → للاختيار، Enter للإدراج، Esc أو ↓ للخروج. Ctrl+Delete ينسى الكلمة المتعلَّمة المحددة.</value></data>
+  <data name="ResetShortcuts" xml:space="preserve"><value>الاختصارات الافتراضية</value></data>
+  <data name="ResetShortcutsHint" xml:space="preserve"><value>Tab للإدراج، وEsc للإخفاء، و‪Ctrl+Alt‬ (ضغطًا ثم إفلاتًا) للتشغيل والإيقاف، والاختيار بالأسهم.</value></data>
+  <data name="HotkeyProblemDuplicate" xml:space="preserve"><value>{0} مستخدم لاختصار آخر في إتمام.</value></data>
+  <data name="HotkeyProblemTypesText" xml:space="preserve"><value>{0} يكتب نصًا: أضف Ctrl أو Alt.</value></data>
+  <data name="HotkeyProblemEditingKey" xml:space="preserve"><value>{0} لازم لتحرير النص: اختر مفتاحًا آخر.</value></data>
+  <data name="HotkeyProblemNeedsModifier" xml:space="preserve"><value>{0} سيُحجز في كل التطبيقات: أضف Ctrl أو Alt.</value></data>
+  <data name="HotkeyProblemCommonShortcut" xml:space="preserve"><value>{0} اختصار شائع في Windows: اختر غيره.</value></data>
+  <data name="HotkeyProblemAcceptsNth" xml:space="preserve"><value>{0} يُدرج اقتراحًا برقمه بالفعل.</value></data>
+  <data name="HotkeyProblemModifiersOnly" xml:space="preserve"><value>Ctrl أو Alt أو Shift وحدها تصلح فقط لتشغيل إتمام وإيقافه: أضف مفتاحًا.</value></data>
+  <data name="NavExcluded" xml:space="preserve"><value>التطبيقات المستثناة</value></data>
+  <data name="ExcludedIntro" xml:space="preserve"><value>يبقى إتمام صامتًا تمامًا في هذه التطبيقات: لا اقتراحات ولا تعلّم ولا قراءة لأي شيء.</value></data>
+  <data name="AddApp" xml:space="preserve"><value>إضافة تطبيق</value></data>
+  <data name="AddAppHint" xml:space="preserve"><value>اختر تطبيقًا مفتوحًا، أو استعرض ملف البرنامج.</value></data>
+  <data name="AddButton" xml:space="preserve"><value>إضافة</value></data>
+  <data name="BrowseApp" xml:space="preserve"><value>استعراض…</value></data>
+  <data name="ExeFilter" xml:space="preserve"><value>البرامج (*.exe)|*.exe</value></data>
+  <data name="SectionExcludedList" xml:space="preserve"><value>المستثناة ({0})</value></data>
+  <data name="ExcludedEmpty" xml:space="preserve"><value>لا توجد تطبيقات مستثناة.</value></data>
+  <data name="RemoveButton" xml:space="preserve"><value>إزالة</value></data>
+  <data name="ResetExcluded" xml:space="preserve"><value>القائمة الافتراضية</value></data>
+  <data name="ResetExcludedHint" xml:space="preserve"><value>سطح المكتب البعيد والأجهزة الافتراضية والطرفيات ومشغّلات الألعاب.</value></data>
+  <data name="SearchApps" xml:space="preserve"><value>ابحث في التطبيقات</value></data>
+  <data name="NoMatchingApps" xml:space="preserve"><value>لا توجد تطبيقات مطابقة.</value></data>
+  <data name="ConfirmAddExcluded" xml:space="preserve"><value>استثناء {0}؟ سيبقى إتمام صامتًا تمامًا فيه: لا اقتراحات ولا تعلّم.</value></data>
+  <data name="ConfirmRemoveExcluded" xml:space="preserve"><value>إزالة {0} من التطبيقات المستثناة؟ سيعود إتمام إلى الاقتراح وتعلّم الكلمات فيه.</value></data>
+  <data name="ConfirmResetExcluded" xml:space="preserve"><value>استعادة القائمة الافتراضية؟ ستُحذف منها التطبيقات التي أضفتها، وتُستثنى من جديد التطبيقات الافتراضية التي أزلتها.</value></data>
+  <data name="NavWords" xml:space="preserve"><value>كلماتي</value></data>
+  <data name="WordsIntro" xml:space="preserve"><value>الكلمات التي تعلّمها إتمام منك. لا يُحفظ إلا الكلمة وعدد مرات استعمالها ووقت آخر استعمال، على هذا الجهاز فقط.</value></data>
+  <data name="PauseLearningHint" xml:space="preserve"><value>لا يتعلّم كلمات جديدة، وتبقى كلماتك تُقترح.</value></data>
+  <data name="AddWord" xml:space="preserve"><value>إضافة كلمة</value></data>
+  <data name="AddWordHint" xml:space="preserve"><value>الكلمة المضافة تُقترح فورًا. والكلمة المحظورة لا تُقترح أبدًا، ولو كانت في القاموس.</value></data>
+  <data name="AddWordButton" xml:space="preserve"><value>إضافة…</value></data>
+  <data name="BlockWordButton" xml:space="preserve"><value>حظر…</value></data>
+  <data name="AddWordPrompt" xml:space="preserve"><value>اكتب الكلمة التي تريد إضافتها:</value></data>
+  <data name="BlockWord" xml:space="preserve"><value>حظر كلمة</value></data>
+  <data name="BlockWordPrompt" xml:space="preserve"><value>اكتب الكلمة التي لا تريد أن تُقترح أبدًا:</value></data>
+  <data name="EditWord" xml:space="preserve"><value>تعديل كلمة</value></data>
+  <data name="EditWordPrompt" xml:space="preserve"><value>صحّح الكتابة (يبقى عدد استعمالها كما هو):</value></data>
+  <data name="NotAnArabicWord" xml:space="preserve"><value>اكتب كلمة عربية واحدة بلا مسافات.</value></data>
+  <data name="OkButton" xml:space="preserve"><value>موافق</value></data>
+  <data name="CancelButton" xml:space="preserve"><value>إلغاء</value></data>
+  <data name="ImportExport" xml:space="preserve"><value>الاستيراد والتصدير</value></data>
+  <data name="ImportExportHint" xml:space="preserve"><value>ملف نصي فيه كلمة في كل سطر، لنسخ كلماتك احتياطيًا أو نقلها إلى جهاز آخر.</value></data>
+  <data name="ImportButton" xml:space="preserve"><value>استيراد…</value></data>
+  <data name="ExportButton" xml:space="preserve"><value>تصدير…</value></data>
+  <data name="WordsFileFilter" xml:space="preserve"><value>ملفات نصية (*.txt)|*.txt</value></data>
+  <data name="WordsFileName" xml:space="preserve"><value>كلمات-إتمام.txt</value></data>
+  <data name="ImportDone" xml:space="preserve"><value>أُضيفت {0}، وحُدّثت {1}، وتُجوهلت {2}.</value></data>
+  <data name="FileError" xml:space="preserve"><value>تعذّرت قراءة الملف أو الكتابة فيه.</value></data>
+  <data name="SectionWordsList" xml:space="preserve"><value>كلماتك ({0:N0})</value></data>
+  <data name="SortWords" xml:space="preserve"><value>الترتيب</value></data>
+  <data name="SortMostUsed" xml:space="preserve"><value>الأكثر استعمالًا</value></data>
+  <data name="SortRecent" xml:space="preserve"><value>الأحدث</value></data>
+  <data name="SortAlphabetical" xml:space="preserve"><value>أبجديًا</value></data>
+  <data name="SearchWords" xml:space="preserve"><value>ابحث في كلماتك</value></data>
+  <data name="WordUses" xml:space="preserve"><value>استُعملت {0:N0} مرة · آخرها {1:d}</value></data>
+  <data name="WordBlocked" xml:space="preserve"><value>محظورة: لا تُقترح أبدًا</value></data>
+  <data name="EditWordButton" xml:space="preserve"><value>تعديل…</value></data>
+  <data name="BlockButton" xml:space="preserve"><value>حظر</value></data>
+  <data name="UnblockButton" xml:space="preserve"><value>إلغاء الحظر</value></data>
+  <data name="DeleteButton" xml:space="preserve"><value>حذف</value></data>
+  <data name="ConfirmDeleteWord" xml:space="preserve"><value>حذف {0}؟ يمكن أن يتعلّمها إتمام من جديد إذا استعملتها.</value></data>
+  <data name="SectionClearWords" xml:space="preserve"><value>حذف الكل</value></data>
+  <data name="ClearWords" xml:space="preserve"><value>حذف كل كلماتي</value></data>
+  <data name="ClearWordsHint" xml:space="preserve"><value>يحذف من هذا الجهاز كل كلمة تعلّمها إتمام أو أضفتها أو حظرتها، ولا يمكن التراجع عنه.</value></data>
+  <data name="ClearAllButton" xml:space="preserve"><value>حذف الكل</value></data>
+  <data name="ConfirmClearWords" xml:space="preserve"><value>حذف كل كلماتك؟ لا يمكن التراجع عن ذلك. صدّرها أولًا إن أردت نسخة منها.</value></data>
+  <data name="ConfirmBlockWord" xml:space="preserve"><value>حظر {0}؟ لن تُقترح أبدًا، ولو كانت في القاموس.</value></data>
+  <data name="ConfirmUnblockWord" xml:space="preserve"><value>إلغاء حظر {0}؟ يمكن أن تُقترح من جديد.</value></data>
+</root>

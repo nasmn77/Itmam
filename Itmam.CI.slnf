@@ -6,6 +6,7 @@
       "src\\Itmam.Win32\\Itmam.Win32.csproj",
       "src\\Itmam.App\\Itmam.App.csproj",
       "tools\\DictionaryBuilder\\DictionaryBuilder.csproj",
+      "tools\\IconGenerator\\IconGenerator.csproj",
       "tests\\Itmam.Core.Tests\\Itmam.Core.Tests.csproj"
     ]
   }

@@ -25,6 +25,18 @@ public class ExcludedAppsTests
     public void Ordinary_apps_are_not_excluded(string? process) => _defaults.IsExcluded(process).ShouldBeFalse();
 
     [Fact]
+    public void Edited_list_applies_live()
+    {
+        var apps = new ExcludedApps();
+
+        apps.Replace(["game", "  ", ""]);
+
+        apps.IsExcluded("game.exe").ShouldBeTrue();
+        apps.IsExcluded("mstsc.exe").ShouldBeFalse();
+        apps.Names.Count.ShouldBe(1);
+    }
+
+    [Fact]
     public void Custom_list_replaces_the_defaults()
     {
         var custom = new ExcludedApps(["game"]);
@@ -32,4 +44,24 @@ public class ExcludedAppsTests
         custom.IsExcluded("game.exe").ShouldBeTrue();
         custom.IsExcluded("mstsc.exe").ShouldBeFalse();
     }
+
+    [Theory]
+    [InlineData(@"C:\Program Files\Code\Code.exe", "Code.exe")]
+    [InlineData("code", "code.exe")]
+    [InlineData(" Notepad.EXE ", "Notepad.EXE")]
+    public void Names_are_normalized(string input, string expected) =>
+        ExcludedApps.NormalizeName(input).ShouldBe(expected);
+
+    [Fact]
+    public void Adding_normalizes_sorts_and_skips_duplicates()
+    {
+        var list = ExcludedApps.With(["zoom.exe", "cmd.exe"], @"C:\Windows\System32\CMD.EXE");
+        list.ShouldBe(["cmd.exe", "zoom.exe"]);
+
+        ExcludedApps.With(list, "Code").ShouldBe(["cmd.exe", "Code.exe", "zoom.exe"]);
+    }
+
+    [Fact]
+    public void Removing_ignores_case_and_extension() =>
+        ExcludedApps.Without(["cmd.exe", "Code.exe"], "code").ShouldBe(["cmd.exe"]);
 }

@@ -94,3 +94,9 @@ GetCurrentProcess
 SHQueryUserNotificationState
 GetWindowLong
 GetClassName
+
+// Packaged (MSIX) detection (Phase 6).
+GetCurrentPackageFullName
+DestroyIcon
+AllowSetForegroundWindow
+SetWindowTheme
