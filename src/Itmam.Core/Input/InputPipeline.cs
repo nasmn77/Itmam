@@ -125,6 +125,10 @@ public enum ProbeOutcome
 /// Normalized words typed in a row just before the current one (oldest first), to continue a known
 /// phrase. In memory only; empty after any boundary other than a space or any caret move.
 /// </param>
+/// <param name="PhrasesToLearn">
+/// Sequences of 2–5 words typed in a row that end with <paramref name="WordToLearn"/>, final with it
+/// (and dropped with it when the word is corrected at once), for phrase learning.
+/// </param>
 public readonly record struct PipelineUpdate(
     InputRecord? Input,
     BufferResult Result,
@@ -137,7 +141,8 @@ public readonly record struct PipelineUpdate(
     bool SuggestionsSuppressed = false,
     SilenceReason Silenced = SilenceReason.None,
     string? WordToLearn = null,
-    IReadOnlyList<string>? RecentWords = null);
+    IReadOnlyList<string>? RecentWords = null,
+    IReadOnlyList<string>? PhrasesToLearn = null);
 
 public sealed record InputPipelineOptions
 {
@@ -178,6 +183,10 @@ public sealed class InputPipeline(
     private SilenceReason _silence;
     private bool _guardChecked;
     private string? _pendingWord;
+    private string[]? _pendingPhrases;
+
+    // Sequences finished by the event being processed (they become pending with its committed word).
+    private List<string>? _finishedPhrases;
 
     private enum Suppression
     {
@@ -273,9 +282,10 @@ public sealed class InputPipeline(
 
             while (input.TryRead(out var record))
             {
+                _finishedPhrases = null;
                 var result = Process(record);
-                var wordToLearn = AdvancePendingWord(record.Input.Kind, result);
-                Raise(record, result, probe: null, wordToLearn);
+                var (wordToLearn, phrasesToLearn) = AdvancePendingWord(record.Input.Kind, result);
+                Raise(record, result, probe: null, wordToLearn, phrasesToLearn);
 
                 // Keyboard selection or a silenced window: nothing to read.
                 if (record.Input.Kind == InputEventKind.Selection || _silence != SilenceReason.None)
@@ -307,29 +317,38 @@ public sealed class InputPipeline(
     /// </summary>
     public string? TakePendingWord() => Interlocked.Exchange(ref _pendingWord, null);
 
-    // Returns the word that just became final (to learn), if any.
-    private string? AdvancePendingWord(InputEventKind kind, BufferResult result)
+    /// <summary>The sequences ending with the pending word (see <see cref="TakePendingWord"/>).</summary>
+    public IReadOnlyList<string>? TakePendingPhrases() => Interlocked.Exchange(ref _pendingPhrases, null);
+
+    // Returns the word (and its sequences) that just became final, to learn, if any.
+    private (string? Word, IReadOnlyList<string>? Phrases) AdvancePendingWord(InputEventKind kind, BufferResult result)
     {
         string? final = null;
-        if (_pendingWord is not null)
+        IReadOnlyList<string>? phrases = null;
+        if (_pendingWord is not null || _pendingPhrases is not null)
         {
             if (kind is InputEventKind.Backspace or InputEventKind.CtrlBackspace)
             {
-                _pendingWord = null; // deleting right after finishing the word: do not learn it
+                // Deleting right after finishing the word: do not learn it, nor the sequences it ends.
+                _pendingWord = null;
+                _pendingPhrases = null;
             }
             else if (result.Outcome != BufferOutcome.Committed)
             {
                 final = TakePendingWord();
+                phrases = TakePendingPhrases();
             }
         }
 
         if (result is { Outcome: BufferOutcome.Committed, CommittedWord: { } committed })
         {
             final ??= TakePendingWord();
+            phrases ??= TakePendingPhrases();
             _pendingWord = committed;
+            _pendingPhrases = _finishedPhrases is { Count: > 0 } finished ? [.. finished] : null;
         }
 
-        return final;
+        return (final, phrases);
     }
 
     private BufferResult Process(InputRecord record)
@@ -388,6 +407,12 @@ public sealed class InputPipeline(
     // non-character event (Backspace, caret move, focus or layout change…) forgets it.
     private void TrackRecentWords(InputEvent input, BufferResult result)
     {
+        // A finished word ends sequences with the words typed in a row before it, whatever ends it.
+        if (result is { Outcome: BufferOutcome.Committed, CommittedWord: { } finished })
+        {
+            CollectPhrases(finished);
+        }
+
         if (input.Kind != InputEventKind.Character)
         {
             _recent.Clear();
@@ -426,9 +451,22 @@ public sealed class InputPipeline(
         }
 
         // Accepted words join the phrase context; without a trailing space the last one is still being typed.
-        _recent.Push(edit.EndsWithSpace ? word : word[..Math.Max(0, word.LastIndexOf(' '))]);
+        foreach (var accepted in (edit.EndsWithSpace ? word : word[..Math.Max(0, word.LastIndexOf(' '))]).Split(' ', StringSplitOptions.RemoveEmptyEntries))
+        {
+            CollectPhrases(accepted);
+            _recent.Push(accepted);
+        }
+
         _suppression = edit.EndsWithSpace ? Suppression.None : Suppression.UntilNextLetter;
         return buffer.AcceptWord(word, edit.EndsWithSpace);
+    }
+
+    private void CollectPhrases(string word)
+    {
+        foreach (var sequence in _recent.SequencesEndingWith(word))
+        {
+            (_finishedPhrases ??= []).Add(sequence);
+        }
     }
 
     /// <param name="isRetry">This is the last attempt (after an Unavailable one).</param>
@@ -507,7 +545,7 @@ public sealed class InputPipeline(
 
     private bool HasPendingInput() => input.CanCount ? input.Count > 0 : input.TryPeek(out _);
 
-    private void Raise(InputRecord? record, BufferResult result, ProbeOutcome? probe, string? wordToLearn = null)
+    private void Raise(InputRecord? record, BufferResult result, ProbeOutcome? probe, string? wordToLearn = null, IReadOnlyList<string>? phrasesToLearn = null)
     {
         var buffer = Tracker.Buffer;
         Updated?.Invoke(new PipelineUpdate(
@@ -522,6 +560,7 @@ public sealed class InputPipeline(
             _suppression != Suppression.None,
             _silence,
             wordToLearn,
-            _recent.Snapshot));
+            _recent.Snapshot,
+            phrasesToLearn));
     }
 }

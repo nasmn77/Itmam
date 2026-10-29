@@ -953,8 +953,9 @@ internal sealed class SettingsWindow : Form
         MessageBox.Show(this, text, Strings.AppName, MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, options);
     }
 
-    // User decision (1.1): fixed expressions are completed whole (Tab) or word by word. The shipped list
-    // plus the user's own ("My phrases", kept in settings.json); nothing is collected from typing.
+    // User decision (1.1): fixed expressions are completed whole (Tab) or word by word: the user's own
+    // ("My phrases", kept in settings.json), the learned ones (sequences typed 3 times, in user.db) and the
+    // shipped list.
     private void BuildPhrasesPage()
     {
         var settings = _app.Settings;
@@ -964,6 +965,10 @@ internal sealed class SettingsWindow : Form
         var suggest = new ToggleSwitch { Checked = settings.SuggestPhrases };
         suggest.CheckedChanged += (_, _) => Update(s => s with { SuggestPhrases = suggest.Checked });
         AddCard(Strings.SuggestPhrases, Strings.SuggestPhrasesHint, suggest);
+
+        var learn = new ToggleSwitch { Checked = settings.LearnPhrases };
+        learn.CheckedChanged += (_, _) => Update(s => s with { LearnPhrases = learn.Checked });
+        AddCard(Strings.LearnPhrases, Strings.LearnPhrasesHint, learn);
 
         AddSection(string.Format(CultureInfo.CurrentCulture, Strings.SectionMyPhrases, settings.MyPhrases.Count));
         var add = new ThemedButton { Text = Strings.AddWordButton };
@@ -985,6 +990,71 @@ internal sealed class SettingsWindow : Form
             };
             AddCard(phrase, null, new ButtonRow(change, remove));
         }
+
+        BuildLearnedPhrases();
+    }
+
+    // The learned phrases: forget one (learned again if typed again), keep it for good in "My phrases",
+    // or delete them all together with every sequence counted so far.
+    private void BuildLearnedPhrases()
+    {
+        var phrases = _app.Learning.LearnedPhrases();
+        AddSection(string.Format(CultureInfo.CurrentCulture, Strings.SectionLearnedPhrases, phrases.Count));
+        if (phrases.Count == 0)
+        {
+            AddText(Strings.NoLearnedPhrases, secondary: true);
+        }
+        else
+        {
+            var list = new WordList { Height = 280 };
+            list.Words = [.. phrases.Select(p => new StoredWord(p.Text, p.Count, p.LastUsed, Blocked: false))];
+            var keep = new ThemedButton { Text = Strings.KeepPhraseButton };
+            var forget = new ThemedButton { Text = Strings.DeleteButton };
+            void UpdateButtons()
+            {
+                foreach (var button in new[] { keep, forget })
+                {
+                    button.Enabled = list.SelectedWord is not null;
+                    button.Invalidate();
+                }
+            }
+
+            void Forget()
+            {
+                if (list.SelectedWord is { } selected && Confirm(Strings.ConfirmForgetPhrase, selected.Word, leftToRight: false))
+                {
+                    _app.Learning.ForgetPhrase(selected.Word);
+                    BeginInvoke(RebuildPage);
+                }
+            }
+
+            keep.Click += (_, _) =>
+            {
+                if (list.SelectedWord is { } selected)
+                {
+                    Update(s => s with { MyPhrases = [.. s.MyPhrases.Append(selected.Word).Distinct()] });
+                    _app.Learning.ForgetPhrase(selected.Word);
+                    BeginInvoke(RebuildPage);
+                }
+            };
+            forget.Click += (_, _) => Forget();
+            list.DeleteRequested += (_, _) => Forget();
+            list.SelectionChanged += (_, _) => UpdateButtons();
+            AddPageControl(list);
+            AddPageControl(new ButtonRow(keep, forget) { Stretch = true });
+            UpdateButtons();
+        }
+
+        var clear = new ThemedButton { Text = Strings.ClearAllButton };
+        clear.Click += (_, _) =>
+        {
+            if (Confirm(Strings.ConfirmClearPhrases, null))
+            {
+                _app.Learning.ClearPhrases();
+                BeginInvoke(RebuildPage);
+            }
+        };
+        AddCard(Strings.ClearPhrases, Strings.ClearPhrasesHint, clear);
     }
 
     // Add (existing = null) or edit one of "My phrases".

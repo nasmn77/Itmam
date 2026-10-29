@@ -20,11 +20,11 @@ public sealed class Phrase
 }
 
 /// <summary>
-/// Fixed Arabic expressions (data/phrases.txt, plus the user's own from Settings) that the bar can
-/// complete: the whole rest of the phrase as one suggestion, or its next word.
+/// Arabic expressions the bar can complete: the whole rest of the phrase as one suggestion, or its
+/// next word. Built from the user's own ("My phrases"), the learned ones (LearningService) and
+/// data/phrases.txt, in that order.
 /// </summary>
 /// <remarks>
-/// Only these listed phrases are ever suggested: nothing about word order is learned from typing.
 /// The words typed just before (<c>context</c>) live in memory only (see <c>RecentWords</c>).
 /// To keep Tab predictable in everyday text, a phrase is not offered after a short function word
 /// alone (في، على، من…): "على" + Tab must still insert "على", not "على سبيل المثال".

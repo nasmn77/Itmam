@@ -40,6 +40,9 @@ public sealed record AppSettings
     /// <summary>Complete fixed expressions (data/phrases.txt and <see cref="MyPhrases"/>).</summary>
     public bool SuggestPhrases { get; init; } = true;
 
+    /// <summary>Learn word sequences typed often (user decision 1.1: on by default; see LearningService.Phrases).</summary>
+    public bool LearnPhrases { get; init; } = true;
+
     /// <summary>
     /// Phrases the user added in Settings ("My phrases"), suggested before the shipped ones. Only what
     /// the user typed here on purpose: nothing is collected from their typing.

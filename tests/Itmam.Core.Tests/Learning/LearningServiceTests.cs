@@ -265,6 +265,98 @@ public sealed class LearningServiceTests : IDisposable
     }
 
     [Fact]
+    public void A_sequence_typed_three_times_becomes_a_learned_phrase_and_is_saved()
+    {
+        var (learning, _) = Start();
+        var changes = 0;
+        learning.LearnedPhrasesChanged += () => changes++;
+
+        learning.LearnPhrases(["جزاك الله خيرا"]);
+        learning.LearnPhrases(["جزاك الله خيرًا"]);
+        learning.LearnedPhrases().ShouldBeEmpty();
+
+        learning.LearnPhrases(["جزاك الله خيرا"]);
+        changes.ShouldBe(1);
+        learning.Flush();
+
+        var (reloaded, _) = Start();
+        var phrase = reloaded.LearnedPhrases().ShouldHaveSingleItem();
+        phrase.Text.ShouldBe("جزاك الله خيرا"); // tashkeel removed, the spelling typed last
+        phrase.Count.ShouldBe(3);
+    }
+
+    [Fact]
+    public void Nothing_is_counted_while_paused_turned_off_or_with_a_blocked_word()
+    {
+        var (learning, _) = Start();
+        learning.SetBlocked("قلم", blocked: true);
+
+        for (var i = 0; i < 3; i++)
+        {
+            learning.LearnPhrases(["سيارة جديدة", "قلم احمر", "hello world", "و الله", "ذهبت الى البيت الكبير اليوم مساء"]);
+        }
+
+        learning.IsPaused = true;
+        learning.LearnPhrases(["كتاب جديد", "كتاب جديد", "كتاب جديد"]);
+        learning.IsPaused = false;
+        learning.LearnsPhrases = false;
+        learning.LearnPhrases(["كتاب جديد", "كتاب جديد", "كتاب جديد"]);
+
+        learning.LearnedPhrases().ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void A_shorter_phrase_inside_a_learned_one_is_left_out_unless_typed_more_on_its_own()
+    {
+        var (learning, _) = Start();
+        for (var i = 0; i < 3; i++)
+        {
+            learning.LearnPhrases(["السلام عليكم", "عليكم ورحمة", "السلام عليكم ورحمة"]);
+        }
+
+        learning.LearnedPhrases().Select(p => p.Text).ShouldBe(["السلام عليكم ورحمة"]);
+
+        for (var i = 0; i < 3; i++)
+        {
+            learning.LearnPhrases(["السلام عليكم"]);
+        }
+
+        learning.LearnedPhrases().Select(p => p.Text).ShouldBe(["السلام عليكم", "السلام عليكم ورحمة"]);
+    }
+
+    [Fact]
+    public void A_sequence_not_learned_expires_after_thirty_days_but_a_learned_phrase_stays()
+    {
+        var (learning, _) = Start();
+        learning.LearnPhrases(["كتاب جديد", "قلم احمر"]);
+        learning.LearnPhrases(["قلم احمر", "قلم احمر"]);
+        learning.Flush();
+
+        _time.Now = Now.AddDays(31);
+        var (reloaded, _) = Start();
+        reloaded.LearnPhrases(["كتاب جديد", "كتاب جديد"]);
+
+        reloaded.LearnedPhrases().Select(p => p.Text).ShouldBe(["قلم احمر"]); // «كتاب جديد» restarted at 0
+    }
+
+    [Fact]
+    public void Forgetting_and_clearing_phrases_reach_the_disk()
+    {
+        var (learning, _) = Start();
+        for (var i = 0; i < 3; i++)
+        {
+            learning.LearnPhrases(["كتاب جديد", "قلم احمر"]);
+        }
+
+        learning.ForgetPhrase("كتاب جديد").ShouldBeTrue();
+        learning.Flush();
+        Start().Learning.LearnedPhrases().Select(p => p.Text).ShouldBe(["قلم احمر"]);
+
+        learning.ClearPhrases();
+        Start().Learning.LearnedPhrases().ShouldBeEmpty();
+    }
+
+    [Fact]
     public void Clear_all_empties_memory_and_disk()
     {
         var (learning, index) = Start();

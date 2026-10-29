@@ -136,4 +136,22 @@ public class RecentWordsTests
         recent.Push("hello");
         recent.Snapshot.ShouldBeEmpty();
     }
+
+    [Fact]
+    public void Sequences_ending_with_a_word_keep_the_spelling_and_stop_at_five_words()
+    {
+        var recent = new RecentWords();
+        recent.Push("السلام عليكم ورحمة الله");
+
+        recent.SequencesEndingWith("وبركاتُه").ShouldBe([
+            "الله وبركاته",
+            "ورحمة الله وبركاته",
+            "عليكم ورحمة الله وبركاته",
+            "السلام عليكم ورحمة الله وبركاته",
+        ]);
+
+        recent.Push("وبركاته");
+        recent.SequencesEndingWith("اخي").Last().ShouldBe("عليكم ورحمة الله وبركاته اخي");
+        recent.SequencesEndingWith("hello").ShouldBeEmpty();
+    }
 }

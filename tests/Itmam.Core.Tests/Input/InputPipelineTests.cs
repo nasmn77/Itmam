@@ -400,6 +400,41 @@ public sealed class InputPipelineTests : IAsyncDisposable
         accepted.RecentWords.ShouldBe(["بسم", "الله", "الرحمن", "الرحيم"]);
     }
 
+    private string[] PhrasesLearned() => [.. _updates.SelectMany(u => u.PhrasesToLearn ?? [])];
+
+    [Fact]
+    public async Task Words_typed_in_a_row_become_sequences_to_learn_when_the_last_word_is_final()
+    {
+        Type("جزاك الله خيرا.");
+        await AfterCharacterAsync('.');
+        PhrasesLearned().ShouldBe(["جزاك الله"]); // «خيرا» is still pending: it could be corrected
+
+        await DrainAsync();
+        PhrasesLearned().ShouldBe(["جزاك الله", "الله خيرا", "جزاك الله خيرا"]);
+    }
+
+    [Fact]
+    public async Task Correcting_the_last_word_at_once_drops_its_sequences()
+    {
+        Type("جزاك الله ");
+        await AfterCharacterAsync(' ');
+        Backspace();
+        await DrainAsync();
+
+        PhrasesLearned().ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task An_accepted_phrase_counts_as_typed()
+    {
+        Type("بسم ");
+        await AfterCharacterAsync(' ');
+        Send(InputEvent.Accept(0, "الله الرحمن"));
+        await DrainAsync();
+
+        PhrasesLearned().ShouldBe(["بسم الله", "الله الرحمن", "بسم الله الرحمن"]);
+    }
+
     [Fact]
     public async Task Accepting_a_hamza_spelling_replaces_the_whole_prefix()
     {

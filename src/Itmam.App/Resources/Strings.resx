@@ -188,7 +188,7 @@
   <data name="NavPhrases" xml:space="preserve"><value>Phrases</value></data>
   <data name="PhrasesIntro" xml:space="preserve"><value>{0} common phrases are built in: greetings, remembrance, prayers, occasions and formal letters. Type the start of one and Tab inserts it whole, or keep going word by word.</value></data>
   <data name="SuggestPhrases" xml:space="preserve"><value>Suggest common phrases</value></data>
-  <data name="SuggestPhrasesHint" xml:space="preserve"><value>After «بسم » the bar offers «الله الرحمن الرحيم». Only listed phrases are suggested; the words you just typed stay in memory only.</value></data>
+  <data name="SuggestPhrasesHint" xml:space="preserve"><value>After «بسم » the bar offers «الله الرحمن الرحيم». Suggested: My phrases, the phrases learned from your typing, and the built-in list.</value></data>
   <data name="SectionMyPhrases" xml:space="preserve"><value>My phrases ({0})</value></data>
   <data name="AddPhrase" xml:space="preserve"><value>Add a phrase</value></data>
   <data name="AddPhraseHint" xml:space="preserve"><value>Your signature, your organization's name, or any phrase you write often. Suggested before the built-in ones.</value></data>
@@ -196,4 +196,13 @@
   <data name="PhrasePrompt" xml:space="preserve"><value>Type the phrase (two Arabic words or more):</value></data>
   <data name="NotAPhrase" xml:space="preserve"><value>Type two Arabic words or more, without digits or Latin letters.</value></data>
   <data name="ConfirmDeletePhrase" xml:space="preserve"><value>Delete «{0}» from your phrases?</value></data>
+  <data name="LearnPhrases" xml:space="preserve"><value>Learn phrases from my typing</value></data>
+  <data name="LearnPhrasesHint" xml:space="preserve"><value>Words you type in a row 3 times (2 to 5 words) are suggested as a phrase. Kept on this device only; nothing is learned in password fields, excluded apps or while learning is paused. Sequences not repeated are deleted after 30 days.</value></data>
+  <data name="SectionLearnedPhrases" xml:space="preserve"><value>Learned phrases ({0:N0})</value></data>
+  <data name="NoLearnedPhrases" xml:space="preserve"><value>No learned phrases yet. Type the same words in a row three times and they appear here.</value></data>
+  <data name="KeepPhraseButton" xml:space="preserve"><value>Move to My phrases</value></data>
+  <data name="ConfirmForgetPhrase" xml:space="preserve"><value>Delete «{0}» from the learned phrases? It is learned again if you keep typing it.</value></data>
+  <data name="ClearPhrases" xml:space="preserve"><value>Delete learned phrases</value></data>
+  <data name="ClearPhrasesHint" xml:space="preserve"><value>Deletes every learned phrase and every sequence counted so far from this device. My phrases are kept.</value></data>
+  <data name="ConfirmClearPhrases" xml:space="preserve"><value>Delete all learned phrases? This cannot be undone.</value></data>
 </root>

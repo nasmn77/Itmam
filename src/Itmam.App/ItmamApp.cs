@@ -40,6 +40,7 @@ internal sealed class ItmamApp : IDisposable
         UserWords = new UserWordIndex();
         Learning = new LearningService(UserWords, Store, blocklist);
         Learning.Load();
+        Learning.LearnedPhrasesChanged += UpdatePhrases;
 
         Engine = new SuggestionEngine(Dictionary, UserWords);
         ExcludedApps = new ExcludedApps(Settings.ExcludedApps);
@@ -185,6 +186,11 @@ internal sealed class ItmamApp : IDisposable
             Learning.Learn(word);
         }
 
+        if (Pipeline.TakePendingPhrases() is { } phrases)
+        {
+            Learning.LearnPhrases(phrases);
+        }
+
         Learning.Dispose();              // flushes to disk
         Store.Dispose();
         Suggestions.Dispose();
@@ -224,9 +230,20 @@ internal sealed class ItmamApp : IDisposable
         };
         Pipeline.Options = Pipeline.Options with { AppendSpaceOnAccept = settings.AddSpaceAfterAccept };
         Learning.IsPaused = settings.LearningPaused;
+        Learning.LearnsPhrases = settings.LearnPhrases;
         ExcludedApps.Replace(settings.ExcludedApps);
         Popup.Appearance = PopupAppearance.From(settings);
-        Suggestions.Phrases = settings.SuggestPhrases ? ShippedPhrases.With(settings.MyPhrases) : PhraseIndex.Empty;
+        UpdatePhrases();
+    }
+
+    // "My phrases" first, then the learned ones (most used first), then the shipped list. Rebuilt when a
+    // phrase is learned or forgotten (pipeline thread, before the bar is recomputed) or the settings change.
+    private void UpdatePhrases()
+    {
+        var settings = Settings;
+        Suggestions.Phrases = settings.SuggestPhrases
+            ? ShippedPhrases.With([.. settings.MyPhrases, .. Learning.LearnedPhrases().Select(p => p.Text)])
+            : PhraseIndex.Empty;
     }
 
     private void PersistEnabled()
@@ -246,10 +263,22 @@ internal sealed class ItmamApp : IDisposable
             Learning.Learn(word);
         }
 
-        // Right-click / Ctrl+Delete: forget the learned word (it can be learned again by using it).
+        if (update.PhrasesToLearn is { } phrases)
+        {
+            Learning.LearnPhrases(phrases);
+        }
+
+        // Right-click / Ctrl+Delete: forget the learned word or phrase (learned again by using it).
         if (update.Input?.Input is { Kind: InputEventKind.ForgetSuggestion, Text: { } forgotten })
         {
-            Learning.Remove(forgotten);
+            if (forgotten.Contains(' ', StringComparison.Ordinal))
+            {
+                Learning.ForgetPhrase(forgotten);
+            }
+            else
+            {
+                Learning.Remove(forgotten);
+            }
         }
 
         // The toggle shortcut (or the tray) toggled Itmam: keep the tray and settings in sync.

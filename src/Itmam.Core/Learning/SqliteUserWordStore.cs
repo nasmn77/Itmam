@@ -6,7 +6,13 @@ namespace Itmam.Core.Learning;
 /// <summary>One stored learned word: the word and its usage only, nothing about where or with what it was typed.</summary>
 public readonly record struct StoredWord(string Word, int Count, DateTimeOffset LastUsed, bool Blocked);
 
-/// <summary>Persistence for the user's learned words.</summary>
+/// <summary>
+/// One word sequence typed in a row (2–5 words, user decision 1.1): its normalized key, the spelling
+/// typed last, how often and when it was last typed. Nothing about where it was typed.
+/// </summary>
+public readonly record struct StoredPhrase(string Key, string Text, int Count, DateTimeOffset LastUsed);
+
+/// <summary>Persistence for the user's learned words and phrases.</summary>
 public interface IUserWordStore : IDisposable
 {
     IReadOnlyList<StoredWord> LoadAll();
@@ -15,17 +21,25 @@ public interface IUserWordStore : IDisposable
     void Save(IReadOnlyCollection<StoredWord> changed, IReadOnlyCollection<string> removed);
 
     void Clear();
+
+    IReadOnlyList<StoredPhrase> LoadPhrases();
+
+    /// <summary>Upserts <paramref name="changed"/> and removes the keys in <paramref name="removed"/> in one transaction.</summary>
+    void SavePhrases(IReadOnlyCollection<StoredPhrase> changed, IReadOnlyCollection<string> removed);
+
+    void ClearPhrases();
 }
 
 /// <summary>
 /// User words in an embedded SQLite database (<c>%LOCALAPPDATA%\Itmam\user.db</c>): one table of
-/// word → count, last-used time, blocked flag. WAL journaling makes every committed transaction
+/// word → count, last-used time, blocked flag, and (from 1.1, schema 2) one of word sequences →
+/// spelling, count, last-used time. WAL journaling makes every committed transaction
 /// durable across crashes. A corrupt or unreadable file is moved aside to
 /// <c>user.db.corrupt-&lt;timestamp&gt;</c> (kept as a backup) and a fresh database is started.
 /// </summary>
 public sealed class SqliteUserWordStore : IUserWordStore
 {
-    private const int SchemaVersion = 1;
+    private const int SchemaVersion = 2;
     private readonly Lock _lock = new();
     private readonly SqliteConnection _connection;
 
@@ -125,6 +139,82 @@ public sealed class SqliteUserWordStore : IUserWordStore
         }
     }
 
+    public IReadOnlyList<StoredPhrase> LoadPhrases()
+    {
+        lock (_lock)
+        {
+            using var command = _connection.CreateCommand();
+            command.CommandText = "SELECT key, text, count, last_used FROM phrases";
+            using var reader = command.ExecuteReader();
+            var phrases = new List<StoredPhrase>();
+            while (reader.Read())
+            {
+                phrases.Add(new StoredPhrase(
+                    reader.GetString(0),
+                    reader.GetString(1),
+                    reader.GetInt32(2),
+                    DateTimeOffset.FromUnixTimeMilliseconds(reader.GetInt64(3))));
+            }
+
+            return phrases;
+        }
+    }
+
+    public void SavePhrases(IReadOnlyCollection<StoredPhrase> changed, IReadOnlyCollection<string> removed)
+    {
+        if (changed.Count == 0 && removed.Count == 0)
+        {
+            return;
+        }
+
+        lock (_lock)
+        {
+            using var transaction = _connection.BeginTransaction();
+
+            using (var upsert = _connection.CreateCommand())
+            {
+                upsert.Transaction = transaction;
+                upsert.CommandText =
+                    "INSERT INTO phrases(key, text, count, last_used) VALUES($k, $x, $c, $t) " +
+                    "ON CONFLICT(key) DO UPDATE SET text = excluded.text, count = excluded.count, last_used = excluded.last_used";
+                var key = upsert.Parameters.Add("$k", SqliteType.Text);
+                var text = upsert.Parameters.Add("$x", SqliteType.Text);
+                var count = upsert.Parameters.Add("$c", SqliteType.Integer);
+                var lastUsed = upsert.Parameters.Add("$t", SqliteType.Integer);
+                foreach (var entry in changed)
+                {
+                    key.Value = entry.Key;
+                    text.Value = entry.Text;
+                    count.Value = entry.Count;
+                    lastUsed.Value = entry.LastUsed.ToUnixTimeMilliseconds();
+                    upsert.ExecuteNonQuery();
+                }
+            }
+
+            using (var delete = _connection.CreateCommand())
+            {
+                delete.Transaction = transaction;
+                delete.CommandText = "DELETE FROM phrases WHERE key = $k";
+                var key = delete.Parameters.Add("$k", SqliteType.Text);
+                foreach (var entry in removed)
+                {
+                    key.Value = entry;
+                    delete.ExecuteNonQuery();
+                }
+            }
+
+            transaction.Commit();
+        }
+    }
+
+    public void ClearPhrases()
+    {
+        lock (_lock)
+        {
+            Execute(_connection, "DELETE FROM phrases");
+        }
+    }
+
     public void Dispose()
     {
         lock (_lock)
@@ -161,6 +251,10 @@ public sealed class SqliteUserWordStore : IUserWordStore
             Execute(connection,
                 "CREATE TABLE IF NOT EXISTS words(" +
                 "word TEXT PRIMARY KEY NOT NULL, count INTEGER NOT NULL, last_used INTEGER NOT NULL, blocked INTEGER NOT NULL DEFAULT 0" +
+                ") WITHOUT ROWID");
+            Execute(connection,
+                "CREATE TABLE IF NOT EXISTS phrases(" +
+                "key TEXT PRIMARY KEY NOT NULL, text TEXT NOT NULL, count INTEGER NOT NULL, last_used INTEGER NOT NULL" +
                 ") WITHOUT ROWID");
             Execute(connection, $"PRAGMA user_version = {SchemaVersion.ToString(CultureInfo.InvariantCulture)}");
             return connection;

@@ -11,6 +11,21 @@ public sealed record LearningOptions
 
     /// <summary>Changes are written to disk this long after the last one (and always on exit).</summary>
     public TimeSpan SaveDelay { get; init; } = TimeSpan.FromSeconds(2);
+
+    /// <summary>Times a sequence must be typed before it is suggested as a phrase (user decision: 3).</summary>
+    public int PhraseMinUses { get; init; } = 3;
+
+    /// <summary>Longest sequence learned (user decision: 2–5 words).</summary>
+    public int MaxPhraseWords { get; init; } = 5;
+
+    /// <summary>A sequence not yet learned is deleted after this long without being typed (user decision: 30 days).</summary>
+    public TimeSpan PhraseCandidateLifetime { get; init; } = TimeSpan.FromDays(30);
+
+    /// <summary>Most sequences counted but not yet learned; the least recently typed go first.</summary>
+    public int MaxPhraseCandidates { get; init; } = 20_000;
+
+    /// <summary>Most learned phrases; the least recently typed go first.</summary>
+    public int MaxLearnedPhrases { get; init; } = 2_000;
 }
 
 public enum LearnOutcome
@@ -30,7 +45,8 @@ public enum LearnOutcome
 public readonly record struct ImportResult(int Added, int Updated, int Skipped);
 
 /// <summary>
-/// Learns the user's words (word → count and last use only) and keeps them on disk.
+/// Learns the user's words (word → count and last use only) and, from 1.1, repeated word sequences
+/// (see LearningService.Phrases.cs), and keeps them on disk.
 /// </summary>
 /// <remarks>
 /// <see cref="Learn"/> is called for each finished word (typed and ended by a boundary, or accepted
@@ -42,7 +58,7 @@ public readonly record struct ImportResult(int Added, int Updated, int Skipped);
 /// <see cref="SyncRoot"/>: whoever reads the index directly (the suggestion engine) must hold it too,
 /// because "My words" in Settings changes words from the UI thread.
 /// </remarks>
-public sealed class LearningService : IDisposable
+public sealed partial class LearningService : IDisposable
 {
     private readonly UserWordIndex _index;
     private readonly IUserWordStore _store;
@@ -90,6 +106,8 @@ public sealed class LearningService : IDisposable
             {
                 _index.Set(stored.Word, stored.Count, stored.LastUsed, stored.Blocked);
             }
+
+            LoadPhrases();
         }
     }
 
@@ -275,6 +293,7 @@ public sealed class LearningService : IDisposable
         {
             List<StoredWord> changed;
             List<string> removed;
+            (List<StoredPhrase> Changed, List<string> Removed) phrases;
             lock (_lock)
             {
                 changed = _changed
@@ -285,9 +304,11 @@ public sealed class LearningService : IDisposable
                 removed = [.. _removed];
                 _changed.Clear();
                 _removed.Clear();
+                phrases = TakePhraseChanges();
             }
 
             _store.Save(changed, removed);
+            _store.SavePhrases(phrases.Changed, phrases.Removed);
         }
     }
 
