@@ -1011,7 +1011,7 @@ internal sealed class SettingsWindow : Form
     }
 
     // User decision (1.1): fixed expressions are completed whole (Tab) or word by word: the user's own
-    // ("My phrases", kept in settings.json), the learned ones (sequences typed 3 times, in user.db) and the
+    // ("My phrases", kept in settings.json), the learned ones (sequences typed twice, in user.db) and the
     // shipped list.
     private void BuildPhrasesPage()
     {

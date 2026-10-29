@@ -214,6 +214,9 @@ public sealed class InputPipeline(
     // The text before the caret came from a paste: it was not typed, so it never joins the phrase chain.
     private bool _contextFromPaste;
 
+    // When the last event was processed (UTC ticks): the context is read only once the app has applied it.
+    private long _lastInputTicks;
+
     public InputTracker Tracker { get; } = new();
 
     /// <summary>Replaced live from Settings (e.g. the space after accepting).</summary>
@@ -265,6 +268,7 @@ public sealed class InputPipeline(
                             probeDue = DateTime.UtcNow.Ticks + _options.RetryUnavailableAfter.Ticks;
                         }
 
+                        Tracker.Buffer.AwaitingContext = probeDue is not null;
                         continue;
                     }
 
@@ -294,6 +298,7 @@ public sealed class InputPipeline(
 
             while (input.TryRead(out var record))
             {
+                _lastInputTicks = DateTime.UtcNow.Ticks;
                 _finishedPhrases = null;
                 var result = Process(record);
                 var (wordToLearn, phrasesToLearn) = AdvancePendingWord(record.Input.Kind, result);
@@ -303,6 +308,7 @@ public sealed class InputPipeline(
                 if (record.Input.Kind == InputEventKind.Selection || _silence != SilenceReason.None)
                 {
                     probeDue = null;
+                    Tracker.Buffer.AwaitingContext = false;
                     continue;
                 }
 
@@ -319,6 +325,9 @@ public sealed class InputPipeline(
                 {
                     probeDue = null;
                 }
+
+                // While the context is about to be read, what is typed is recorded instead of lost.
+                Tracker.Buffer.AwaitingContext = probeDue is not null;
             }
         }
     }
@@ -550,7 +559,10 @@ public sealed class InputPipeline(
             return null;
         }
 
-        if (HasPendingInput())
+        // Typed while waiting: read only once the app has applied the last keys, so the text read ends
+        // with what was typed (see WordBuffer.ResumeFromContext).
+        if (HasPendingInput()
+            || (Tracker.Buffer.HasBlindTyping && DateTime.UtcNow.Ticks - _lastInputTicks < _options.ProbeDelay.Ticks))
         {
             return ProbeOutcome.Discarded;
         }
@@ -585,19 +597,33 @@ public sealed class InputPipeline(
         else if (caret.Status == CaretContextStatus.Unavailable)
         {
             outcome = ProbeOutcome.Unavailable;
-            if (isRetry && afterCaretMove)
+            if (isRetry)
             {
-                result = Tracker.Buffer.ResumeEmpty();
-                if (result.Outcome == BufferOutcome.Reset)
+                // Typed meanwhile, with a boundary: resume after it. Otherwise, after a caret move, assume
+                // an empty word if nothing was typed.
+                result = Tracker.Buffer.ResumeFromBlind();
+                if (result.Outcome == BufferOutcome.None && afterCaretMove)
+                {
+                    result = Tracker.Buffer.ResumeEmpty();
+                }
+
+                if (result.Outcome != BufferOutcome.None)
                 {
                     outcome = ProbeOutcome.AssumedEmpty;
+                    LearnRecoveredWords();
                 }
             }
         }
         else
         {
             result = Tracker.Buffer.ResumeFromContext(caret.Text, _options.ProbeChars);
+            if (result.Outcome == BufferOutcome.None)
+            {
+                result = Tracker.Buffer.ResumeFromBlind(); // the context did not fit what was typed
+            }
+
             _charAfterCaret = caret.CharAfter;
+            LearnRecoveredWords();
             if (result.Outcome is BufferOutcome.Updated or BufferOutcome.Reset && !_contextFromPaste)
             {
                 // Words typed while the context was unknown (e.g. right after a focus event) still chain;
@@ -614,6 +640,35 @@ public sealed class InputPipeline(
 
         Raise(null, result, outcome);
         return outcome;
+    }
+
+    // Words typed and finished before the context could be read: learned with their sequences like any
+    // finished word (they were typed). They are final already: typing went on after them.
+    private void LearnRecoveredWords()
+    {
+        var recovered = Tracker.Buffer.RecoveredWords;
+        if (recovered.Count == 0)
+        {
+            return;
+        }
+
+        _recent.Clear();
+        foreach (var (word, endedBySpace) in recovered)
+        {
+            _finishedPhrases = null;
+            CollectPhrases(word);
+            Raise(null, BufferResult.None, probe: null, word, _finishedPhrases is { Count: > 0 } phrases ? [.. phrases] : null);
+            if (endedBySpace)
+            {
+                _recent.Push(word);
+            }
+            else
+            {
+                _recent.Clear();
+            }
+        }
+
+        _finishedPhrases = null;
     }
 
     private bool HasPendingInput() => input.CanCount ? input.Count > 0 : input.TryPeek(out _);

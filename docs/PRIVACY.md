@@ -33,7 +33,7 @@
 
 - **كلماتك:** لكل كلمة: الكلمة نفسها، وعدد مرات استعمالها، ووقت آخر استعمال، وهل حظرتها. لا شيء غير ذلك: لا جمل، ولا اسم التطبيق الذي كتبت فيه.
   المكان: `%LOCALAPPDATA%\Itmam\user.db` (عند التثبيت من المتجر يكون داخل المجلد الخاص بالتطبيق).
-- **العبارات المتعلَّمة** (من الإصدار 1.1، مفعّلة افتراضيًا): من كلمتين إلى 5 كلمات عربية كتبتها متتالية، مع عدد مرات كتابتها ووقت آخرها، في الملف نفسه. التسلسل الذي تكتبه 3 مرات يُقترح عبارةً، وما لم يتكرر يُحذف بعد 30 يومًا من آخر كتابة له. لا يُحفظ معها اسم التطبيق ولا ما قبلها أو بعدها، ولا يُعدّ شيء في المواضع المذكورة في «ما لا يُتعلَّم». لإيقافها: الإعدادات ← «العبارات» ← «تعلّم العبارات من كتابتي».
+- **العبارات المتعلَّمة** (من الإصدار 1.1، مفعّلة افتراضيًا): من كلمتين إلى 5 كلمات عربية كتبتها متتالية، مع عدد مرات كتابتها ووقت آخرها، في الملف نفسه. التسلسل الذي تكتبه مرتين يُقترح عبارةً، وما لم يتكرر يُحذف بعد 30 يومًا من آخر كتابة له. لا يُحفظ معها اسم التطبيق ولا ما قبلها أو بعدها، ولا يُعدّ شيء في المواضع المذكورة في «ما لا يُتعلَّم». لإيقافها: الإعدادات ← «العبارات» ← «تعلّم العبارات من كتابتي».
 - **إعداداتك:** مثل الألوان والاختصارات وقائمة التطبيقات المستثناة، و«عباراتي» و«الاختصارات النصية» التي تضيفها بنفسك، في `%LOCALAPPDATA%\Itmam\settings.json`. لا تحتوي أي نص مما تكتبه في البرامج الأخرى.
 - **ما لا يُتعلَّم:** الكلمات في حقول كلمات المرور، والتطبيقات المستثناة، والتطبيقات التي تعمل بصلاحيات المسؤول، والألعاب بملء الشاشة، والكلمات المحظورة وأي تسلسل فيه كلمة محظورة، وأي كلمة تمسحها مباشرة بعد كتابتها.
 
@@ -82,7 +82,7 @@
 
 - **Your words:** for each word: the word itself, how many times you used it, when you last used it, and whether you blocked it. Nothing else: no sentences, not the app you typed in.
   Location: `%LOCALAPPDATA%\Itmam\user.db` (inside the app's private folder when installed from the Store).
-- **Learned phrases** (from 1.1, on by default): sequences of 2 to 5 Arabic words you typed in a row, with how many times and when you last typed them, in the same file. A sequence typed 3 times is suggested as a phrase; one not repeated is deleted 30 days after it was last typed. The app and the text around it are not kept, and nothing is counted in the places listed under "Never learned". To turn it off: Settings → "Phrases" → "Learn phrases from my typing".
+- **Learned phrases** (from 1.1, on by default): sequences of 2 to 5 Arabic words you typed in a row, with how many times and when you last typed them, in the same file. A sequence typed twice is suggested as a phrase; one not repeated is deleted 30 days after it was last typed. The app and the text around it are not kept, and nothing is counted in the places listed under "Never learned". To turn it off: Settings → "Phrases" → "Learn phrases from my typing".
 - **Your settings:** such as colors, shortcuts, the excluded apps list and the "My phrases" and text shortcuts you add yourself, in `%LOCALAPPDATA%\Itmam\settings.json`. They contain nothing you type in other apps.
 - **Never learned:** words in password fields, excluded apps, apps running as administrator, full-screen games, blocked words and any sequence containing one, and any word you delete right after typing it.
 

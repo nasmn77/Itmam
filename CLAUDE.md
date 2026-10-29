@@ -49,7 +49,7 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
   by word; 249 phrases in `data/phrases.txt`, MIT, compiled by hand; "My phrases" in settings.json; `RecentWords` = last 8
   words, memory only — privacy policy updated; no phrase starts from a short common word, one whole phrase at a start);
   **learned phrases** (user decisions: automatic, ON by default; counts kept on disk with expiry): 2–5-word sequences typed
-  in a row are counted in user.db table `phrases` (schema 2), learned at 3 uses, not-learned ones deleted after 30 days,
+  in a row are counted in user.db table `phrases` (schema 2), learned at 2 uses (user decision, was 3), not-learned ones deleted after 30 days,
   limits 20,000 / 2,000; order My phrases → learned → shipped; right-click forgets; Settings → Phrases lists them (all of them; only the bar leaves out phrases inside a longer one); **text shortcuts**
   (user decisions: shown first in the bar, Tab inserts — never replaced automatically; own page «الاختصارات النصية»;
   `TextShortcuts` in Core, kept in settings.json; digits after a letter stay in the word); tray icon: left or right
@@ -57,7 +57,7 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
   read from the package at runtime. Then (user decisions): Backspace right after an accept undoes it (`UndoAccept`,
   decided in the hook from `PopupState.CanUndoAccept`); import/export of My phrases and text shortcuts (text files, import
   only adds, an existing shortcut key keeps its text); right-click on the bar shows an `ActionStrip` over the clicked item (non-activating; for a phrase — the WHOLE phrase via `SuggestionController.PhraseSources` — "Delete" forgets it if learned, removes it from My phrases and hides it if built in (`HiddenPhrases` in settings.json, restorable on the Phrases page), plus "Add to My phrases"; a single word: "Delete" if learned and "Block" without confirmation — user decision, overrides "blocking only in My words"; a real ContextMenuStrip took the focus and stayed open — never use one there);
-  "Turn off Itmam" in the tray menu and on the Exit page; About links to the website privacy page. Also the two 1.0.1 fixes, verified by the user:
+  "Turn off Itmam" in the tray menu and on the Exit page; About links to the website privacy page. Words typed while waiting for a context read are recorded and recovered (`WordBuffer` blind typing, `RecoveredWords`/`ResumeFromBlind`), so the first word after a focus/window change is not lost; pasted text never joins the phrase chain. Also the two 1.0.1 fixes, verified by the user:
   (1) `CaretSource.FocusedField` fallback before the mouse pointer when a web control reports no caret (the bar had
   appeared at the top of Partner Center in Edge); (2) the caret is read again 60 ms after the bar is shown when no
   newer key arrived (the hook reads it before the app inserts the letter; an empty dir=auto field such as Google

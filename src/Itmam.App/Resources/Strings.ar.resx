@@ -194,9 +194,9 @@
   <data name="NotAPhrase" xml:space="preserve"><value>اكتب كلمتين عربيتين أو أكثر، دون أرقام أو حروف لاتينية.</value></data>
   <data name="ConfirmDeletePhrase" xml:space="preserve"><value>حذف «{0}» من عباراتك؟</value></data>
   <data name="LearnPhrases" xml:space="preserve"><value>تعلّم العبارات من كتابتي</value></data>
-  <data name="LearnPhrasesHint" xml:space="preserve"><value>الكلمات التي تكتبها متتالية 3 مرات (من كلمتين إلى 5) تُقترح عبارة. تُحفظ على جهازك فقط، ولا يُتعلَّم شيء في حقول كلمات المرور ولا في التطبيقات المستثناة ولا أثناء إيقاف التعلّم. وما لم يتكرر يُحذف بعد 30 يومًا.</value></data>
+  <data name="LearnPhrasesHint" xml:space="preserve"><value>الكلمات التي تكتبها متتالية مرتين (من كلمتين إلى 5) تُقترح عبارة. تُحفظ على جهازك فقط، ولا يُتعلَّم شيء في حقول كلمات المرور ولا في التطبيقات المستثناة ولا أثناء إيقاف التعلّم. وما لم يتكرر يُحذف بعد 30 يومًا.</value></data>
   <data name="SectionLearnedPhrases" xml:space="preserve"><value>العبارات المتعلَّمة ({0:N0})</value></data>
-  <data name="NoLearnedPhrases" xml:space="preserve"><value>لا عبارات متعلَّمة بعد. اكتب الكلمات نفسها متتالية ثلاث مرات فتظهر هنا.</value></data>
+  <data name="NoLearnedPhrases" xml:space="preserve"><value>لا عبارات متعلَّمة بعد. اكتب الكلمات نفسها متتالية مرتين فتظهر هنا.</value></data>
   <data name="KeepPhraseButton" xml:space="preserve"><value>نقل إلى عباراتي</value></data>
   <data name="ConfirmForgetPhrase" xml:space="preserve"><value>حذف «{0}» من العبارات المتعلَّمة؟ ستُتعلَّم من جديد إن واصلت كتابتها.</value></data>
   <data name="ClearPhrases" xml:space="preserve"><value>حذف العبارات المتعلَّمة</value></data>

@@ -30,7 +30,7 @@ public sealed class LearningServiceTests : IDisposable
     {
         var store = new SqliteUserWordStore(DatabasePath);
         var index = new UserWordIndex();
-        var learning = new LearningService(index, store, _blocklist, options ?? new LearningOptions { SaveDelay = TimeSpan.FromHours(1) }, _time);
+        var learning = new LearningService(index, store, _blocklist, options ?? new LearningOptions { SaveDelay = TimeSpan.FromHours(1), PhraseMinUses = 3 }, _time);
         learning.Load();
         _open.Add(learning);
         _open.Add(store);
@@ -263,6 +263,10 @@ public sealed class LearningServiceTests : IDisposable
         result.ShouldBe(new ImportResult(Added: 2, Updated: 0, Skipped: 2));
         index.Get("قلم").ShouldNotBeNull().Count.ShouldBe(3);
     }
+
+    [Fact]
+    public void By_default_a_phrase_is_learned_once_typed_twice() =>
+        new LearningOptions().PhraseMinUses.ShouldBe(2); // user decision (the other tests use 3)
 
     [Fact]
     public void A_sequence_typed_three_times_becomes_a_learned_phrase_and_is_saved()

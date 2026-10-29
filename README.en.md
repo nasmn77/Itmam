@@ -16,7 +16,7 @@ Website: https://nasmn77.github.io/Itmam/en/ · Repository: https://github.com/n
 - **A bar that looks like Windows 11's own**, following light or dark mode, with the colors, size and opacity you choose.
 - **Completes common phrases:** «بسم الله الرحمن الرحيم», «السلام عليكم ورحمة الله وبركاته», «جزاك الله خيرا» and about 250 others, whole with Tab or word by word, plus "My phrases" you add yourself.
 - **Text shortcuts:** type «ع1» and the bar offers «السلام عليكم ورحمة الله وبركاته»; Tab puts it in place, with the shortcuts you choose.
-- **Learns your phrases:** words you type in a row 3 times are then suggested as a whole phrase (can be turned off).
+- **Learns your phrases:** words you type in a row twice are then suggested as a whole phrase (can be turned off).
 - **Completes a word from the middle:** go back into a word with a click or Backspace and it continues from the caret.
 - **Silent where it should be:** password fields, excluded apps (such as terminals and remote desktop) and full-screen games.
 - **Arabic and English interface**, switched instantly, right to left in Arabic.
@@ -66,7 +66,7 @@ Itmam has no main window and no taskbar button; it runs from an icon next to the
 
 - Itmam itself never connects to the internet: no statistics, no crash reports. It only asks Microsoft Store about updates at start-up, which can be turned off in Settings → "Updates".
 - For each word only the word, how many times it was used and when are kept, in a file on your device. No sentences.
-- To learn phrases, short sequences (2 to 5 words) are kept with their counts; one not typed 3 times is deleted after 30 days. This can be turned off in Settings.
+- To learn phrases, short sequences (2 to 5 words) are kept with their counts; one not typed twice is deleted after 30 days. This can be turned off in Settings.
 - Nothing is read or learned in password fields or excluded apps.
 
 Full details in the [privacy policy](docs/PRIVACY.md).

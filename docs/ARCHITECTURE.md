@@ -66,6 +66,8 @@
 
 لا يُقرأ شيء في التطبيقات المستثناة (`Itmam.Core.Input.ExcludedApps`؛ افتراضيًا: سطح المكتب البعيد والأجهزة الافتراضية والطرفيات ومشغّلات الألعاب). يُتحقق من ذلك مرتين: عبر `InputPipelineOptions.CanReadContext` على العملية الأمامية قبل كل قراءة، وعبر `UiaCaretContextSource` على العملية المالكة لعنصر UI Automation المركَّز قبل القراءة مباشرة.
 
+ما يُكتب أثناء انتظار هذه القراءة (من الإصدار 1.1) لا يضيع: يسجّله `WordBuffer` في الذاكرة (48 حرفًا على الأكثر) بدل أن يبدأ كلمة جديدة عند أول حدّ، ولا يُقرأ النص إلا بعد أن يهدأ الإدخال 40 ملّي ثانية. فإن انتهى النص المقروء بما كُتب تمامًا، تُستعاد الكلمات التي انتهت أثناء الانتظار وتُتعلَّم مع تسلسلاتها (`RecoveredWords`)، والأولى منها فقط إن سبقها حدّ أو بداية النص. وإن تعذّرت القراءة يُستأنف بعد آخر حدّ كُتب (`ResumeFromBlind`)، ولا يُستعمل ما قبل أول حدّ لأنه قد يكمل كلمة موجودة.
+
 `WordBuffer.ResumeFromContext` يحتفظ من هذا النص بالكلمة العربية الأخيرة فقط (الكلمة التي فيها المؤشر) كلمةً حالية، أو يستأنف بكلمة فارغة إذا سبق المؤشرَ حدُّ كلمة أو بداية الحقل. ويُتجاهل باقي النص فورًا؛ لا شيء يُحفظ أو يُسجَّل. وما دام هناك نص محدد — بلوحة المفاتيح (Shift مع التنقل، وCtrl+Shift+الأسهم، وCtrl+A: حدث `Selection` لا يُقرأ بعده شيء) أو بالفأرة (يبلّغ UI Automation عن تحديد غير فارغ) — لا يُتتبع شيء ولا يُقترح، لأن الكتابة تستبدل التحديد؛ ويستأنف بعد أول حركة مؤشر عادية أو نقرة أو حدّ كلمة. وإذا وصلت مفاتيح أثناء القراءة تُهمل النتيجة ويُقرأ النص من جديد بعد أن تهدأ (فيشملها). وإذا لم يدعم التطبيق نصوص UI Automation (فشل الاستدعاء أو تجاوز 250 ملّي ثانية، على خيط مخصص، ثم مرة أخرى بعد 100 ملّي ثانية): بعد حركة مؤشر يستأنف بكلمة فارغة إن لم تُكتب حروف في الأثناء؛ وبعد Backspace أو إن كُتبت حروف ينتظر حدّ الكلمة التالي.
 
 #### المتانة
@@ -175,7 +177,7 @@
 
 ### العبارات المتعلَّمة (من الإصدار 1.1، قرار المستخدم: مفعّلة افتراضيًا)
 
-حين تنتهي كلمة، يكوّن `RecentWords.SequencesEndingWith` التسلسلات من كلمتين إلى 5 التي تنتهي بها (بالتهجئة المكتوبة، بلا تشكيل). وتبقى معلّقة مع الكلمة: إن تلاها Backspace أُسقطت معها، وإلا أرسلتها `PipelineUpdate.PhrasesToLearn`. ثم يعدّها `LearningService.LearnPhrases` في جدول `phrases` في `user.db` (المفتاح المطبّع ← آخر تهجئة، والعدد، ووقت آخر كتابة). وما بلغ 3 مرات يصير عبارة متعلَّمة. لا يُعدّ شيء أثناء إيقاف التعلّم أو إطفاء «تعلّم العبارات»، ولا ما فيه كلمة أقل من حرفين أو كلمة محظورة، ولا شيء في النوافذ الصامتة (لا يرى المسار فيها شيئًا). التنظيف عند البدء ومرة كل يوم: يُحذف ما لم يُتعلَّم ولم يُكتب منذ 30 يومًا. والحدود 20,000 تسلسل غير متعلَّم و2,000 عبارة متعلَّمة، ويُحذف الأقدم استعمالًا أولًا. `LearnedPhrases()` يرتّبها بالأكثر استعمالًا، ويترك العبارة التي تحتويها عبارة متعلَّمة أطول مكتوبة بقدرها تقريبًا (¾ عددها على الأقل). يضع `ItmamApp.UpdatePhrases` في `PhraseIndex` «عباراتي» ثم المتعلَّمة ثم المضمّنة، ويعيد بناءه عند `LearnedPhrasesChanged` على خيط المسار قبل حساب الشريط. والنقر بالزر الأيمن على عبارة في الشريط ينساها (`ForgetPhrase`). وفي صفحة «العبارات»: القائمة، والحذف، والنقل إلى «عباراتي»، و«حذف العبارات المتعلَّمة» (مع كل التسلسلات المعدودة). وحين يُقرأ السياق قبل المؤشر (بعد حدث تركيز أو نقرة…) يعيد `RecentWords.ResumeFrom` بناء الكلمات المتتالية من النص المقروء، فلا تضيع عبارة كُتبت قبل اكتمال القراءة.
+حين تنتهي كلمة، يكوّن `RecentWords.SequencesEndingWith` التسلسلات من كلمتين إلى 5 التي تنتهي بها (بالتهجئة المكتوبة، بلا تشكيل). وتبقى معلّقة مع الكلمة: إن تلاها Backspace أُسقطت معها، وإلا أرسلتها `PipelineUpdate.PhrasesToLearn`. ثم يعدّها `LearningService.LearnPhrases` في جدول `phrases` في `user.db` (المفتاح المطبّع ← آخر تهجئة، والعدد، ووقت آخر كتابة). وما بلغ مرتين يصير عبارة متعلَّمة. لا يُعدّ شيء أثناء إيقاف التعلّم أو إطفاء «تعلّم العبارات»، ولا ما فيه كلمة أقل من حرفين أو كلمة محظورة، ولا شيء في النوافذ الصامتة (لا يرى المسار فيها شيئًا). التنظيف عند البدء ومرة كل يوم: يُحذف ما لم يُتعلَّم ولم يُكتب منذ 30 يومًا. والحدود 20,000 تسلسل غير متعلَّم و2,000 عبارة متعلَّمة، ويُحذف الأقدم استعمالًا أولًا. `LearnedPhrases()` يرتّبها بالأكثر استعمالًا، ويترك العبارة التي تحتويها عبارة متعلَّمة أطول مكتوبة بقدرها تقريبًا (¾ عددها على الأقل). يضع `ItmamApp.UpdatePhrases` في `PhraseIndex` «عباراتي» ثم المتعلَّمة ثم المضمّنة، ويعيد بناءه عند `LearnedPhrasesChanged` على خيط المسار قبل حساب الشريط. والنقر بالزر الأيمن على عبارة في الشريط ينساها (`ForgetPhrase`). وفي صفحة «العبارات»: القائمة، والحذف، والنقل إلى «عباراتي»، و«حذف العبارات المتعلَّمة» (مع كل التسلسلات المعدودة). وحين يُقرأ السياق قبل المؤشر (بعد حدث تركيز أو نقرة…) يعيد `RecentWords.ResumeFrom` بناء الكلمات المتتالية من النص المقروء، فلا تضيع عبارة كُتبت قبل اكتمال القراءة.
 
 ### أين يصمت إتمام
 
@@ -202,7 +204,7 @@
 
 ### ضمانات الخصوصية في الشيفرة
 
-- الحروف المكتوبة توجد في الذاكرة فقط: في القناة، وفي `WordBuffer`، وعلى الشاشة.
+- الحروف المكتوبة توجد في الذاكرة فقط: في القناة، وفي `WordBuffer` (ومنها ما كُتب أثناء انتظار قراءة السياق)، وعلى الشاشة.
 - النص الوحيد الذي يُقرأ من التطبيقات الأخرى هو ما لا يزيد عن 49 حرفًا قبل المؤشر، بعد انتقال المؤشر إلى نص موجود، وأبدًا من حقول كلمات المرور أو التطبيقات المستثناة؛ ولا يُحتفظ إلا بالكلمة الحالية.
 - آخر 8 كلمات متتالية (للعبارات) تبقى في الذاكرة فقط وتُنسى عند أي حركة للمؤشر. ولا يُحفظ من ترتيب الكلمات إلا تسلسلات من كلمتين إلى 5 مع عددها (العبارات المتعلَّمة، قابلة للإطفاء)، وما لم يتكرر يُحذف بعد 30 يومًا.
 - السؤال الوحيد الذي يخرج من الجهاز هو سؤال متجر Microsoft عن وجود إصدار أحدث (`StoreUpdates`، قابل للإطفاء)، ولا يحمل شيئًا عن المستخدم أو عما يكتبه.
@@ -297,6 +299,13 @@ Nothing is read in excluded apps (`Itmam.Core.Input.ExcludedApps`; defaults: rem
 terminals, game launchers). This is checked twice: by `InputPipelineOptions.CanReadContext`
 against the foreground process before every read, and by `UiaCaretContextSource` against the
 process that owns the focused UI Automation element right before reading.
+
+What is typed while waiting for that read (from 1.1) is not lost: `WordBuffer` records it in memory (at most 48
+characters) instead of starting a new word at the first boundary, and the text is read only after input has been quiet
+for 40 ms. If the text read ends exactly with what was typed, the words finished meanwhile are recovered and learned
+with their sequences (`RecoveredWords`); the first one only if a boundary or the start of the text comes before it. If
+the text cannot be read, tracking resumes after the last boundary typed (`ResumeFromBlind`); what comes before the
+first boundary may continue an existing word and is not used.
 
 `WordBuffer.ResumeFromContext` keeps only the trailing Arabic word of that text (the word the
 caret is in) as the current word, or resumes with an empty word if a boundary or the start of the
@@ -478,7 +487,7 @@ Arabic-Indic digits equal Western ones.
 When a word is finished, `RecentWords.SequencesEndingWith` forms the 2–5-word sequences ending with it (as typed,
 without tashkeel). They stay pending with the word: dropped with it if Backspace follows, otherwise carried by
 `PipelineUpdate.PhrasesToLearn`. `LearningService.LearnPhrases` counts them in the `phrases` table of `user.db`
-(normalized key → spelling typed last, count, last time typed); 3 times makes a learned phrase. Nothing is counted while
+(normalized key → spelling typed last, count, last time typed); 2 times make a learned phrase. Nothing is counted while
 learning is paused or "Learn phrases" is off, nothing with a word under 2 letters or a blocked word, and nothing in
 silenced windows (the pipeline sees nothing there). Clean-up at start and once a day: a sequence not learned and not
 typed for 30 days is deleted; limits are 20,000 sequences not learned and 2,000 learned phrases, the least recently
@@ -536,7 +545,8 @@ nothing:
 
 ### Privacy guarantees in the code
 
-- Typed characters exist only in memory: in the channel, in `WordBuffer`, and on screen.
+- Typed characters exist only in memory: in the channel, in `WordBuffer` (including what is typed while waiting for
+  the context), and on screen.
 - The only text read from other apps is ≤ 49 characters before the caret, after the caret moved
   into existing text, never from password fields or excluded apps; only the current word is kept.
 - The last 8 words in a row (for phrases) stay in memory only and are forgotten on any caret move. Word order is

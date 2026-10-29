@@ -51,6 +51,11 @@ public sealed class WordBuffer
     // Letters typed while detached: they belong to a word whose start we did not see.
     private int _ignoredLetters;
 
+    // What was typed while detached and waiting for the context (memory only, at most MaxLength
+    // characters): words finished before the context could be read are recovered from it.
+    private readonly StringBuilder _blind = new(MaxLength);
+    private bool _blindOverflow;
+
     /// <summary>The word as typed, including tashkeel and tatweel.</summary>
     public string Text => _text.ToString();
 
@@ -63,6 +68,23 @@ public sealed class WordBuffer
 
     /// <summary>The text before the caret is unknown; nothing is tracked until resumed or a boundary.</summary>
     public bool IsDetached => _detached;
+
+    /// <summary>
+    /// Set by the pipeline while a context read is scheduled. A word boundary typed meanwhile then
+    /// keeps the buffer detached and is recorded with the rest of the typing, instead of starting a
+    /// new word blind (which lost the word typed before it).
+    /// </summary>
+    public bool AwaitingContext { get; set; }
+
+    /// <summary>Something was typed while waiting for the context.</summary>
+    public bool HasBlindTyping => _detached && _blind.Length > 0;
+
+    /// <summary>
+    /// Words typed and finished while the context was unknown, found by the last resume (oldest first;
+    /// <c>EndedBySpace</c> false when another boundary ended it). They were typed by the user, so they
+    /// are learned like any finished word.
+    /// </summary>
+    public IReadOnlyList<(string Word, bool EndedBySpace)> RecoveredWords { get; private set; } = [];
 
     public BufferResult Apply(InputEvent input) => input.Kind switch
     {
@@ -113,13 +135,36 @@ public sealed class WordBuffer
     /// <returns><see cref="BufferOutcome.Reset"/> when tracking resumed, otherwise <see cref="BufferResult.None"/>.</returns>
     public BufferResult ResumeEmpty()
     {
-        if (!_detached || _ignoredLetters > 0)
+        RecoveredWords = [];
+        if (!_detached || _ignoredLetters > 0 || _blind.Length > 0)
         {
             return BufferResult.None;
         }
 
         _detached = false;
+        ClearBlind();
         return new BufferResult(BufferOutcome.Reset);
+    }
+
+    /// <summary>
+    /// The context could not be read, but a word boundary was typed meanwhile: the word after the last
+    /// boundary is known exactly (typed after it), and so are the words between boundaries. The text
+    /// before the first boundary may continue an existing word, so it is not used.
+    /// </summary>
+    /// <returns><see cref="BufferOutcome.Updated"/> or <see cref="BufferOutcome.Reset"/> when tracking resumed, otherwise None.</returns>
+    public BufferResult ResumeFromBlind()
+    {
+        RecoveredWords = [];
+        var blind = _blind.ToString();
+        var first = blind.AsSpan().IndexOfAnyExcept(WordChars());
+        if (!_detached || _blindOverflow || first < 0 || !ArabicText.IsWordBoundary(blind[first]))
+        {
+            return BufferResult.None;
+        }
+
+        var (words, current) = Split(blind[first..]);
+        RecoveredWords = words;
+        return Attach(current);
     }
 
     /// <summary>
@@ -136,10 +181,13 @@ public sealed class WordBuffer
     /// </returns>
     public BufferResult ResumeFromContext(ReadOnlySpan<char> textBeforeCaret, int maxRead)
     {
+        RecoveredWords = [];
         if (!_detached)
         {
             return BufferResult.None;
         }
+
+        var recovered = Recover(textBeforeCaret, maxRead);
 
         // Trailing run of Arabic letters and marks = the word the caret is in.
         var start = textBeforeCaret.Length;
@@ -166,20 +214,8 @@ public sealed class WordBuffer
             word = word[1..];
         }
 
-        _detached = false;
-        _ignoredLetters = 0;
-        _text.Clear();
-        _text.Append(word);
-        LetterCount = 0;
-        foreach (var c in word)
-        {
-            if (ArabicText.IsArabicLetter(c))
-            {
-                LetterCount++;
-            }
-        }
-
-        return new BufferResult(word.IsEmpty ? BufferOutcome.Reset : BufferOutcome.Updated);
+        RecoveredWords = recovered;
+        return Attach(word.ToString());
     }
 
     /// <summary>Discards the current word without committing it.</summary>
@@ -190,6 +226,7 @@ public sealed class WordBuffer
         LetterCount = 0;
         _detached = false;
         _ignoredLetters = 0;
+        ClearBlind();
         return hadContent ? new BufferResult(BufferOutcome.Reset) : BufferResult.None;
     }
 
@@ -205,6 +242,26 @@ public sealed class WordBuffer
 
             _text.Append(c);
             return new BufferResult(BufferOutcome.Updated);
+        }
+
+        if (_detached && AwaitingContext)
+        {
+            // Recorded until the context is read (see ResumeFromContext / ResumeFromBlind).
+            if (_blind.Length < MaxLength)
+            {
+                _blind.Append(c);
+            }
+            else
+            {
+                _blindOverflow = true;
+            }
+
+            if (ArabicText.IsArabicLetter(c))
+            {
+                _ignoredLetters++;
+            }
+
+            return BufferResult.None;
         }
 
         if (ArabicText.IsWordBoundary(c))
@@ -258,6 +315,16 @@ public sealed class WordBuffer
     {
         if (_detached)
         {
+            if (_blind.Length > 0)
+            {
+                if (ArabicText.IsArabicLetter(_blind[^1]))
+                {
+                    _ignoredLetters--;
+                }
+
+                _blind.Length--;
+            }
+
             return BufferResult.None;
         }
 
@@ -288,6 +355,88 @@ public sealed class WordBuffer
         _detached = true;
         return result;
     }
+
+    // Tracking resumes with this word (letters and marks only) as the current word.
+    private BufferResult Attach(string word)
+    {
+        _detached = false;
+        _ignoredLetters = 0;
+        ClearBlind();
+        _text.Clear();
+        _text.Append(word);
+        LetterCount = word.Count(ArabicText.IsArabicLetter);
+        return new BufferResult(word.Length == 0 ? BufferOutcome.Reset : BufferOutcome.Updated);
+    }
+
+    private void ClearBlind()
+    {
+        _blind.Clear();
+        _blindOverflow = false;
+    }
+
+    // The words typed blind and finished, when the text read from the app ends with everything typed
+    // blind (the app has applied it). The first part counts only if a boundary or the start of the
+    // text is right before it, so a word the caret was in the middle of is never learned cut.
+    private IReadOnlyList<(string Word, bool EndedBySpace)> Recover(ReadOnlySpan<char> textBeforeCaret, int maxRead)
+    {
+        if (_blind.Length == 0 || _blindOverflow)
+        {
+            return [];
+        }
+
+        var blind = Lines(_blind.ToString());
+        var context = Lines(textBeforeCaret.ToString());
+        if (!context.EndsWith(blind, StringComparison.Ordinal))
+        {
+            return [];
+        }
+
+        var start = context.Length - blind.Length;
+        var startsWord = start > 0 ? ArabicText.IsWordBoundary(context[start - 1]) : context.Length < maxRead;
+        if (!startsWord)
+        {
+            var first = blind.AsSpan().IndexOfAnyExcept(WordChars());
+            if (first < 0)
+            {
+                return [];
+            }
+
+            blind = blind[first..];
+        }
+
+        return Split(blind).Words;
+    }
+
+    // Words ended by a boundary, and the word after the last boundary (the current word).
+    private static (IReadOnlyList<(string Word, bool EndedBySpace)> Words, string Current) Split(string typed)
+    {
+        var words = new List<(string, bool)>();
+        var start = 0;
+        for (var i = 0; i < typed.Length; i++)
+        {
+            if (ArabicText.IsWordBoundary(typed[i]))
+            {
+                var word = ArabicText.StripIgnorable(typed.AsSpan(start, i - start));
+                if (ArabicText.IsArabicWord(word))
+                {
+                    words.Add((word, typed[i] == ' '));
+                }
+
+                start = i + 1;
+            }
+        }
+
+        var current = typed[start..];
+        return (words, current.All(c => ArabicText.IsArabicLetter(c) || ArabicText.IsIgnorable(c)) ? current : string.Empty);
+    }
+
+    // Line breaks as one character, whatever the app reports.
+    private static string Lines(string text) => text.Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n').Replace('\u00A0', ' ');
+
+    private static System.Buffers.SearchValues<char> WordChars() => WordCharSet;
+
+    private static readonly System.Buffers.SearchValues<char> WordCharSet = System.Buffers.SearchValues.Create(
+        [.. Enumerable.Range(0x0600, 0x0100).Select(c => (char)c).Where(c => ArabicText.IsArabicLetter(c) || ArabicText.IsIgnorable(c))]);
 
     private BufferResult Commit()
     {

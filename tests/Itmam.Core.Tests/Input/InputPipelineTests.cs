@@ -439,6 +439,47 @@ public sealed class InputPipelineTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task A_word_finished_before_the_context_is_read_is_recovered_from_it()
+    {
+        // A focus or window change, then «ارجو لكم» typed at once: the space comes before the read.
+        _context.Next = "سطر\nارجو لكم";
+        Send(InputEvent.Of(InputEventKind.FocusChanged));
+        Type("ارجو لكم");
+
+        (await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedWithWord)).Word.ShouldBe("لكم");
+        Type(" ");
+        await DrainAsync();
+
+        _updates.Select(u => u.WordToLearn).OfType<string>().ShouldBe(["ارجو", "لكم"]);
+        PhrasesLearned().ShouldBe(["ارجو لكم"]);
+    }
+
+    [Fact]
+    public async Task Typing_that_does_not_match_the_text_read_is_not_learned()
+    {
+        _context.Next = "شيء آخر تماما";
+        Send(InputEvent.Of(InputEventKind.FocusChanged));
+        Type("ارجو لكم");
+        await WaitForAsync(u => u.Probe is not null && u.Probe != ProbeOutcome.Discarded);
+        await DrainAsync();
+
+        _updates.ShouldNotContain(u => u.WordToLearn == "ارجو");
+    }
+
+    [Fact]
+    public async Task Without_ui_automation_words_after_the_first_boundary_typed_meanwhile_are_kept()
+    {
+        _context.Next = null;
+        Send(InputEvent.Of(InputEventKind.MouseClick));
+        Type("ب ارجو لكم");                       // «ب» may end a word we never saw: not learned
+
+        (await WaitForAsync(u => u.Probe == ProbeOutcome.AssumedEmpty)).Word.ShouldBe("لكم");
+        await DrainAsync();
+
+        _updates.Select(u => u.WordToLearn).OfType<string>().ShouldBe(["ارجو"]);
+    }
+
+    [Fact]
     public async Task Pasted_words_never_join_the_phrase_chain()
     {
         _context.Next = "أرجو لكم يوما سعيدا";

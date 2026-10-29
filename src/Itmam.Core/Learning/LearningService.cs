@@ -12,8 +12,8 @@ public sealed record LearningOptions
     /// <summary>Changes are written to disk this long after the last one (and always on exit).</summary>
     public TimeSpan SaveDelay { get; init; } = TimeSpan.FromSeconds(2);
 
-    /// <summary>Times a sequence must be typed before it is suggested as a phrase (user decision: 3).</summary>
-    public int PhraseMinUses { get; init; } = 3;
+    /// <summary>Times a sequence must be typed before it is suggested as a phrase (user decision: 2, was 3).</summary>
+    public int PhraseMinUses { get; init; } = 2;
 
     /// <summary>Longest sequence learned (user decision: 2–5 words).</summary>
     public int MaxPhraseWords { get; init; } = 5;
