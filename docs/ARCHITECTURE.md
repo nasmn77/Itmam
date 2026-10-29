@@ -157,7 +157,7 @@
     user.db.corrupt-<timestamp> (kept) and a fresh database is created.
 ```
 
-ما يُحفظ لكل كلمة: الكلمة، وعدد مرات استعمالها، ووقت آخر استعمال، وهل حظرها المستخدم. لا جمل أبدًا، ولا اسم التطبيق الذي كُتبت فيه، ولا أي شيء كُتب في نافذة صامتة. الكلمة المتعلَّمة تُقترح بعد `MinUsesToSuggest` استعمالًا (افتراضيًا 2). صفحة «كلماتي» تستخدم `LearningService`: إضافة، وتعديل، وحذف، وحظر وإلغاؤه، واستيراد وتصدير (`word<TAB>count`، و`!word` للمحظورة)، وإيقاف مؤقت، وحذف الكل؛ والحظر وإلغاؤه والحذف تطلب تأكيدًا. وفي الشريط، النقر بالزر الأيمن يفتح قائمة (من الإصدار 1.1: «حذف» للكلمة أو العبارة المتعلَّمة، و«إضافة إلى عباراتي» للعبارات)، وCtrl+Delete أثناء الاختيار بالأسهم ينسى كلمة متعلَّمة (`ForgetSuggestion` ← `LearningService.Remove`)، ويتعلّمها من جديد إن استُعملت. الحظر الدائم لا يُتاح إلا في «كلماتي».
+ما يُحفظ لكل كلمة: الكلمة، وعدد مرات استعمالها، ووقت آخر استعمال، وهل حظرها المستخدم. لا جمل أبدًا، ولا اسم التطبيق الذي كُتبت فيه، ولا أي شيء كُتب في نافذة صامتة. الكلمة المتعلَّمة تُقترح بعد `MinUsesToSuggest` استعمالًا (افتراضيًا 2). صفحة «كلماتي» تستخدم `LearningService`: إضافة، وتعديل، وحذف، وحظر وإلغاؤه، واستيراد وتصدير (`word<TAB>count`، و`!word` للمحظورة)، وإيقاف مؤقت، وحذف الكل؛ والحظر وإلغاؤه والحذف تطلب تأكيدًا. وفي الشريط، النقر بالزر الأيمن يعرض في الشريط نفسه أزرارًا بدل الاقتراحات، دون أن يأخذ التركيز (من الإصدار 1.1: «حذف» للكلمة أو العبارة المتعلَّمة، و«إضافة إلى عباراتي» للعبارات)، وCtrl+Delete أثناء الاختيار بالأسهم ينسى كلمة متعلَّمة (`ForgetSuggestion` ← `LearningService.Remove`)، ويتعلّمها من جديد إن استُعملت. الحظر الدائم لا يُتاح إلا في «كلماتي».
 
 أمان التزامن: خيط المعالجة يتعلّم الكلمات بينما تعدّلها «كلماتي» من خيط الواجهة. كل تغيير يمر عبر `LearningService` تحت قفله (`SyncRoot`)؛ و`SuggestionController` يمسك القفل نفسه بينما يقرأ `SuggestionEngine` الفهرس؛ والصفحة تعرض نسخة (`LearningService.Snapshot`).
 
@@ -434,8 +434,8 @@ Stored per word: the word, how many times it was used, when it was last used, an
 blocked it. Never sentences, the app it was typed in, or anything typed in a silenced
 window. A learned word is suggested after `MinUsesToSuggest` uses (default 2). "My words" uses
 `LearningService`: add, edit, remove, block/unblock, import/export (`word<TAB>count`,
-`!word` = blocked), pause, delete all; blocking, unblocking and deleting ask for confirmation. On the bar, right-click opens a
-menu (from 1.1: "Delete" for a learned word or phrase, "Add to My phrases" for phrases), and Ctrl+Delete while
+`!word` = blocked), pause, delete all; blocking, unblocking and deleting ask for confirmation. On the bar, right-click shows actions in
+the bar itself, without taking the focus (from 1.1: "Delete" for a learned word or phrase, "Add to My phrases" for phrases), and Ctrl+Delete while
 navigating forgets a learned word (`ForgetSuggestion` →
 `LearningService.Remove`); it is learned again if used. Blocking for good is only offered in "My words".
 

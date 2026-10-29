@@ -201,16 +201,16 @@ internal sealed class ItmamApp : IDisposable
 
     public void Dispose() => Shutdown();
 
-    // Right-click on the bar (user decision 1.1): a small menu with what applies to this suggestion —
+    // Right-click on the bar (user decision 1.1): the bar shows what applies to this suggestion —
     // delete a learned word or phrase (learned again if used again), add a phrase to "My phrases".
     // Nothing for a dictionary word or a phrase already in "My phrases". UI thread.
-    private void ShowSuggestionMenu(int index, string text, Point screen)
+    private void ShowSuggestionMenu(int index, string text)
     {
         var isPhrase = text.Contains(' ', StringComparison.Ordinal);
-        var items = new List<ToolStripItem>();
+        var actions = new List<(string, Action)>();
         if (isPhrase ? Learning.IsLearnedPhrase(text) : Learning.IsLearnedWord(text))
         {
-            items.Add(new ToolStripMenuItem(Resources.Strings.BarMenuDelete, null, (_, _) => Hooks.Post(InputEvent.Forget(index, text))));
+            actions.Add((Resources.Strings.BarMenuDelete, () => Hooks.Post(InputEvent.Forget(index, text))));
         }
 
         var key = LearningService.PhraseKey(text);
@@ -218,23 +218,11 @@ internal sealed class ItmamApp : IDisposable
             && !Settings.MyPhrases.Any(p => LearningService.PhraseKey(p) == key)
             && !Settings.TextShortcuts.Any(s => s.Text == text))
         {
-            items.Add(new ToolStripMenuItem(Resources.Strings.BarMenuAddToMyPhrases, null,
-                (_, _) => UpdateSettings(Settings with { MyPhrases = [.. Settings.MyPhrases, phrase] })));
+            actions.Add((Resources.Strings.BarMenuAddToMyPhrases,
+                () => UpdateSettings(Settings with { MyPhrases = [.. Settings.MyPhrases, phrase] })));
         }
 
-        if (items.Count == 0)
-        {
-            return;
-        }
-
-        var menu = new ContextMenuStrip
-        {
-            ShowImageMargin = false,
-            RightToLeft = Settings.Language == UiLanguage.Arabic ? RightToLeft.Yes : RightToLeft.No,
-        };
-        menu.Items.AddRange([.. items]);
-        menu.Closed += (_, _) => _ui.Post(_ => menu.Dispose(), null); // after the clicked item ran
-        menu.Show(screen);
+        Popup.ShowActions(actions);
     }
 
     // A missing or unreadable list only turns the shipped phrases off; the user's own still work.

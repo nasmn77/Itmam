@@ -26,6 +26,12 @@ public sealed class PopupState
     public void Hide() => Volatile.Write(ref _current, PopupSnapshot.Hidden);
 
     /// <summary>
+    /// The bar shows a suggestion's actions (right-click): no word for the keys to accept, but clicks
+    /// inside <paramref name="bounds"/> still belong to the bar.
+    /// </summary>
+    public void ShowActions(Rectangle bounds) => Volatile.Write(ref _current, new PopupSnapshot([], bounds));
+
+    /// <summary>
     /// A suggestion was just accepted and Backspace may undo it. Set by the pipeline; cleared by the
     /// hook at the next key or click, and by the pipeline at its next event.
     /// </summary>

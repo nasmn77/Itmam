@@ -56,7 +56,8 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
   click opens the menu (no double-click); «تعلّم الكلمات الجديدة» toggle (inverse of LearningPaused). Version shown is
   read from the package at runtime. Then (user decisions): Backspace right after an accept undoes it (`UndoAccept`,
   decided in the hook from `PopupState.CanUndoAccept`); import/export of My phrases and text shortcuts (text files, import
-  only adds, an existing shortcut key keeps its text); right-click on the bar opens a menu (Delete / Add to My phrases);
+  only adds, an existing shortcut key keeps its text); right-click on the bar shows actions IN the bar (Delete / Add to My phrases; a real ContextMenuStrip took
+  the focus and stayed open — never use one there);
   "Turn off Itmam" in the tray menu and on the Exit page; About links to the website privacy page. Also the two 1.0.1 fixes, verified by the user:
   (1) `CaretSource.FocusedField` fallback before the mouse pointer when a web control reports no caret (the bar had
   appeared at the top of Partner Center in Edge); (2) the caret is read again 60 ms after the bar is shown when no

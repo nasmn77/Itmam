@@ -31,6 +31,10 @@ internal sealed class SuggestionPopup : Form
     private bool _rightToLeft = true;
     private int _selected = -1;
     private int _hovered = -1;
+    private Rectangle _shown;
+
+    // Set while the bar shows a suggestion's actions instead of suggestions (right-click).
+    private IReadOnlyList<Action>? _actions;
 
     /// <param name="state">Published on every show/hide so the keyboard hook knows what is on screen.</param>
     public SuggestionPopup(PopupState state)
@@ -66,8 +70,8 @@ internal sealed class SuggestionPopup : Form
     /// <summary>A suggestion was clicked: (index, word). Raised on the UI thread.</summary>
     public event Action<int, string>? SuggestionClicked;
 
-    /// <summary>A suggestion was right-clicked: (index, word, screen point) for its menu. Raised on the UI thread.</summary>
-    public event Action<int, string, Point>? SuggestionMenuRequested;
+    /// <summary>A suggestion was right-clicked: (index, word) — answer with <see cref="ShowActions"/>. Raised on the UI thread.</summary>
+    public event Action<int, string>? SuggestionMenuRequested;
 
     protected override bool ShowWithoutActivation => true;
 
@@ -91,6 +95,7 @@ internal sealed class SuggestionPopup : Form
     {
         var monitor = Monitors.FromPoint(new Point(caret.X, caret.Y + (caret.Height / 2)));
         _metrics = SuggestionBarMetrics.ForFontSize(_appearance.FontPixels).Scale(monitor.Scale);
+        _actions = null;
         _words = words;
         _rightToLeft = rightToLeft;
         ApplyTheme();
@@ -105,8 +110,39 @@ internal sealed class SuggestionPopup : Form
         _selected = -1;
         _hovered = -1;
         PopupWindows.ShowWithoutActivation(Handle, bounds);
+        _shown = bounds;
         IsShowing = true;
         _state.Show(words, bounds);
+        Invalidate();
+    }
+
+    /// <summary>
+    /// Right-click menu, drawn in the bar itself (user decision 1.1, after a real menu took the focus
+    /// and stayed open): the actions replace the suggestions in place, never take focus, and the next
+    /// key or update shows the suggestions again. A click runs an action and hides the bar.
+    /// </summary>
+    public void ShowActions(IReadOnlyList<(string Label, Action Run)> actions)
+    {
+        if (!IsShowing || actions.Count == 0)
+        {
+            return;
+        }
+
+        _actions = [.. actions.Select(a => a.Run)];
+        _words = [.. actions.Select(a => a.Label)];
+        using (var measure = Graphics.FromHwnd(Handle))
+        {
+            _layout = BarRenderer.Measure(measure, _words, FontFor(_metrics.FontPixels), _metrics, _rightToLeft);
+        }
+
+        // Same place, anchored on the side the bar grows from.
+        var left = _rightToLeft ? _shown.Right - _layout.Size.Width : _shown.Left;
+        var bounds = new Rectangle(new Point(left, _shown.Top), _layout.Size);
+        _selected = -1;
+        _hovered = -1;
+        PopupWindows.ShowWithoutActivation(Handle, bounds);
+        _shown = bounds;
+        _state.ShowActions(bounds);
         Invalidate();
     }
 
@@ -128,6 +164,7 @@ internal sealed class SuggestionPopup : Form
 
     public void HideSuggestions()
     {
+        _actions = null;
         _state.Hide();
         if (IsHandleCreated && IsShowing)
         {
@@ -158,6 +195,14 @@ internal sealed class SuggestionPopup : Form
     protected override void OnMouseDown(MouseEventArgs e)
     {
         base.OnMouseDown(e);
+        if (_actions is { } actions)
+        {
+            var action = ItemAt(e.Location) is var chosen and >= 0 && e.Button == MouseButtons.Left ? actions[chosen] : null;
+            HideSuggestions();
+            action?.Invoke();
+            return;
+        }
+
         if (ItemAt(e.Location) is var index and >= 0)
         {
             if (e.Button == MouseButtons.Left)
@@ -166,7 +211,7 @@ internal sealed class SuggestionPopup : Form
             }
             else if (e.Button == MouseButtons.Right)
             {
-                SuggestionMenuRequested?.Invoke(index, _words[index], PointToScreen(e.Location));
+                SuggestionMenuRequested?.Invoke(index, _words[index]);
             }
         }
     }

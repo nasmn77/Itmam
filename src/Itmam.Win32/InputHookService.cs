@@ -495,7 +495,7 @@ public sealed unsafe class InputHookService : IDisposable
                     // caret in the app does not move, so it is not a context change.
                     var point = ((MSLLHOOKSTRUCT*)lParam.Value)->pt;
                     var bar = _popup.Current;
-                    if (!(bar.IsVisible && bar.Bounds.Contains(point.X, point.Y)))
+                    if (!(!bar.Bounds.IsEmpty && bar.Bounds.Contains(point.X, point.Y)))
                     {
                         Diagnostics.MouseClicks++;
                         Publish(InputEvent.Of(InputEventKind.MouseClick), _layouts.Current());
