@@ -32,6 +32,7 @@
   <ul>
     <li><strong>Keystrokes</strong>, only while you type with an Arabic keyboard layout, to know the word you are typing and suggest completions. Typing in any other language (e.g. English) is not tracked.</li>
     <li><strong>Only the current word before the caret:</strong> when the caret moves into existing text (Backspace, a mouse click, arrow keys, or switching to another field or window), the app uses Windows UI Automation to read at most 49 characters before the caret so it can continue the word the caret is in. It keeps only that word, in memory, and discards the rest immediately.</li>
+    <li><strong>The last words you typed in a row</strong> (8 at most), to complete common phrases such as «بسم الله الرحمن الرحيم». They stay in memory only, are never stored or learned from, and are forgotten at any boundary other than a space, any caret move or window change. Only the built-in list and the phrases you add yourself are ever suggested.</li>
     <li><strong>The program file name</strong> of the app you type in (e.g. <code>notepad.exe</code>), to know whether it is an excluded app. This name is not stored.</li>
   </ul>
 
@@ -52,7 +53,7 @@
   <h2>What is stored on your device</h2>
   <ul>
     <li><strong>Your words:</strong> for each word: the word itself, how many times you used it, when you last used it, and whether you blocked it. Nothing else: no sentences, no word order, not the app you typed in. Location: <code>%LOCALAPPDATA%\Itmam\user.db</code> (inside the app's private folder when installed from the Store).</li>
-    <li><strong>Your settings:</strong> such as colors, shortcuts and the excluded apps list, in <code>%LOCALAPPDATA%\Itmam\settings.json</code>. They contain no typed text.</li>
+    <li><strong>Your settings:</strong> such as colors, shortcuts, the excluded apps list and the "My phrases" you add yourself, in <code>%LOCALAPPDATA%\Itmam\settings.json</code>. They contain nothing you type in other apps.</li>
     <li><strong>Never learned:</strong> words in password fields, excluded apps, apps running as administrator, full-screen games, blocked words, and any word you delete right after typing it.</li>
   </ul>
 

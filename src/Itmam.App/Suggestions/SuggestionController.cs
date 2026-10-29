@@ -61,13 +61,9 @@ internal sealed class SuggestionController : IDisposable
         IReadOnlyList<string> words = [];
         // Silenced windows (password field, elevated/excluded app, full screen) never show the bar.
         if (update is { IsArabicLayout: true, IsDetached: false, SuggestionsSuppressed: false, Silenced: SilenceReason.None }
-            && _isEnabled()
-            && update.Letters >= _engine.Options.MinChars)
+            && _isEnabled())
         {
-            lock (_userWordsLock)
-            {
-                words = _engine.Suggest(update.Word).Select(s => s.Word).ToArray();
-            }
+            words = Suggest(update);
         }
 
         var started = update.Input?.Timestamp ?? Stopwatch.GetTimestamp();
@@ -130,6 +126,29 @@ internal sealed class SuggestionController : IDisposable
         catch (OperationCanceledException)
         {
         }
+    }
+
+    /// <summary>Fixed expressions to complete; <see cref="PhraseIndex.Empty"/> turns phrase suggestions off.</summary>
+    public PhraseIndex Phrases { get; set; } = PhraseIndex.Empty;
+
+    // A phrase the user is typing comes first (Tab inserts the whole rest of it), then dictionary words.
+    // Phrases can show the bar right after a space, before any letter: the next word of «بسم …».
+    private IReadOnlyList<string> Suggest(PipelineUpdate update)
+    {
+        var max = _engine.Options.MaxSuggestions;
+        var phrases = Phrases.Suggest(update.RecentWords ?? [], update.Word, max);
+        if (update.Letters < _engine.Options.MinChars)
+        {
+            return phrases;
+        }
+
+        string[] dictionary;
+        lock (_userWordsLock)
+        {
+            dictionary = [.. _engine.Suggest(update.Word).Select(s => s.Word)];
+        }
+
+        return [.. phrases.Concat(dictionary).Distinct().Take(max)];
     }
 
     // True when no new request arrived within <paramref name="delay"/>.

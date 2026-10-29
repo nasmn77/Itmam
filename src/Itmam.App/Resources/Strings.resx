@@ -185,4 +185,15 @@
   <data name="OpenStore" xml:space="preserve"><value>Itmam in Microsoft Store</value></data>
   <data name="OpenStoreHint" xml:space="preserve"><value>Updates, ratings and reviews.</value></data>
   <data name="OpenButton" xml:space="preserve"><value>Open</value></data>
+  <data name="NavPhrases" xml:space="preserve"><value>Phrases</value></data>
+  <data name="PhrasesIntro" xml:space="preserve"><value>{0} common phrases are built in: greetings, remembrance, prayers, occasions and formal letters. Type the start of one and Tab inserts it whole, or keep going word by word.</value></data>
+  <data name="SuggestPhrases" xml:space="preserve"><value>Suggest common phrases</value></data>
+  <data name="SuggestPhrasesHint" xml:space="preserve"><value>After «بسم » the bar offers «الله الرحمن الرحيم». Only listed phrases are suggested; the words you just typed stay in memory only.</value></data>
+  <data name="SectionMyPhrases" xml:space="preserve"><value>My phrases ({0})</value></data>
+  <data name="AddPhrase" xml:space="preserve"><value>Add a phrase</value></data>
+  <data name="AddPhraseHint" xml:space="preserve"><value>Your signature, your organization's name, or any phrase you write often. Suggested before the built-in ones.</value></data>
+  <data name="EditPhrase" xml:space="preserve"><value>Edit phrase</value></data>
+  <data name="PhrasePrompt" xml:space="preserve"><value>Type the phrase (two Arabic words or more):</value></data>
+  <data name="NotAPhrase" xml:space="preserve"><value>Type two Arabic words or more, without digits or Latin letters.</value></data>
+  <data name="ConfirmDeletePhrase" xml:space="preserve"><value>Delete «{0}» from your phrases?</value></data>
 </root>

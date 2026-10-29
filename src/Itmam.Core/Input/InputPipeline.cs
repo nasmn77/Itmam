@@ -121,6 +121,10 @@ public enum ProbeOutcome
 /// accepted) stays pending until the next event: Backspace or Ctrl+Backspace right after it means
 /// the user is correcting it, so it is dropped instead of learned.
 /// </param>
+/// <param name="RecentWords">
+/// Normalized words typed in a row just before the current one (oldest first), to continue a known
+/// phrase. In memory only; empty after any boundary other than a space or any caret move.
+/// </param>
 public readonly record struct PipelineUpdate(
     InputRecord? Input,
     BufferResult Result,
@@ -132,7 +136,8 @@ public readonly record struct PipelineUpdate(
     bool IsDetached,
     bool SuggestionsSuppressed = false,
     SilenceReason Silenced = SilenceReason.None,
-    string? WordToLearn = null);
+    string? WordToLearn = null,
+    IReadOnlyList<string>? RecentWords = null);
 
 public sealed record InputPipelineOptions
 {
@@ -190,6 +195,9 @@ public sealed class InputPipeline(
     // The character after the caret, read with the caret context ('\0' = end of text, null = unknown).
     // Typing, Backspace and accepting insert/delete before it, so it stays valid until the caret moves.
     private char? _charAfterCaret;
+
+    // The words typed in a row just before the current one, for phrase suggestions (memory only).
+    private readonly RecentWords _recent = new();
 
     public InputTracker Tracker { get; } = new();
 
@@ -342,6 +350,7 @@ public sealed class InputPipeline(
         {
             // Password field, elevated or excluded app, full-screen game: track nothing at all.
             buffer.Reset();
+            _recent.Clear();
             _suppression = Suppression.None;
             _charAfterCaret = null;
             return BufferResult.None;
@@ -362,6 +371,7 @@ public sealed class InputPipeline(
         }
 
         var result = Tracker.Process(record.Input, record.KeyboardLayout);
+        TrackRecentWords(record.Input, result);
         if (result.Outcome is BufferOutcome.Committed or BufferOutcome.Reset || buffer.IsDetached || buffer.IsEmpty)
         {
             _suppression = Suppression.None;
@@ -374,11 +384,37 @@ public sealed class InputPipeline(
         return result;
     }
 
-    // Replaces the typed prefix with the accepted word in the app, then updates the buffer.
+    // Phrase context: a word ended by a plain space continues it; any other boundary, a reset, or any
+    // non-character event (Backspace, caret move, focus or layout change…) forgets it.
+    private void TrackRecentWords(InputEvent input, BufferResult result)
+    {
+        if (input.Kind != InputEventKind.Character)
+        {
+            _recent.Clear();
+        }
+        else if (result.Outcome == BufferOutcome.Committed)
+        {
+            if (input.Character == ' ' && result.CommittedWord is { } word)
+            {
+                _recent.Push(word);
+            }
+            else
+            {
+                _recent.Clear();
+            }
+        }
+        else if (result.Outcome == BufferOutcome.Reset)
+        {
+            _recent.Clear();
+        }
+    }
+
+    // Replaces the typed prefix with the accepted word (or the rest of a phrase) in the app, then updates
+    // the buffer. The buffer may be empty: right after a space the bar can offer a phrase's next word.
     private BufferResult Accept(InputRecord record)
     {
         var buffer = Tracker.Buffer;
-        if (record.Input.Text is not { Length: > 0 } word || buffer.IsDetached || buffer.IsEmpty || injector is null)
+        if (record.Input.Text is not { Length: > 0 } word || buffer.IsDetached || injector is null)
         {
             return BufferResult.None;
         }
@@ -389,6 +425,8 @@ public sealed class InputPipeline(
             return BufferResult.None;
         }
 
+        // Accepted words join the phrase context; without a trailing space the last one is still being typed.
+        _recent.Push(edit.EndsWithSpace ? word : word[..Math.Max(0, word.LastIndexOf(' '))]);
         _suppression = edit.EndsWithSpace ? Suppression.None : Suppression.UntilNextLetter;
         return buffer.AcceptWord(word, edit.EndsWithSpace);
     }
@@ -483,6 +521,7 @@ public sealed class InputPipeline(
             buffer.IsDetached,
             _suppression != Suppression.None,
             _silence,
-            wordToLearn));
+            wordToLearn,
+            _recent.Snapshot));
     }
 }

@@ -14,6 +14,7 @@
 
 - **ضغطات لوحة المفاتيح** أثناء الكتابة بلوحة مفاتيح عربية فقط، لمعرفة الكلمة التي تكتبها الآن واقتراح إكمالها. الكتابة بأي لغة أخرى (مثل الإنجليزية) لا تُتتبع.
 - **الكلمة الحالية قبل المؤشر فقط:** عندما ينتقل المؤشر إلى نص موجود (Backspace، أو نقرة بالفأرة، أو الأسهم، أو الانتقال إلى حقل أو نافذة أخرى)، يقرأ التطبيق عبر خدمة UI Automation في Windows ما لا يزيد عن 49 حرفًا قبل المؤشر، ليكمل الكلمة التي يقف فيها المؤشر. يحتفظ في الذاكرة بهذه الكلمة وحدها ويتجاهل الباقي فورًا.
+- **آخر الكلمات التي كتبتها متتالية** (8 كلمات على الأكثر)، لإكمال العبارات المتلازمة مثل «بسم الله الرحمن الرحيم». تبقى في الذاكرة فقط، ولا تُحفظ ولا يُتعلَّم منها شيء، وتُنسى عند أي علامة غير المسافة أو عند تحريك المؤشر أو تغيير النافذة. والعبارات المقترحة هي القائمة المضمّنة في التطبيق وما تضيفه أنت فقط.
 - **اسم ملف البرنامج** الذي تكتب فيه (مثل `notepad.exe`)، لمعرفة هل هو من التطبيقات المستثناة. لا يُحفظ هذا الاسم.
 
 ### ما الذي لا يفعله
@@ -32,7 +33,7 @@
 
 - **كلماتك:** لكل كلمة: الكلمة نفسها، وعدد مرات استعمالها، ووقت آخر استعمال، وهل حظرتها. لا شيء غير ذلك: لا جمل، ولا ترتيب كلمات، ولا اسم التطبيق الذي كتبت فيه.
   المكان: `%LOCALAPPDATA%\Itmam\user.db` (عند التثبيت من المتجر يكون داخل المجلد الخاص بالتطبيق).
-- **إعداداتك:** مثل الألوان والاختصارات وقائمة التطبيقات المستثناة، في `%LOCALAPPDATA%\Itmam\settings.json`. لا تحتوي أي نص مما تكتبه.
+- **إعداداتك:** مثل الألوان والاختصارات وقائمة التطبيقات المستثناة، و«عباراتي» التي تضيفها بنفسك، في `%LOCALAPPDATA%\Itmam\settings.json`. لا تحتوي أي نص مما تكتبه في البرامج الأخرى.
 - **ما لا يُتعلَّم:** الكلمات في حقول كلمات المرور، والتطبيقات المستثناة، والتطبيقات التي تعمل بصلاحيات المسؤول، والألعاب بملء الشاشة، والكلمات المحظورة، وأي كلمة تمسحها مباشرة بعد كتابتها.
 
 ### تحكّمك في بياناتك
@@ -61,6 +62,7 @@
 
 - **Keystrokes**, only while you type with an Arabic keyboard layout, to know the word you are typing and suggest completions. Typing in any other language (e.g. English) is not tracked.
 - **Only the current word before the caret:** when the caret moves into existing text (Backspace, a mouse click, arrow keys, or switching to another field or window), the app uses Windows UI Automation to read at most 49 characters before the caret so it can continue the word the caret is in. It keeps only that word, in memory, and discards the rest immediately.
+- **The last words you typed in a row** (8 at most), to complete common phrases such as «بسم الله الرحمن الرحيم». They stay in memory only, are never stored or learned from, and are forgotten at any boundary other than a space, any caret move or window change. Only the built-in list and the phrases you add yourself are ever suggested.
 - **The program file name** of the app you type in (e.g. `notepad.exe`), to know whether it is an excluded app. This name is not stored.
 
 ### What it does not do
@@ -79,7 +81,7 @@
 
 - **Your words:** for each word: the word itself, how many times you used it, when you last used it, and whether you blocked it. Nothing else: no sentences, no word order, not the app you typed in.
   Location: `%LOCALAPPDATA%\Itmam\user.db` (inside the app's private folder when installed from the Store).
-- **Your settings:** such as colors, shortcuts and the excluded apps list, in `%LOCALAPPDATA%\Itmam\settings.json`. They contain no typed text.
+- **Your settings:** such as colors, shortcuts, the excluded apps list and the "My phrases" you add yourself, in `%LOCALAPPDATA%\Itmam\settings.json`. They contain nothing you type in other apps.
 - **Never learned:** words in password fields, excluded apps, apps running as administrator, full-screen games, blocked words, and any word you delete right after typing it.
 
 ### Your control over your data

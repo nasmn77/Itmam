@@ -363,6 +363,43 @@ public sealed class InputPipelineTests : IAsyncDisposable
         _updates.Last(u => u.Result.Outcome == BufferOutcome.Committed).Word.ShouldBeEmpty();
     }
 
+    private Task<PipelineUpdate> AfterCharacterAsync(char c) =>
+        WaitForAsync(u => u.Input?.Input is { Kind: InputEventKind.Character } input && input.Character == c);
+
+    [Fact]
+    public async Task Words_ended_by_a_space_are_remembered_for_phrases()
+    {
+        Type("بسم ");
+        (await AfterCharacterAsync(' ')).RecentWords.ShouldBe(["بسم"]);
+
+        Type("الله ");
+        (await WaitForAsync(u => u.RecentWords is { Count: 2 })).RecentWords.ShouldBe(["بسم", "الله"]);
+    }
+
+    [Fact]
+    public async Task Any_other_boundary_or_a_caret_move_forgets_them()
+    {
+        Type("بسم،");
+        (await AfterCharacterAsync('،')).RecentWords.ShouldBeEmpty();
+
+        Type("بسم ");
+        await AfterCharacterAsync(' ');
+        Send(InputEvent.Of(InputEventKind.MouseClick));
+        (await WaitForAsync(u => u.Input?.Input.Kind == InputEventKind.MouseClick)).RecentWords.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task The_next_word_of_a_phrase_can_be_accepted_before_typing_any_letter()
+    {
+        Type("بسم ");
+        await AfterCharacterAsync(' ');
+        Send(InputEvent.Accept(0, "الله الرحمن الرحيم"));
+
+        var accepted = await WaitForAsync(u => u.Input?.Input.Kind == InputEventKind.AcceptSuggestion);
+        _injector.Edits.ShouldBe([new TextEdit(0, "الله الرحمن الرحيم ")]);
+        accepted.RecentWords.ShouldBe(["بسم", "الله", "الرحمن", "الرحيم"]);
+    }
+
     [Fact]
     public async Task Accepting_a_hamza_spelling_replaces_the_whole_prefix()
     {

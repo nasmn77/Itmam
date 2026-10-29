@@ -185,4 +185,15 @@
   <data name="OpenStore" xml:space="preserve"><value>إتمام في متجر Microsoft</value></data>
   <data name="OpenStoreHint" xml:space="preserve"><value>التحديثات والتقييمات والمراجعات.</value></data>
   <data name="OpenButton" xml:space="preserve"><value>فتح</value></data>
+  <data name="NavPhrases" xml:space="preserve"><value>العبارات</value></data>
+  <data name="PhrasesIntro" xml:space="preserve"><value>مضمّنة {0} عبارة متلازمة: التحية، والذكر، والدعاء، والمناسبات، والرسائل الرسمية. اكتب أولها فيُدرجها Tab كاملة، أو أكمل كلمة بعد كلمة.</value></data>
+  <data name="SuggestPhrases" xml:space="preserve"><value>اقتراح العبارات المتلازمة</value></data>
+  <data name="SuggestPhrasesHint" xml:space="preserve"><value>بعد «بسم » يقترح الشريط «الله الرحمن الرحيم». لا يُقترح إلا ما في القائمة، والكلمات التي كتبتها للتو تبقى في الذاكرة فقط.</value></data>
+  <data name="SectionMyPhrases" xml:space="preserve"><value>عباراتي ({0})</value></data>
+  <data name="AddPhrase" xml:space="preserve"><value>إضافة عبارة</value></data>
+  <data name="AddPhraseHint" xml:space="preserve"><value>توقيعك، أو اسم جهة عملك، أو أي عبارة تكتبها كثيرًا. تُقترح قبل العبارات المضمّنة.</value></data>
+  <data name="EditPhrase" xml:space="preserve"><value>تعديل عبارة</value></data>
+  <data name="PhrasePrompt" xml:space="preserve"><value>اكتب العبارة (كلمتان عربيتان أو أكثر):</value></data>
+  <data name="NotAPhrase" xml:space="preserve"><value>اكتب كلمتين عربيتين أو أكثر، دون أرقام أو حروف لاتينية.</value></data>
+  <data name="ConfirmDeletePhrase" xml:space="preserve"><value>حذف «{0}» من عباراتك؟</value></data>
 </root>

@@ -328,11 +328,16 @@ internal sealed class WordList : ThemedControl
     }
 }
 
-/// <summary>Asks for one Arabic word (add, block, edit). Returns the word without tashkeel.</summary>
+/// <summary>
+/// Asks for one Arabic word (add, block, edit), or with a custom check a phrase ("My phrases").
+/// Returns the cleaned text (tashkeel removed).
+/// </summary>
 internal sealed class WordDialog : Form
 {
     private readonly TextBox _input = new() { BorderStyle = BorderStyle.FixedSingle };
     private readonly Label _error = new() { AutoSize = false, UseMnemonic = false };
+    private Func<string, string?> _clean = UserWordIndex.Clean;
+    private string _invalid = Strings.NotAnArabicWord;
 
     private WordDialog(string title, string prompt, string initial, SettingsPalette palette, bool rtl)
     {
@@ -377,9 +382,14 @@ internal sealed class WordDialog : Form
     public string? Word { get; private set; }
 
     /// <summary>Shows the dialog; null when cancelled.</summary>
-    public static string? Ask(IWin32Window owner, string title, string prompt, string initial, SettingsPalette palette, bool rtl)
+    /// <param name="clean">Validates and cleans the input (null = refused); default: one Arabic word.</param>
+    /// <param name="invalid">Shown when <paramref name="clean"/> refuses the input.</param>
+    public static string? Ask(IWin32Window owner, string title, string prompt, string initial, SettingsPalette palette, bool rtl,
+        Func<string, string?>? clean = null, string? invalid = null)
     {
         using var dialog = new WordDialog(title, prompt, initial, palette, rtl) { TopMost = owner is Form { TopMost: true } };
+        dialog._clean = clean ?? UserWordIndex.Clean;
+        dialog._invalid = invalid ?? Strings.NotAnArabicWord;
         return dialog.ShowDialog(owner) == DialogResult.OK ? dialog.Word : null;
     }
 
@@ -399,14 +409,14 @@ internal sealed class WordDialog : Form
 
     private void Accept()
     {
-        if (UserWordIndex.Clean(_input.Text.Trim()) is { } word)
+        if (_clean(_input.Text.Trim()) is { } word)
         {
             Word = word;
             DialogResult = DialogResult.OK;
         }
         else
         {
-            _error.Text = Strings.NotAnArabicWord;
+            _error.Text = _invalid;
             _input.Focus();
         }
     }

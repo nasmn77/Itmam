@@ -8,6 +8,7 @@ using Itmam.Core.Input;
 using Itmam.Core.Learning;
 using Itmam.Core.Presentation;
 using Itmam.Core.Settings;
+using Itmam.Core.Suggestions;
 using Itmam.Win32;
 using Microsoft.Win32;
 
@@ -20,6 +21,7 @@ internal enum SettingsPage
     Shortcuts,
     Excluded,
     Words,
+    Phrases,
     Updates,
     About,
     Exit,
@@ -178,7 +180,7 @@ internal sealed class SettingsWindow : Form
         _navigation.Controls.Add(header);
 
         var top = 72;
-        foreach (var (page, title) in new[] { (SettingsPage.General, Strings.NavGeneral), (SettingsPage.Appearance, Strings.NavAppearance), (SettingsPage.Shortcuts, Strings.NavShortcuts), (SettingsPage.Excluded, Strings.NavExcluded), (SettingsPage.Words, Strings.NavWords), (SettingsPage.Updates, Strings.NavUpdates), (SettingsPage.About, Strings.NavAbout), (SettingsPage.Exit, Strings.NavExit) })
+        foreach (var (page, title) in new[] { (SettingsPage.General, Strings.NavGeneral), (SettingsPage.Appearance, Strings.NavAppearance), (SettingsPage.Shortcuts, Strings.NavShortcuts), (SettingsPage.Excluded, Strings.NavExcluded), (SettingsPage.Words, Strings.NavWords), (SettingsPage.Phrases, Strings.NavPhrases), (SettingsPage.Updates, Strings.NavUpdates), (SettingsPage.About, Strings.NavAbout), (SettingsPage.Exit, Strings.NavExit) })
         {
             var item = new NavItem { Text = title, Left = 8, Top = top, Width = _navigation.Width - 16, Height = 40, Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
             item.Click += (_, _) => SelectPage(page);
@@ -234,6 +236,9 @@ internal sealed class SettingsWindow : Form
                 break;
             case SettingsPage.Words:
                 BuildWordsPage();
+                break;
+            case SettingsPage.Phrases:
+                BuildPhrasesPage();
                 break;
             case SettingsPage.Updates:
                 BuildUpdatesPage();
@@ -655,10 +660,12 @@ internal sealed class SettingsWindow : Form
         BeginInvoke(RebuildPage);
     }
 
-    // Warning before a change to where Itmam works; "No" is the default button.
-    private bool Confirm(string format, string? appName)
+    // Warning before a change; "No" is the default button. Names are kept left to right (file names,
+    // single words) unless they are Arabic phrases, whose word order must stay right to left.
+    private bool Confirm(string format, string? name, bool leftToRight = true)
     {
-        var text = appName is null ? format : string.Format(CultureInfo.CurrentCulture, format, "‪" + appName + "‬");
+        var shown = leftToRight ? "\u202A" + name + "\u202C" : name;
+        var text = name is null ? format : string.Format(CultureInfo.CurrentCulture, format, shown);
         var options = _mirrored ? MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign : 0;
         return MessageBox.Show(this, text, Strings.AppName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2, options) == DialogResult.Yes;
     }
@@ -944,6 +951,54 @@ internal sealed class SettingsWindow : Form
     {
         var options = _mirrored ? MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign : 0;
         MessageBox.Show(this, text, Strings.AppName, MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, options);
+    }
+
+    // User decision (1.1): fixed expressions are completed whole (Tab) or word by word. The shipped list
+    // plus the user's own ("My phrases", kept in settings.json); nothing is collected from typing.
+    private void BuildPhrasesPage()
+    {
+        var settings = _app.Settings;
+        AddTitle(Strings.NavPhrases);
+        AddText(string.Format(CultureInfo.CurrentCulture, Strings.PhrasesIntro, _app.ShippedPhrases.Count), secondary: true);
+
+        var suggest = new ToggleSwitch { Checked = settings.SuggestPhrases };
+        suggest.CheckedChanged += (_, _) => Update(s => s with { SuggestPhrases = suggest.Checked });
+        AddCard(Strings.SuggestPhrases, Strings.SuggestPhrasesHint, suggest);
+
+        AddSection(string.Format(CultureInfo.CurrentCulture, Strings.SectionMyPhrases, settings.MyPhrases.Count));
+        var add = new ThemedButton { Text = Strings.AddWordButton };
+        add.Click += (_, _) => EditPhrase(null);
+        AddCard(Strings.AddPhrase, Strings.AddPhraseHint, add);
+
+        foreach (var phrase in settings.MyPhrases)
+        {
+            var change = new ThemedButton { Text = Strings.EditWordButton };
+            change.Click += (_, _) => EditPhrase(phrase);
+            var remove = new ThemedButton { Text = Strings.DeleteButton };
+            remove.Click += (_, _) =>
+            {
+                if (Confirm(Strings.ConfirmDeletePhrase, phrase, leftToRight: false))
+                {
+                    Update(s => s with { MyPhrases = [.. s.MyPhrases.Where(p => p != phrase)] });
+                    BeginInvoke(RebuildPage); // after this click is handled
+                }
+            };
+            AddCard(phrase, null, new ButtonRow(change, remove));
+        }
+    }
+
+    // Add (existing = null) or edit one of "My phrases".
+    private void EditPhrase(string? existing)
+    {
+        var text = WordDialog.Ask(this, existing is null ? Strings.AddPhrase : Strings.EditPhrase, Strings.PhrasePrompt,
+            existing ?? string.Empty, _palette, _mirrored, PhraseIndex.Clean, Strings.NotAPhrase);
+        if (text is null || text == existing)
+        {
+            return;
+        }
+
+        Update(s => s with { MyPhrases = [.. s.MyPhrases.Where(p => p != existing).Append(text).Distinct()] });
+        BeginInvoke(RebuildPage);
     }
 
     // User decision: updates come from Microsoft Store. Itmam only asks the Store whether a newer version

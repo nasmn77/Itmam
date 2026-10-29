@@ -55,6 +55,10 @@ dotnet run --project tools/DictionaryBuilder -c Release -- `
 
 البناء الحالي: **522,510 كلمة** (صورة كتابة)، 1.66 ميغابايت؛ وحذفت قائمة الحظر 108 مدخلات.
 
+### العبارات المتلازمة (`phrases.txt`)
+
+عبارات عربية شائعة يكملها إتمام كاملة أو كلمة بعد كلمة (التحية، والذكر، والدعاء، والمناسبات، والرسائل الرسمية). جُمعت يدويًا لإتمام وتصدر برخصة MIT كالشيفرة. عبارة في كل سطر، كلمتان على الأقل، دون تشكيل؛ والترتيب مهم، فالأشهر أولًا داخل كل فئة. المساهمات مرحَّب بها.
+
 ### قائمة الحظر
 
 `blocklist.txt` يضم الكلمات التي لا تُقترح أبدًا (كلمة في كل سطر، والسطر الذي يبدأ بـ `#` تعليق). المساهمات مرحَّب بها؛ أعد بناء القاموس بعد تعديلها. ويستطيع المستخدمون أيضًا حظر الكلمات بأنفسهم.
@@ -121,6 +125,10 @@ Options: `--source <name>=<path>` (repeatable; the name must be a known source w
    spellings and varint frequencies (format documented in `src/Itmam.Core/Dictionary/DictionaryFile.cs`).
 
 Current build: **522,510 words** (spellings), 1.66 MB; the blocklist removed 108 entries.
+
+### Common phrases (`phrases.txt`)
+
+Common Arabic phrases Itmam completes whole or word by word (greetings, remembrance, prayers, occasions, formal letters). Compiled by hand for Itmam and released under the MIT license like the code. One phrase per line, at least two words, without tashkeel; order matters, the more common phrase first within each category. Contributions are welcome.
 
 ### Blocklist
 

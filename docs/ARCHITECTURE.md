@@ -161,6 +161,10 @@
 
 أمان التزامن: خيط المعالجة يتعلّم الكلمات بينما تعدّلها «كلماتي» من خيط الواجهة. كل تغيير يمر عبر `LearningService` تحت قفله (`SyncRoot`)؛ و`SuggestionController` يمسك القفل نفسه بينما يقرأ `SuggestionEngine` الفهرس؛ والصفحة تعرض نسخة (`LearningService.Snapshot`).
 
+### العبارات المتلازمة (من الإصدار 1.1)
+
+`PhraseIndex` (في Core) يحمّل `data/phrases.txt` و«عباراتي» من الإعدادات (عبارات المستخدم أولًا). ويحتفظ `InputPipeline` في `RecentWords` بآخر 8 كلمات أنهتها مسافة، مطبّعةً وفي الذاكرة فقط، ويمسحها عند أي علامة غير المسافة وعند أي حدث غير الكتابة (Backspace، حركة المؤشر، تغيير التركيز أو اللغة…) وفي النوافذ الصامتة؛ وترسلها `PipelineUpdate.RecentWords`. يقترح `SuggestionController` أولًا بقية العبارة التي يكتبها المستخدم (يُدرجها Tab كاملة) ثم الكلمة التالية فيها، ثم كلمات القاموس. ويظهر الشريط بعد المسافة مباشرة إن كانت هناك كلمة تالية. ولكي يبقى Tab متوقعًا: لا تبدأ عبارة من كلمة شائعة قصيرة (في، على، من…)، ولا تُقترح عند البدء إلا عبارة واحدة حتى تبقى كلمات القاموس في الشريط، وتُعتمد العبارات المطابقة لأكبر عدد من الكلمات فقط. القبول يُدرج العبارة دفعة واحدة، والقبول بلا حروف مكتوبة مسموح.
+
 ### أين يصمت إتمام
 
 يُفحص `ForegroundGuard` (في Win32، وينفّذ `IInputGuard` من Core) كلما احتمل تغيّر النافذة أو الحقل أو المؤشر. وما دام يبلّغ عن سبب، لا يتتبع خط المعالجة شيئًا ولا يقرأ ولا يعرض ولا يتعلّم:
@@ -188,6 +192,7 @@
 
 - الحروف المكتوبة توجد في الذاكرة فقط: في القناة، وفي `WordBuffer`، وعلى الشاشة.
 - النص الوحيد الذي يُقرأ من التطبيقات الأخرى هو ما لا يزيد عن 49 حرفًا قبل المؤشر، بعد انتقال المؤشر إلى نص موجود، وأبدًا من حقول كلمات المرور أو التطبيقات المستثناة؛ ولا يُحتفظ إلا بالكلمة الحالية.
+- آخر 8 كلمات متتالية (للعبارات) تبقى في الذاكرة فقط وتُنسى عند أي حركة للمؤشر؛ ولا يُحفظ ترتيب الكلمات أبدًا.
 - السؤال الوحيد الذي يخرج من الجهاز هو سؤال متجر Microsoft عن وجود إصدار أحدث (`StoreUpdates`، قابل للإطفاء)، ولا يحمل شيئًا عن المستخدم أو عما يكتبه.
 - لا يكتب أي مسار في الشيفرة حروفًا في سجل أو ملف أو شبكة. قائمة الأحداث في نافذة التشخيص تعرض *أنواع* الأحداث وأزمنتها فقط (الحروف تظهر بصيغة `Character (letter)`).
 - تشخيص الخطافات (`HookDiagnostics`) عدّادات وأزمنة فقط.
@@ -426,6 +431,17 @@ Every change goes through `LearningService` under its lock (`SyncRoot`); `Sugges
 holds the same lock while `SuggestionEngine` reads the index, and the page lists a copy
 (`LearningService.Snapshot`).
 
+### Common phrases (from 1.1)
+
+`PhraseIndex` (Core) loads `data/phrases.txt` and "My phrases" from the settings (the user's first). `InputPipeline`
+keeps in `RecentWords` the last 8 words ended by a space, normalized and in memory only, cleared at any other boundary,
+any non-typing event (Backspace, caret move, focus or layout change…) and in silenced windows; `PipelineUpdate.RecentWords`
+carries them. `SuggestionController` offers first the rest of the phrase being typed (Tab inserts it whole), then its next
+word, then dictionary words; the bar can appear right after a space when a next word exists. To keep Tab predictable, no
+phrase starts from a short common word (في، على، من…), only one whole phrase is offered at a phrase start so dictionary
+words keep their place, and only the phrases matching the most words count. Accepting inserts the phrase in one batch,
+and accepting with nothing typed yet is allowed.
+
 ### Where Itmam is silent
 
 `ForegroundGuard` (Win32, implements Core `IInputGuard`) is checked whenever the window, field or
@@ -475,6 +491,8 @@ nothing:
 - Typed characters exist only in memory: in the channel, in `WordBuffer`, and on screen.
 - The only text read from other apps is ≤ 49 characters before the caret, after the caret moved
   into existing text, never from password fields or excluded apps; only the current word is kept.
+- The last 8 words in a row (for phrases) stay in memory only and are forgotten on any caret move; word order is
+  never stored.
 - The only question that leaves the device is asking Microsoft Store whether a newer version exists (`StoreUpdates`,
   can be turned off); it carries nothing about the user or what they type.
 - No code path writes characters to a log, file, or the network. The diagnostics window's event list

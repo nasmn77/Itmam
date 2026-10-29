@@ -32,7 +32,7 @@ internal static class Program
             return;
         }
 
-        // Visual check of the settings window (no hooks installed): --demo-settings [general|appearance|shortcuts|excluded|words|updates|about|exit] [en] [end]
+        // Visual check of the settings window (no hooks installed): --demo-settings [general|appearance|shortcuts|excluded|words|phrases|updates|about|exit] [en] [end]
         if (args is ["--demo-settings", ..])
         {
             SynchronizationContext.SetSynchronizationContext(new WindowsFormsSynchronizationContext());
@@ -48,6 +48,7 @@ internal static class Program
                 : args.Contains("excluded") ? SettingsPage.Excluded
                 : args.Contains("words") ? SettingsPage.Words
                 : args.Contains("updates") ? SettingsPage.Updates
+                : args.Contains("phrases") ? SettingsPage.Phrases
                 : SettingsPage.General);
             if (args.Contains("end"))
             {

@@ -19,6 +19,8 @@ internal static class TestDictionaries
 
     public static string ShippedBlocklistPath => Path.Combine(RepositoryRoot, "data", "blocklist.txt");
 
+    public static string ShippedPhrasesPath => Path.Combine(RepositoryRoot, "data", "phrases.txt");
+
     /// <summary>Found by walking up from the test output folder to the folder holding Itmam.sln.</summary>
     private static string RepositoryRoot
     {

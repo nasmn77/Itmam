@@ -37,6 +37,15 @@ public sealed record AppSettings
     /// <summary>Show a notification when Itmam is turned off, paused or resumed.</summary>
     public bool NotifyOnToggle { get; init; } = true;
 
+    /// <summary>Complete fixed expressions (data/phrases.txt and <see cref="MyPhrases"/>).</summary>
+    public bool SuggestPhrases { get; init; } = true;
+
+    /// <summary>
+    /// Phrases the user added in Settings ("My phrases"), suggested before the shipped ones. Only what
+    /// the user typed here on purpose: nothing is collected from their typing.
+    /// </summary>
+    public IReadOnlyList<string> MyPhrases { get; init; } = [];
+
     public UiLanguage Language { get; init; } = UiLanguage.Arabic;
 
     /// <summary>Suggestions shown (1–5).</summary>
@@ -90,6 +99,7 @@ public sealed record AppSettings
         BarText = Presentation.ColorContrast.Parse(BarText) is null ? null : BarText,
         Hotkeys = Hotkeys ?? new HotkeySettings(),
         ExcludedApps = ExcludedApps ?? ExcludedAppsDefaults(),
+        MyPhrases = [.. (MyPhrases ?? []).Select(Suggestions.PhraseIndex.Clean).OfType<string>().Distinct()],
     };
 
     private static IReadOnlyList<string> ExcludedAppsDefaults() => [.. Input.ExcludedApps.Defaults];

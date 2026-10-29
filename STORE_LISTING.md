@@ -23,6 +23,7 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 - قاموس عربي بأكثر من 500 ألف كلمة
 - يتعلّم كلماتك ويقدّم الأكثر استعمالًا
 - يفهم الكتابة بلا همزات: «احمد» تجد «أحمد»
+- يكمل العبارات: «بسم الله الرحمن الرحيم»، «جزاك الله خيرًا» ونحو 250 عبارة
 - يكمل الكلمة من وسطها بعد النقر أو Backspace
 - Tab للإدراج، وCtrl مع رقم للاقتراح الثاني والثالث، أو الاختيار بالأسهم
 - شريط بتصميم Windows 11، بالوضع الفاتح أو الداكن وبألوان تختارها
@@ -57,6 +58,7 @@ Your privacy first: Itmam itself never connects to the internet and never saves 
 - Arabic dictionary of more than 500,000 words
 - Learns your words and puts the ones you use most first
 - Understands writing without hamza: «احمد» finds «أحمد»
+- Completes phrases: «بسم الله الرحمن الرحيم», «جزاك الله خيرا» and about 250 more
 - Continues a word from the middle after a click or Backspace
 - Tab to insert, Ctrl + a number for the others, or choose with the arrow keys
 - A Windows 11 style bar, light or dark, in the colors you choose

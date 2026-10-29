@@ -33,6 +33,7 @@ internal sealed class ItmamApp : IDisposable
 
         Dictionary = DictionaryFile.Load(Path.Combine(AppContext.BaseDirectory, "itmam-ar.dict"));
         var blocklist = Blocklist.Load(Path.Combine(AppContext.BaseDirectory, "blocklist.txt"));
+        ShippedPhrases = LoadPhrases(Path.Combine(AppContext.BaseDirectory, "phrases.txt"));
 
         // Learned words: %LOCALAPPDATA%\Itmam\user.db (MSIX redirects it into the package's private folder).
         Store = new SqliteUserWordStore(Path.Combine(DataFolder, "user.db"));
@@ -93,6 +94,9 @@ internal sealed class ItmamApp : IDisposable
     public SqliteUserWordStore Store { get; }
 
     public SuggestionEngine Engine { get; }
+
+    /// <summary>Fixed expressions shipped in data/phrases.txt (the user's own come from the settings).</summary>
+    public PhraseIndex ShippedPhrases { get; }
 
     public ExcludedApps ExcludedApps { get; }
 
@@ -190,6 +194,20 @@ internal sealed class ItmamApp : IDisposable
 
     public void Dispose() => Shutdown();
 
+    // A missing or unreadable list only turns the shipped phrases off; the user's own still work.
+    private static PhraseIndex LoadPhrases(string path)
+    {
+        try
+        {
+            using var reader = File.OpenText(path);
+            return PhraseIndex.Read(reader);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return PhraseIndex.Empty;
+        }
+    }
+
     private void Apply(AppSettings settings)
     {
         Hooks.Hotkeys = settings.Hotkeys;
@@ -208,6 +226,7 @@ internal sealed class ItmamApp : IDisposable
         Learning.IsPaused = settings.LearningPaused;
         ExcludedApps.Replace(settings.ExcludedApps);
         Popup.Appearance = PopupAppearance.From(settings);
+        Suggestions.Phrases = settings.SuggestPhrases ? ShippedPhrases.With(settings.MyPhrases) : PhraseIndex.Empty;
     }
 
     private void PersistEnabled()
