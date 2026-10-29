@@ -961,7 +961,7 @@ internal sealed class SettingsWindow : Form
     // "Import…" / "Export…" for a list kept in settings.json ("My phrases", text shortcuts): a UTF-8 text
     // file. Importing only adds entries; the page is rebuilt to show them.
     private void AddImportExportCard<T>(string fileName, Action<TextWriter> write, Func<TextReader, ListImport<T>> read,
-        Func<AppSettings, IReadOnlyList<T>, AppSettings> apply)
+        Func<AppSettings, IReadOnlyList<T>, AppSettings> apply, string? hint = null)
     {
         var import = new ThemedButton { Text = Strings.ImportButton };
         import.Click += (_, _) =>
@@ -1006,7 +1006,7 @@ internal sealed class SettingsWindow : Form
             }
         };
 
-        AddCard(Strings.ImportExport, Strings.ImportExportListHint, new ButtonRow(import, export));
+        AddCard(Strings.ImportExport, hint ?? Strings.ImportExportListHint, new ButtonRow(import, export));
     }
 
     private void ShowInfo(string text)
@@ -1038,9 +1038,17 @@ internal sealed class SettingsWindow : Form
         AddCard(Strings.AddPhrase, Strings.AddPhraseHint, add);
         AddImportExportCard(
             Strings.PhrasesFileName,
-            writer => UserListFiles.WritePhrases(writer, _app.Settings.MyPhrases),
-            reader => UserListFiles.ReadPhrases(reader, _app.Settings.MyPhrases),
-            (s, merged) => s with { MyPhrases = merged });
+            writer => UserListFiles.WritePhrases(writer, _app.Settings.MyPhrases,
+                _app.Learning.LearnedPhrases(all: true).Select(p => (p.Text, p.Count))),
+            reader =>
+            {
+                // The learned phrases in the file go back to the learned list, with their counts.
+                var learned = new List<(string Text, int Count)>();
+                var mine = UserListFiles.ReadPhrases(reader, _app.Settings.MyPhrases, learned);
+                return mine with { Added = mine.Added + _app.Learning.ImportPhrases(learned) };
+            },
+            (s, merged) => s with { MyPhrases = merged },
+            Strings.ImportExportPhrasesHint);
 
         foreach (var phrase in settings.MyPhrases)
         {

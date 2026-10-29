@@ -4,30 +4,50 @@ namespace Itmam.Core.Suggestions;
 public readonly record struct ListImport<T>(IReadOnlyList<T> Merged, int Added, int Skipped);
 
 /// <summary>
-/// Plain UTF-8 text files for "My phrases" (one phrase per line) and text shortcuts
+/// Plain UTF-8 text files for "My phrases" (one phrase per line, then the learned phrases as
+/// <c>*phrase&lt;TAB&gt;count</c>) and text shortcuts
 /// (<c>key&lt;TAB&gt;text</c>), to back them up or move them to another PC. Lines starting with
 /// <c>#</c> are comments. Importing adds to the existing list and never replaces an entry
 /// (user decision: an existing shortcut key keeps its text).
 /// </summary>
 public static class UserListFiles
 {
-    public static void WritePhrases(TextWriter writer, IEnumerable<string> phrases)
+    public static void WritePhrases(TextWriter writer, IEnumerable<string> phrases, IEnumerable<(string Text, int Count)>? learned = null)
     {
-        writer.WriteLine("# Itmam (إتمام) — My phrases, one per line");
+        writer.WriteLine("# Itmam (إتمام) — My phrases, one per line; learned phrases: *phrase<TAB>count");
         foreach (var phrase in phrases)
         {
             writer.WriteLine(phrase);
         }
+
+        foreach (var (text, count) in learned ?? [])
+        {
+            writer.WriteLine($"*{text}\t{count.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+        }
     }
 
-    public static ListImport<string> ReadPhrases(TextReader reader, IReadOnlyList<string> existing)
+    /// <summary>"My phrases" merged with the file's; the file's learned phrases go to <paramref name="learned"/>.</summary>
+    public static ListImport<string> ReadPhrases(TextReader reader, IReadOnlyList<string> existing, List<(string Text, int Count)>? learned = null)
     {
         var merged = existing.ToList();
         var keys = existing.Select(PhraseKey).ToHashSet(StringComparer.Ordinal);
         int added = 0, skipped = 0;
         foreach (var line in Lines(reader))
         {
-            if (PhraseIndex.Clean(line) is { } phrase && keys.Add(PhraseKey(phrase)))
+            if (line[0] == '*')
+            {
+                var parts = line[1..].Split('\t', 2);
+                if (learned is not null && PhraseIndex.Clean(parts[0]) is { } text
+                    && parts.Length == 2 && int.TryParse(parts[1], System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var count) && count > 0)
+                {
+                    learned.Add((text, count));
+                }
+                else
+                {
+                    skipped++;
+                }
+            }
+            else if (PhraseIndex.Clean(line) is { } phrase && keys.Add(PhraseKey(phrase)))
             {
                 merged.Add(phrase);
                 added++;

@@ -330,6 +330,17 @@ public sealed class LearningServiceTests : IDisposable
     }
 
     [Fact]
+    public void Imported_learned_phrases_keep_the_larger_count()
+    {
+        var (learning, _) = Start();
+        learning.LearnPhrases(["مرحبا بكم", "مرحبا بكم"]);
+
+        learning.ImportPhrases([("مرحبا بكم", 5), ("السلام عليكم", 4), ("سيارة جديدة", 9)]).ShouldBe(1);
+
+        learning.LearnedPhrases().Select(p => (p.Text, p.Count)).ShouldBe([("مرحبا بكم", 5), ("السلام عليكم", 4)]);
+    }
+
+    [Fact]
     public void Deleting_a_phrase_deletes_its_parts_unless_they_are_typed_much_more_alone()
     {
         var (learning, _) = Start();

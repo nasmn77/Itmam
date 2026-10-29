@@ -232,4 +232,5 @@
   <data name="HiddenPhrases" xml:space="preserve"><value>Deleted built-in phrases ({0})</value></data>
   <data name="RestoreButton" xml:space="preserve"><value>Restore</value></data>
   <data name="BarMenuBlock" xml:space="preserve"><value>Block</value></data>
+  <data name="ImportExportPhrasesHint" xml:space="preserve"><value>A text file with My phrases and the learned phrases, to back them up or move them to another PC. Importing adds to what you have.</value></data>
 </root>

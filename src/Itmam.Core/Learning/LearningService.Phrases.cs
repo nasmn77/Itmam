@@ -113,6 +113,42 @@ public sealed partial class LearningService
         }
     }
 
+    /// <summary>
+    /// Learned phrases from an exported file: each keeps the larger of its two counts. Returns how many
+    /// were new. Respects blocked words like typing does.
+    /// </summary>
+    public int ImportPhrases(IEnumerable<(string Text, int Count)> phrases)
+    {
+        var added = 0;
+        lock (_lock)
+        {
+            var now = _time.GetUtcNow();
+            foreach (var (text, count) in phrases)
+            {
+                if (!IsLearnable(text))
+                {
+                    continue;
+                }
+
+                var key = PhraseKey(text);
+                if (_phrases.TryGetValue(key, out var entry))
+                {
+                    entry.Count = Math.Max(entry.Count, count);
+                }
+                else
+                {
+                    _phrases[key] = new PhraseEntry(text, count, now);
+                    added++;
+                }
+
+                MarkPhraseChanged(key);
+            }
+        }
+
+        LearnedPhrasesChanged?.Invoke();
+        return added;
+    }
+
     /// <summary>A learned (suggested) phrase: the bar's menu offers to delete it.</summary>
     public bool IsLearnedPhrase(string text)
     {

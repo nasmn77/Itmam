@@ -232,4 +232,5 @@
   <data name="HiddenPhrases" xml:space="preserve"><value>العبارات المضمّنة المحذوفة ({0})</value></data>
   <data name="RestoreButton" xml:space="preserve"><value>استعادة</value></data>
   <data name="BarMenuBlock" xml:space="preserve"><value>حظر</value></data>
+  <data name="ImportExportPhrasesHint" xml:space="preserve"><value>ملف نصي فيه «عباراتي» والعبارات المتعلَّمة، لنسخها احتياطيًا أو نقلها إلى جهاز آخر. الاستيراد يضيف إلى ما عندك.</value></data>
 </root>

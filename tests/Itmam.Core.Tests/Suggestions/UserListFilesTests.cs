@@ -18,6 +18,20 @@ public class UserListFilesTests
     }
 
     [Fact]
+    public void Learned_phrases_travel_in_the_same_file_with_their_counts()
+    {
+        var file = new StringWriter();
+        UserListFiles.WritePhrases(file, ["مع التحية"], [("مرحبا بكم في معرضنا", 5)]);
+        var learned = new List<(string Text, int Count)>();
+
+        var result = UserListFiles.ReadPhrases(new StringReader(file + "*بلا عدد" + (char)10), [], learned);
+
+        result.Merged.ShouldBe(["مع التحية"]);
+        learned.ShouldBe([("مرحبا بكم في معرضنا", 5)]);
+        result.Skipped.ShouldBe(1);
+    }
+
+    [Fact]
     public void Shortcuts_round_trip_and_an_existing_key_keeps_its_text()
     {
         var file = new StringWriter();
