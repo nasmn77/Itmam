@@ -47,7 +47,7 @@ internal sealed class SettingsWindow : Form
     private readonly Action _exit;
     private readonly bool _mirrored;
     private readonly Panel _navigation = new() { Dock = DockStyle.Left, Width = 240 };
-    private readonly Panel _content = new PageScroller { Dock = DockStyle.Fill, AutoScroll = true };
+    private readonly PageScroller _content = new() { Dock = DockStyle.Fill };
     private readonly Dictionary<SettingsPage, NavItem> _navItems = [];
     private readonly List<Control> _pageControls = [];
     private readonly HashSet<Control> _filteredOut = [];
@@ -84,13 +84,17 @@ internal sealed class SettingsWindow : Form
         AutoScaleMode = AutoScaleMode.Dpi;
         Font = new Font("Segoe UI", 10f);
         MinimumSize = new Size(760, 540);
-        Size = new Size(940, 680);
+
+        // User decision: taller, as much of a page as fits on the screen at once.
+        var area = Screen.FromPoint(Cursor.Position).WorkingArea;
+        Size = new Size(940, Math.Clamp(area.Height * 96 / DeviceDpi - 80, 680, 900));
         RightToLeft = rtl ? RightToLeft.Yes : RightToLeft.No;
 
         Controls.Add(_content);
         Controls.Add(_navigation);
         BuildNavigation();
         _content.Resize += (_, _) => LayoutPage();
+        _content.OffsetChanged += (_, _) => LayoutPage();
         SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
         ApplyPalette();
     }
@@ -100,7 +104,7 @@ internal sealed class SettingsWindow : Form
 
 #if DEBUG
     /// <summary>Debug demo only: scrolls to the end of the page (screenshots).</summary>
-    public void ScrollToEnd() => _content.AutoScrollPosition = new Point(0, _content.AutoScrollMinSize.Height);
+    public void ScrollToEnd() => _content.ScrollToEnd();
 #endif
 
     /// <summary>Shows the window on <paramref name="page"/> and brings it to the front.</summary>
@@ -198,6 +202,7 @@ internal sealed class SettingsWindow : Form
         if (page != _page)
         {
             _excludedSearch = string.Empty; // a search applies only while staying on its page
+            _content.Offset = 0;
             _wordsFilter = string.Empty;
         }
 
@@ -709,9 +714,9 @@ internal sealed class SettingsWindow : Form
     // Rebuilds the current page, keeping the scroll position.
     private void RebuildPage()
     {
-        var scroll = -_content.AutoScrollPosition.Y;
+        var scroll = _content.Offset;
         SelectPage(_page);
-        _content.AutoScrollPosition = new Point(0, scroll);
+        _content.Offset = scroll;
     }
 
     // "My words": only word → count / last use is stored (see docs/PRIVACY.md). Every change goes through
@@ -1360,8 +1365,8 @@ internal sealed class SettingsWindow : Form
     {
         var scale = DeviceDpi / 96f;
         var margin = (int)(28 * scale);
-        var width = Math.Max(200, _content.ClientSize.Width - (2 * margin));
-        var y = (int)(12 * scale) + _content.AutoScrollPosition.Y;
+        var width = Math.Max(200, _content.ClientSize.Width - (2 * margin) - _content.BarWidth);
+        var y = (int)(12 * scale) - _content.Offset;
         foreach (var control in _pageControls)
         {
             // Filtered out by a search box (the parent may not be visible yet, so Visible cannot be read back).
@@ -1391,7 +1396,7 @@ internal sealed class SettingsWindow : Form
             };
         }
 
-        _content.AutoScrollMinSize = new Size(0, y - _content.AutoScrollPosition.Y + margin);
+        _content.ContentHeight = y + _content.Offset + margin;
     }
 
     private void ApplyPalette()
@@ -1399,6 +1404,7 @@ internal sealed class SettingsWindow : Form
         BackColor = _palette.Window;
         _navigation.BackColor = _palette.Window;
         _content.BackColor = _palette.Window;
+        _content.Palette = _palette;
         foreach (Control control in _navigation.Controls)
         {
             control.ForeColor = _palette.Text;

@@ -621,5 +621,184 @@ internal sealed class SearchBox : ThemedControl
 /// </summary>
 internal sealed class PageScroller : Panel
 {
-    protected override Point ScrollToControl(Control activeControl) => DisplayRectangle.Location;
+    private readonly PageScrollBar _bar = new();
+    private int _offset;
+    private int _contentHeight;
+
+    public PageScroller()
+    {
+        Controls.Add(_bar);
+        _bar.Scrolled += value => Offset = value;
+    }
+
+    /// <summary>The page scrolled: lay the controls out again at the new <see cref="Offset"/>.</summary>
+    public event EventHandler? OffsetChanged;
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public SettingsPalette Palette
+    {
+        set => _bar.Palette = value;
+    }
+
+    /// <summary>Width kept free for the scroll bar on the side where it is drawn.</summary>
+    public int BarWidth => _bar.Visible ? _bar.Width : 0;
+
+    /// <summary>Height of the whole page, set by the layout.</summary>
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public int ContentHeight
+    {
+        get => _contentHeight;
+        set
+        {
+            _contentHeight = value;
+            Offset = _offset; // clamps
+            UpdateBar();
+        }
+    }
+
+    /// <summary>Pixels scrolled from the top.</summary>
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public int Offset
+    {
+        get => _offset;
+        set
+        {
+            var clamped = Math.Clamp(value, 0, Math.Max(0, _contentHeight - ClientSize.Height));
+            if (clamped != _offset)
+            {
+                _offset = clamped;
+                UpdateBar();
+                OffsetChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+    }
+
+    public void ScrollToEnd() => Offset = int.MaxValue;
+
+    protected override void OnMouseWheel(MouseEventArgs e)
+    {
+        base.OnMouseWheel(e);
+        Offset -= e.Delta * SystemInformation.MouseWheelScrollLines * (int)(16 * DeviceDpi / 96f) / 120;
+    }
+
+    protected override void OnLayout(LayoutEventArgs levent)
+    {
+        base.OnLayout(levent);
+        Offset = _offset; // a taller window may need less scrolling
+        UpdateBar();
+    }
+
+    // The bar sits at the far edge from the navigation: on the left for Arabic, like a native one.
+    private void UpdateBar()
+    {
+        var width = (int)(12 * DeviceDpi / 96f);
+        var x = RightToLeft == RightToLeft.Yes ? 2 : ClientSize.Width - width - 2;
+        _bar.SetBounds(x, 2, width, Math.Max(0, ClientSize.Height - 4));
+        _bar.Visible = _contentHeight > ClientSize.Height;
+        _bar.SetRange(_contentHeight, ClientSize.Height, _offset);
+        _bar.BringToFront();
+    }
+}
+
+/// <summary>
+/// The settings page's scroll bar, always drawn in full: Windows 11 shows the native one as a thin line
+/// until the mouse is over it, and it went unnoticed. Drag the thumb, or click the track to page.
+/// </summary>
+internal sealed class PageScrollBar : ThemedControl
+{
+    private int _content;
+    private int _view;
+    private int _value;
+    private int? _dragFrom;
+    private int _dragValue;
+    private bool _hover;
+
+    public event Action<int>? Scrolled;
+
+    public void SetRange(int content, int view, int value)
+    {
+        (_content, _view, _value) = (content, view, value);
+        Invalidate();
+    }
+
+    protected override void OnMouseEnter(EventArgs e)
+    {
+        base.OnMouseEnter(e);
+        _hover = true;
+        Invalidate();
+    }
+
+    protected override void OnMouseLeave(EventArgs e)
+    {
+        base.OnMouseLeave(e);
+        _hover = false;
+        Invalidate();
+    }
+
+    protected override void OnMouseDown(MouseEventArgs e)
+    {
+        base.OnMouseDown(e);
+        var thumb = Thumb();
+        if (thumb.Contains(e.Location))
+        {
+            _dragFrom = e.Y;
+            _dragValue = _value;
+            Capture = true;
+        }
+        else
+        {
+            Scrolled?.Invoke(_value + (e.Y < thumb.Top ? -_view : _view));
+        }
+    }
+
+    protected override void OnMouseMove(MouseEventArgs e)
+    {
+        base.OnMouseMove(e);
+        if (_dragFrom is { } from && Height > Thumb().Height)
+        {
+            var track = Height - Thumb().Height;
+            Scrolled?.Invoke(_dragValue + ((e.Y - from) * (_content - _view) / track));
+        }
+    }
+
+    protected override void OnMouseUp(MouseEventArgs e)
+    {
+        base.OnMouseUp(e);
+        _dragFrom = null;
+        Capture = false;
+    }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        var g = e.Graphics;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
+        g.Clear(Palette.Window);
+        if (_content <= _view)
+        {
+            return;
+        }
+
+        using (var track = Drawing.Rounded(new RectangleF(0.5f, 0.5f, Width - 1.5f, Height - 1.5f), Width / 2f))
+        using (var trackBrush = new SolidBrush(Palette.ControlFill))
+        {
+            g.FillPath(trackBrush, track);
+        }
+
+        var thumb = Thumb();
+        using var path = Drawing.Rounded(new RectangleF(thumb.X + 2, thumb.Y + 2, thumb.Width - 4, thumb.Height - 4), (thumb.Width - 4) / 2f);
+        using var brush = new SolidBrush(_hover || _dragFrom is not null ? Palette.Text : Palette.SecondaryText);
+        g.FillPath(brush, path);
+    }
+
+    private Rectangle Thumb()
+    {
+        if (_content <= _view || Height <= 0)
+        {
+            return Rectangle.Empty;
+        }
+
+        var height = Math.Max(Width * 3, Height * _view / _content);
+        var top = (Height - height) * _value / Math.Max(1, _content - _view);
+        return new Rectangle(0, top, Width, height);
+    }
 }
