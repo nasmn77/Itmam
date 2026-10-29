@@ -229,5 +229,6 @@
   <data name="ImportListDone" xml:space="preserve"><value>أُضيف: {0}. وتُخطّي (موجود أو غير صالح): {1}.</value></data>
   <data name="BarMenuDelete" xml:space="preserve"><value>حذف</value></data>
   <data name="BarMenuAddToMyPhrases" xml:space="preserve"><value>إضافة إلى عباراتي</value></data>
-  <data name="BarMenuRemoveFromMyPhrases" xml:space="preserve"><value>حذف من عباراتي</value></data>
+  <data name="HiddenPhrases" xml:space="preserve"><value>العبارات المضمّنة المحذوفة ({0})</value></data>
+  <data name="RestoreButton" xml:space="preserve"><value>استعادة</value></data>
 </root>

@@ -64,6 +64,17 @@ public sealed class PhraseIndex
         return new PhraseIndex(Distinct(phrases));
     }
 
+    /// <summary>These phrases without the given ones (built-in phrases the user deleted from the bar).</summary>
+    public PhraseIndex Without(IEnumerable<string> phrases)
+    {
+        var hidden = phrases.Select(Parse).OfType<Phrase>().Select(p => string.Join(' ', p.Keys)).ToHashSet(StringComparer.Ordinal);
+        return hidden.Count == 0 ? this : new([.. _phrases.Where(p => !hidden.Contains(string.Join(' ', p.Keys)))]);
+    }
+
+    /// <summary>Whether this list holds the phrase (tashkeel and hamza seats ignored).</summary>
+    public bool Contains(string phrase) =>
+        Parse(phrase) is { } parsed && _phrases.Any(p => p.Keys.SequenceEqual(parsed.Keys, StringComparer.Ordinal));
+
     /// <summary>The user's phrases first (they win ties), then these.</summary>
     public PhraseIndex With(IEnumerable<string> userPhrases) =>
         new(Distinct([.. userPhrases.Select(Parse).OfType<Phrase>(), .. _phrases]));

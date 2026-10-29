@@ -1054,6 +1054,19 @@ internal sealed class SettingsWindow : Form
         }
 
         BuildLearnedPhrases();
+
+        // Built-in phrases deleted from the bar.
+        if (settings.HiddenPhrases.Count > 0)
+        {
+            var restore = new ThemedButton { Text = Strings.RestoreButton };
+            restore.Click += (_, _) =>
+            {
+                Update(s => s with { HiddenPhrases = [] });
+                BeginInvoke(RebuildPage);
+            };
+            AddCard(string.Format(CultureInfo.CurrentCulture, Strings.HiddenPhrases, settings.HiddenPhrases.Count),
+                string.Join("، ", settings.HiddenPhrases), restore);
+        }
     }
 
     // The learned phrases: forget one (learned again if typed again), keep it for good in "My phrases",

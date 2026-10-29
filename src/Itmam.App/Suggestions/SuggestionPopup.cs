@@ -117,13 +117,13 @@ internal sealed class SuggestionPopup : Form
     }
 
     /// <summary>
-    /// Right-click actions (user decision 1.1), in a small strip next to the bar on the side away from
-    /// the caret. Like the bar it never takes focus (a real menu did, stayed open and stopped the bar);
+    /// Right-click actions (user decision 1.1), in a small strip over the clicked suggestion (on the side
+    /// of the bar away from the caret). Like the bar it never takes focus (a real menu did, stayed open and stopped the bar);
     /// the next key, click elsewhere or bar update hides it, and a click runs an action.
     /// </summary>
-    public void ShowActions(IReadOnlyList<(string Label, Action Run)> actions)
+    public void ShowActions(int index, IReadOnlyList<(string Label, Action Run)> actions)
     {
-        if (!IsShowing || actions.Count == 0)
+        if (!IsShowing || actions.Count == 0 || _layout is null || index >= _layout.Items.Count)
         {
             return;
         }
@@ -134,7 +134,10 @@ internal sealed class SuggestionPopup : Form
         var gap = _metrics.CaretGap;
         var barAboveCaret = _shown.Bottom <= _caret.Top + 1;
         var top = barAboveCaret ? _shown.Top - gap - size.Height : _shown.Bottom + gap;
-        var left = _rightToLeft ? _shown.Right - size.Width : _shown.Left;
+        var item = _layout.Items[index];
+        var center = _shown.Left + item.Left + (item.Width / 2);
+        var area = Monitors.FromPoint(new Point(center, _shown.Top)).WorkArea;
+        var left = Math.Clamp(center - (size.Width / 2), area.Left, Math.Max(area.Left, area.Right - size.Width));
         var bounds = new Rectangle(new Point(left, top), size);
         _strip.ShowAt(bounds);
         _state.SetActions(bounds);

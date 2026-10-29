@@ -49,6 +49,9 @@ public sealed record AppSettings
     /// </summary>
     public IReadOnlyList<string> MyPhrases { get; init; } = [];
 
+    /// <summary>Built-in phrases the user deleted from the bar (user decision 1.1); restorable in Settings.</summary>
+    public IReadOnlyList<string> HiddenPhrases { get; init; } = [];
+
     /// <summary>
     /// Text shortcuts the user added in Settings (user decision 1.1): typing a key shows its text first
     /// in the bar, and Tab inserts it.
@@ -109,6 +112,7 @@ public sealed record AppSettings
         Hotkeys = Hotkeys ?? new HotkeySettings(),
         ExcludedApps = ExcludedApps ?? ExcludedAppsDefaults(),
         MyPhrases = [.. (MyPhrases ?? []).Select(Suggestions.PhraseIndex.Clean).OfType<string>().Distinct()],
+        HiddenPhrases = [.. (HiddenPhrases ?? []).Select(Suggestions.PhraseIndex.Clean).OfType<string>().Distinct()],
         TextShortcuts = [.. (TextShortcuts ?? [])
             .Where(s => s is not null)
             .Select(s => Suggestions.TextShortcuts.CleanKey(s.Key ?? "") is { } key && Suggestions.TextShortcuts.CleanText(s.Text ?? "") is { } text

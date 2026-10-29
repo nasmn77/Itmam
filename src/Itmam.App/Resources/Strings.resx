@@ -229,5 +229,6 @@
   <data name="ImportListDone" xml:space="preserve"><value>Added: {0}. Skipped (already there or invalid): {1}.</value></data>
   <data name="BarMenuDelete" xml:space="preserve"><value>Delete</value></data>
   <data name="BarMenuAddToMyPhrases" xml:space="preserve"><value>Add to My phrases</value></data>
-  <data name="BarMenuRemoveFromMyPhrases" xml:space="preserve"><value>Remove from My phrases</value></data>
+  <data name="HiddenPhrases" xml:space="preserve"><value>Deleted built-in phrases ({0})</value></data>
+  <data name="RestoreButton" xml:space="preserve"><value>Restore</value></data>
 </root>

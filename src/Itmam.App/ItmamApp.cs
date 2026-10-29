@@ -201,28 +201,42 @@ internal sealed class ItmamApp : IDisposable
 
     public void Dispose() => Shutdown();
 
-    // Right-click on the bar (user decision 1.1): a strip next to the bar shows what applies to this
-    // suggestion. For a phrase the bar shows only its rest, so the actions use the whole phrase it comes
-    // from: delete it if learned (learned again if typed again), remove it from or add it to "My phrases".
-    // A single word: delete it if learned. Nothing for a dictionary word. UI thread.
+    // Right-click on the bar (user decision 1.1): a strip above the clicked suggestion shows what applies
+    // to it. For a phrase the bar shows only its rest, so the actions use the whole phrase it comes from.
+    // "Delete" removes the phrase from wherever it comes from — learned (learned again if typed again),
+    // "My phrases", the built-in list (hidden, restorable in Settings) — since one of them alone would
+    // leave it in the bar. A single word: delete it if learned. Nothing for a dictionary word. UI thread.
     private void ShowSuggestionMenu(int index, string text)
     {
         var actions = new List<(string, Action)>();
-        if (text.Contains(' ', StringComparison.Ordinal))
+        if (text.Contains(' ', StringComparison.Ordinal) && !Settings.TextShortcuts.Any(s => s.Text == text))
         {
             var whole = Suggestions.PhraseSources.GetValueOrDefault(text) ?? text;
-            if (Learning.IsLearnedPhrase(whole))
+            var key = LearningService.PhraseKey(whole);
+            var mine = Settings.MyPhrases.Where(p => LearningService.PhraseKey(p) == key).ToList();
+            var learned = Learning.IsLearnedPhrase(whole);
+            var shipped = ShippedPhrases.Contains(whole);
+            if (learned || mine.Count > 0 || shipped)
             {
-                actions.Add((Resources.Strings.BarMenuDelete, () => Hooks.Post(InputEvent.Forget(index, whole))));
+                actions.Add((Resources.Strings.BarMenuDelete, () =>
+                {
+                    if (learned)
+                    {
+                        Hooks.Post(InputEvent.Forget(index, whole));
+                    }
+
+                    if (mine.Count > 0 || shipped)
+                    {
+                        UpdateSettings(Settings with
+                        {
+                            MyPhrases = [.. Settings.MyPhrases.Except(mine)],
+                            HiddenPhrases = shipped ? [.. Settings.HiddenPhrases, whole] : Settings.HiddenPhrases,
+                        });
+                    }
+                }));
             }
 
-            var key = LearningService.PhraseKey(whole);
-            if (Settings.MyPhrases.FirstOrDefault(p => LearningService.PhraseKey(p) == key) is { } mine)
-            {
-                actions.Add((Resources.Strings.BarMenuRemoveFromMyPhrases,
-                    () => UpdateSettings(Settings with { MyPhrases = [.. Settings.MyPhrases.Where(p => p != mine)] })));
-            }
-            else if (PhraseIndex.Clean(whole) is { } phrase && !Settings.TextShortcuts.Any(s => s.Text == text))
+            if (mine.Count == 0 && PhraseIndex.Clean(whole) is { } phrase)
             {
                 actions.Add((Resources.Strings.BarMenuAddToMyPhrases,
                     () => UpdateSettings(Settings with { MyPhrases = [.. Settings.MyPhrases, phrase] })));
@@ -233,7 +247,7 @@ internal sealed class ItmamApp : IDisposable
             actions.Add((Resources.Strings.BarMenuDelete, () => Hooks.Post(InputEvent.Forget(index, text))));
         }
 
-        Popup.ShowActions(actions);
+        Popup.ShowActions(index, actions);
     }
 
     // A missing or unreadable list only turns the shipped phrases off; the user's own still work.
@@ -279,7 +293,7 @@ internal sealed class ItmamApp : IDisposable
     {
         var settings = Settings;
         Suggestions.Phrases = settings.SuggestPhrases
-            ? ShippedPhrases.With([.. settings.MyPhrases, .. Learning.LearnedPhrases().Select(p => p.Text)])
+            ? ShippedPhrases.Without(settings.HiddenPhrases).With([.. settings.MyPhrases, .. Learning.LearnedPhrases().Select(p => p.Text)])
             : PhraseIndex.Empty;
     }
 

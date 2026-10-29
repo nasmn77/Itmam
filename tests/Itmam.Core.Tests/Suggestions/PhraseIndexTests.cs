@@ -54,6 +54,18 @@ public class PhraseIndexTests
     }
 
     [Fact]
+    public void Deleted_built_in_phrases_are_no_longer_offered()
+    {
+        Index.Contains("جزاك اللهُ خيرًا").ShouldBeTrue();
+
+        var hidden = Index.Without(["جزاك الله خيرا"]);
+
+        hidden.Count.ShouldBe(Index.Count - 1);
+        hidden.Suggest([], "جزا", 3).ShouldBeEmpty();
+        hidden.With(["جزاك الله خيرا"]).Suggest([], "جزا", 3).ShouldBe(["جزاك الله خيرا"]); // still "My phrases"
+    }
+
+    [Fact]
     public void Too_few_letters_offer_nothing() =>
         Index.Suggest([], "جز", 3).ShouldBeEmpty();
 
