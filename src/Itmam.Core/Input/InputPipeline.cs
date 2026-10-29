@@ -531,6 +531,11 @@ public sealed class InputPipeline(
         {
             result = Tracker.Buffer.ResumeFromContext(caret.Text, _options.ProbeChars);
             _charAfterCaret = caret.CharAfter;
+            if (result.Outcome is BufferOutcome.Updated or BufferOutcome.Reset)
+            {
+                // Words typed while the context was unknown (e.g. right after a focus event) still chain.
+                _recent.ResumeFrom(caret.Text, _options.ProbeChars);
+            }
             outcome = result.Outcome switch
             {
                 BufferOutcome.Updated => ProbeOutcome.ResumedWithWord,

@@ -65,6 +65,51 @@ public sealed class RecentWords
         }
     }
 
+    /// <summary>
+    /// After the context was read from the app (focus change, click, Backspace…): the words before the
+    /// caret's word that are separated by single spaces, so a phrase typed before the read still counts.
+    /// </summary>
+    /// <param name="textBeforeCaret">The text read before the caret.</param>
+    /// <param name="maxRead">Characters asked for: a word touching the start of a full read may be cut.</param>
+    public void ResumeFrom(ReadOnlySpan<char> textBeforeCaret, int maxRead)
+    {
+        Clear();
+        var words = new List<string>(Max);
+        var end = WordStart(textBeforeCaret, textBeforeCaret.Length); // skip the word being typed
+        while (words.Count < Max && end >= 2 && textBeforeCaret[end - 1] == ' ' && IsWordChar(textBeforeCaret[end - 2]))
+        {
+            var start = WordStart(textBeforeCaret, end - 1);
+            if (start == 0 && textBeforeCaret.Length >= maxRead)
+            {
+                break; // may be the end of a longer word
+            }
+
+            words.Add(textBeforeCaret[start..(end - 1)].ToString());
+            if (start > 0 && textBeforeCaret[start - 1] != ' ')
+            {
+                break; // glued to something else: the chain starts here
+            }
+
+            end = start;
+        }
+
+        words.Reverse();
+        Push(string.Join(' ', words));
+    }
+
+    private static bool IsWordChar(char c) => ArabicText.IsArabicLetter(c) || ArabicText.IsIgnorable(c);
+
+    // Start of the run of Arabic letters and marks that ends at <paramref name="end"/>.
+    private static int WordStart(ReadOnlySpan<char> text, int end)
+    {
+        while (end > 0 && IsWordChar(text[end - 1]))
+        {
+            end--;
+        }
+
+        return end;
+    }
+
     public void Clear()
     {
         if (_keys.Count > 0)

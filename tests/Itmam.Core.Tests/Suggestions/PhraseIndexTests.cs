@@ -154,4 +154,20 @@ public class RecentWordsTests
         recent.SequencesEndingWith("اخي").Last().ShouldBe("عليكم ورحمة الله وبركاته اخي");
         recent.SequencesEndingWith("hello").ShouldBeEmpty();
     }
+
+    [Theory]
+    [InlineData("قال: السلام عليكم ورحمة ال", 49, new[] { "السلام", "عليكم", "ورحمه" })]
+    [InlineData("السلام عليكم ", 13, new[] { "عليكم" })]        // a full read: «السلام» may be cut
+    [InlineData("hello عليكم  ورحمة ", 49, new[] { "ورحمه" })]   // two spaces break the chain
+    [InlineData("سطر\nصباح الخير", 49, new[] { "صباح" })]
+    [InlineData("", 49, new string[0])]
+    public void Resumes_from_the_words_before_the_caret(string text, int maxRead, string[] expected)
+    {
+        var recent = new RecentWords();
+        recent.Push("قديم");
+
+        recent.ResumeFrom(text, maxRead);
+
+        recent.Snapshot.ShouldBe(expected);
+    }
 }

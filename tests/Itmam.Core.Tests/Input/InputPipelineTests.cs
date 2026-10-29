@@ -425,6 +425,20 @@ public sealed class InputPipelineTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task Words_before_the_caret_join_the_phrase_when_the_context_is_read()
+    {
+        // A focus event (some editors raise one after Enter) detaches; «صباح » is already typed when the context is read.
+        _context.Next = "سطر\rصباح ال";
+        Send(InputEvent.Of(InputEventKind.FocusChanged));
+        (await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedWithWord)).RecentWords.ShouldBe(["صباح"]);
+
+        Type("خير ");
+        await DrainAsync();
+
+        PhrasesLearned().ShouldBe(["صباح الخير"]);
+    }
+
+    [Fact]
     public async Task An_accepted_phrase_counts_as_typed()
     {
         Type("بسم ");
