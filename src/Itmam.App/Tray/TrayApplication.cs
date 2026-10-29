@@ -49,7 +49,7 @@ internal sealed class TrayApplication : ApplicationContext
         _iconOn = AppIcon.Create(size, enabled: true);
         _iconOff = AppIcon.Create(size, enabled: false);
 
-        _menu = new ContextMenuStrip { ShowImageMargin = false, ShowCheckMargin = true };
+        _menu = new ContextMenuStrip { ShowImageMargin = false, ShowCheckMargin = false };
         _enabled.Click += (_, _) => _app.SetEnabled(!_app.IsEnabled);
         _pause.Click += (_, _) => TogglePause();
         _settingsItem.Font = new Font(_menu.Font, FontStyle.Bold);
@@ -220,7 +220,6 @@ internal sealed class TrayApplication : ApplicationContext
     private void ApplyLanguage()
     {
         _menu.RightToLeft = _app.Settings.Language == UiLanguage.Arabic ? RightToLeft.Yes : RightToLeft.No;
-        _enabled.Text = Strings.MenuEnabled;
         _settingsItem.Text = Strings.MenuSettings;
         _aboutItem.Text = Strings.MenuAbout;
         _exitItem.Text = Strings.MenuExit;
@@ -304,7 +303,8 @@ internal sealed class TrayApplication : ApplicationContext
         }
 
         var paused = _app.PausedUntil;
-        _enabled.Checked = _app.IsEnabled;
+        // User decision: an explicit "Turn off" / "Turn on" item rather than a checked "Enabled".
+        _enabled.Text = _app.IsEnabled ? Strings.MenuTurnOff : Strings.MenuTurnOn;
         _enabled.Enabled = paused is null;
         _pause.Text = paused is null ? Strings.MenuPauseHour : Strings.MenuResume;
         _pause.Enabled = paused is not null || _app.IsEnabled;

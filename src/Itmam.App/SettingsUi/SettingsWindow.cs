@@ -1181,6 +1181,17 @@ internal sealed class SettingsWindow : Form
     private void BuildExitPage()
     {
         AddTitle(Strings.SectionExit);
+
+        // Turning off keeps Itmam next to the clock (gray icon) and is remembered, like the toggle shortcut.
+        var toggle = new ThemedButton { Text = _app.IsEnabled ? Strings.TurnOffButton : Strings.TurnOnButton };
+        toggle.Click += (_, _) =>
+        {
+            _app.SetEnabled(!_app.IsEnabled);
+            BeginInvoke(RebuildPage); // after this click is handled
+        };
+        var shortcut = "\u202A" + HotkeyNames.Format(_app.Settings.Hotkeys.ToggleEnabled) + "\u202C";
+        AddCard(_app.IsEnabled ? Strings.TurnOffTitle : Strings.TurnOnTitle,
+            string.Format(CultureInfo.CurrentCulture, Strings.TurnOffHint, shortcut), toggle);
         var exit = new ThemedButton { Text = Strings.ExitButton };
         exit.Click += (_, _) => _exit();
         AddCard(Strings.ExitTitle, Strings.ExitHint, exit);

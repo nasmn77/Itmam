@@ -8,7 +8,6 @@
   <data name="TrayOn" xml:space="preserve"><value>Itmam — on</value></data>
   <data name="TrayOff" xml:space="preserve"><value>Itmam — off ({0} to turn on)</value></data>
   <data name="TrayPausedUntil" xml:space="preserve"><value>Itmam — paused until {0}</value></data>
-  <data name="MenuEnabled" xml:space="preserve"><value>Enabled</value></data>
   <data name="MenuPauseHour" xml:space="preserve"><value>Pause for 1 hour</value></data>
   <data name="MenuResume" xml:space="preserve"><value>Resume now</value></data>
   <data name="MenuSettings" xml:space="preserve"><value>Settings</value></data>
@@ -42,7 +41,7 @@
   <data name="LanguageEnglish" xml:space="preserve"><value>English</value></data>
   <data name="SectionExit" xml:space="preserve"><value>Close Itmam</value></data>
   <data name="ExitTitle" xml:space="preserve"><value>Exit Itmam</value></data>
-  <data name="ExitHint" xml:space="preserve"><value>Stops completely until you sign in again or start it. To stop suggestions for a while, turn off “Enabled” in the tray menu instead.</value></data>
+  <data name="ExitHint" xml:space="preserve"><value>Itmam closes completely until your next sign-in or until you start it yourself. To stop suggestions for a while only, use "Turn off Itmam" above.</value></data>
   <data name="ExitButton" xml:space="preserve"><value>Exit</value></data>
   <data name="NavExit" xml:space="preserve"><value>Exit</value></data>
   <data name="SectionDeveloper" xml:space="preserve"><value>Developer</value></data>
@@ -217,4 +216,11 @@
   <data name="NotATextShortcutText" xml:space="preserve"><value>Type the text the shortcut inserts.</value></data>
   <data name="ConfirmDeleteTextShortcut" xml:space="preserve"><value>Delete the shortcut «{0}»?</value></data>
   <data name="ConfirmReplaceTextShortcut" xml:space="preserve"><value>The shortcut «{0}» already exists. Replace its text?</value></data>
+  <data name="MenuTurnOff" xml:space="preserve"><value>Turn off Itmam</value></data>
+  <data name="MenuTurnOn" xml:space="preserve"><value>Turn on Itmam</value></data>
+  <data name="TurnOffTitle" xml:space="preserve"><value>Turn off Itmam</value></data>
+  <data name="TurnOnTitle" xml:space="preserve"><value>Turn on Itmam</value></data>
+  <data name="TurnOffButton" xml:space="preserve"><value>Turn off</value></data>
+  <data name="TurnOnButton" xml:space="preserve"><value>Turn on</value></data>
+  <data name="TurnOffHint" xml:space="preserve"><value>Itmam stays next to the clock with a gray icon and tracks nothing until you turn it on again, here, from the icon's menu or with {0}.</value></data>
 </root>

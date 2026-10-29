@@ -8,7 +8,6 @@
   <data name="TrayOn" xml:space="preserve"><value>إتمام — يعمل</value></data>
   <data name="TrayOff" xml:space="preserve"><value>إتمام — متوقف ({0} للتشغيل)</value></data>
   <data name="TrayPausedUntil" xml:space="preserve"><value>إتمام — متوقف مؤقتًا حتى {0}</value></data>
-  <data name="MenuEnabled" xml:space="preserve"><value>مفعّل</value></data>
   <data name="MenuPauseHour" xml:space="preserve"><value>إيقاف مؤقت لساعة</value></data>
   <data name="MenuResume" xml:space="preserve"><value>استئناف الآن</value></data>
   <data name="MenuSettings" xml:space="preserve"><value>الإعدادات</value></data>
@@ -42,7 +41,7 @@
   <data name="LanguageEnglish" xml:space="preserve"><value>English</value></data>
   <data name="SectionExit" xml:space="preserve"><value>إغلاق إتمام</value></data>
   <data name="ExitTitle" xml:space="preserve"><value>الخروج من إتمام</value></data>
-  <data name="ExitHint" xml:space="preserve"><value>يتوقف تمامًا حتى تسجيل الدخول التالي أو تشغيله يدويًا. لإيقاف الاقتراحات فترةً فقط، أطفئ «مفعّل» من قائمة الأيقونة.</value></data>
+  <data name="ExitHint" xml:space="preserve"><value>يُغلق تمامًا حتى تسجيل الدخول التالي أو تشغيله يدويًا. لإيقاف الاقتراحات فترةً فقط، استعمل «إيقاف إتمام» أعلاه.</value></data>
   <data name="ExitButton" xml:space="preserve"><value>خروج</value></data>
   <data name="NavExit" xml:space="preserve"><value>الخروج</value></data>
   <data name="SectionDeveloper" xml:space="preserve"><value>المطوّر</value></data>
@@ -217,4 +216,11 @@
   <data name="NotATextShortcutText" xml:space="preserve"><value>اكتب العبارة التي يضعها الاختصار.</value></data>
   <data name="ConfirmDeleteTextShortcut" xml:space="preserve"><value>حذف الاختصار «{0}»؟</value></data>
   <data name="ConfirmReplaceTextShortcut" xml:space="preserve"><value>الاختصار «{0}» موجود. استبدال عبارته؟</value></data>
+  <data name="MenuTurnOff" xml:space="preserve"><value>إيقاف إتمام</value></data>
+  <data name="MenuTurnOn" xml:space="preserve"><value>تشغيل إتمام</value></data>
+  <data name="TurnOffTitle" xml:space="preserve"><value>إيقاف إتمام</value></data>
+  <data name="TurnOnTitle" xml:space="preserve"><value>تشغيل إتمام</value></data>
+  <data name="TurnOffButton" xml:space="preserve"><value>إيقاف</value></data>
+  <data name="TurnOnButton" xml:space="preserve"><value>تشغيل</value></data>
+  <data name="TurnOffHint" xml:space="preserve"><value>يبقى إتمام قرب الساعة بأيقونة رمادية، ولا يتتبع شيئًا حتى تعيد تشغيله من هنا أو من قائمة الأيقونة أو بالاختصار {0}.</value></data>
 </root>
