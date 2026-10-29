@@ -20,6 +20,7 @@ internal enum SettingsPage
     Shortcuts,
     Excluded,
     Words,
+    Updates,
     About,
     Exit,
 }
@@ -177,7 +178,7 @@ internal sealed class SettingsWindow : Form
         _navigation.Controls.Add(header);
 
         var top = 72;
-        foreach (var (page, title) in new[] { (SettingsPage.General, Strings.NavGeneral), (SettingsPage.Appearance, Strings.NavAppearance), (SettingsPage.Shortcuts, Strings.NavShortcuts), (SettingsPage.Excluded, Strings.NavExcluded), (SettingsPage.Words, Strings.NavWords), (SettingsPage.About, Strings.NavAbout), (SettingsPage.Exit, Strings.NavExit) })
+        foreach (var (page, title) in new[] { (SettingsPage.General, Strings.NavGeneral), (SettingsPage.Appearance, Strings.NavAppearance), (SettingsPage.Shortcuts, Strings.NavShortcuts), (SettingsPage.Excluded, Strings.NavExcluded), (SettingsPage.Words, Strings.NavWords), (SettingsPage.Updates, Strings.NavUpdates), (SettingsPage.About, Strings.NavAbout), (SettingsPage.Exit, Strings.NavExit) })
         {
             var item = new NavItem { Text = title, Left = 8, Top = top, Width = _navigation.Width - 16, Height = 40, Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
             item.Click += (_, _) => SelectPage(page);
@@ -234,6 +235,9 @@ internal sealed class SettingsWindow : Form
             case SettingsPage.Words:
                 BuildWordsPage();
                 break;
+            case SettingsPage.Updates:
+                BuildUpdatesPage();
+                break;
             case SettingsPage.About:
                 BuildAboutPage();
                 break;
@@ -270,6 +274,11 @@ internal sealed class SettingsWindow : Form
             startup.Checked = actual; // the user or a policy may have refused
             _loading = false;
         };
+
+        AddSection(Strings.SectionNotifications);
+        var notify = new ToggleSwitch { Checked = settings.NotifyOnToggle };
+        notify.CheckedChanged += (_, _) => Update(s => s with { NotifyOnToggle = notify.Checked });
+        AddCard(Strings.NotifyOnToggle, Strings.NotifyOnToggleHint, notify);
 
         AddSection(Strings.SectionSuggestions);
         var count = Numbers(1, 5, settings.MaxSuggestions);
@@ -937,6 +946,51 @@ internal sealed class SettingsWindow : Form
         MessageBox.Show(this, text, Strings.AppName, MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, options);
     }
 
+    // User decision: updates come from Microsoft Store. Itmam only asks the Store whether a newer version
+    // exists (StoreUpdates); it never downloads anything itself, and the button opens the Store page.
+    private void BuildUpdatesPage()
+    {
+        AddTitle(Strings.NavUpdates);
+        AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutVersion, AppVersion()), secondary: true);
+
+        var onStart = new ToggleSwitch { Checked = _app.Settings.CheckForUpdates };
+        onStart.CheckedChanged += (_, _) => Update(s => s with { CheckForUpdates = onStart.Checked });
+        AddCard(Strings.CheckOnStart, Strings.CheckOnStartHint, onStart);
+
+        var check = new ThemedButton { Text = Strings.CheckNowButton };
+        var checkCard = AddCard(Strings.CheckNow, null, check);
+        check.Click += async (_, _) =>
+        {
+            check.Enabled = false;
+            check.Invalidate();
+            checkCard.SetDescription(Strings.UpdateChecking);
+            var result = await StoreUpdates.CheckAsync();
+            if (checkCard.IsDisposed)
+            {
+                return; // the page was left meanwhile
+            }
+
+            checkCard.SetDescription(result switch
+            {
+                UpdateCheck.UpdateAvailable => Strings.UpdateAvailable,
+                UpdateCheck.UpToDate => Strings.UpdateUpToDate,
+                _ => Strings.UpdateUnavailable,
+            });
+            check.Enabled = true;
+            check.Invalidate();
+        };
+
+        var open = new ThemedButton { Text = Strings.OpenButton };
+        open.Click += (_, _) => Tray.TrayApplication.OpenStorePage();
+        AddCard(Strings.OpenStore, Strings.OpenStoreHint, open);
+    }
+
+    // The package version when installed from the Store or a test package, else the assembly version.
+    private static string AppVersion() =>
+        StoreUpdates.PackageVersion
+        ?? Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion?.Split('+')[0]
+        ?? "1.0";
+
     // Its own page: exiting is different from "Enabled" off, and is explained here.
     private void BuildExitPage()
     {
@@ -949,8 +1003,7 @@ internal sealed class SettingsWindow : Form
     private void BuildAboutPage()
     {
         AddTitle(Strings.AppName);
-        var version = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion?.Split('+')[0] ?? "1.0";
-        AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutVersion, version), secondary: true);
+        AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutVersion, AppVersion()), secondary: true);
         AddText(Strings.AboutTagline, secondary: false);
         AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutDictionary, _app.Dictionary.Count), secondary: false);
         AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutLearned, _app.UserWords.Count), secondary: false);

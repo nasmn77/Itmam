@@ -161,4 +161,28 @@
   <data name="ConfirmClearWords" xml:space="preserve"><value>حذف كل كلماتك؟ لا يمكن التراجع عن ذلك. صدّرها أولًا إن أردت نسخة منها.</value></data>
   <data name="ConfirmBlockWord" xml:space="preserve"><value>حظر {0}؟ لن تُقترح أبدًا، ولو كانت في القاموس.</value></data>
   <data name="ConfirmUnblockWord" xml:space="preserve"><value>إلغاء حظر {0}؟ يمكن أن تُقترح من جديد.</value></data>
+  <data name="NotifyOffTitle" xml:space="preserve"><value>توقّف إتمام</value></data>
+  <data name="NotifyOffText" xml:space="preserve"><value>لا اقتراحات حتى تشغّله من جديد ({0}).</value></data>
+  <data name="NotifyPausedTitle" xml:space="preserve"><value>توقّف إتمام مؤقتًا</value></data>
+  <data name="NotifyPausedText" xml:space="preserve"><value>يعود تلقائيًا الساعة {0}.</value></data>
+  <data name="NotifyOnTitle" xml:space="preserve"><value>استُؤنف إتمام</value></data>
+  <data name="NotifyOnText" xml:space="preserve"><value>عادت الاقتراحات.</value></data>
+  <data name="UpdateTitle" xml:space="preserve"><value>يتوفر إصدار جديد من إتمام</value></data>
+  <data name="UpdateText" xml:space="preserve"><value>انقر لفتحه في متجر Microsoft.</value></data>
+  <data name="ConfirmExit" xml:space="preserve"><value>الخروج من إتمام؟ تتوقف الاقتراحات حتى تشغّله من جديد أو تسجّل الدخول مرة أخرى. لإيقافها فترةً فقط، أوقفه بدل الخروج ({0}).</value></data>
+  <data name="SectionNotifications" xml:space="preserve"><value>الإشعارات</value></data>
+  <data name="NotifyOnToggle" xml:space="preserve"><value>إشعار عند إيقاف إتمام واستئنافه</value></data>
+  <data name="NotifyOnToggleHint" xml:space="preserve"><value>وكذلك عند انتهاء الإيقاف المؤقت لساعة.</value></data>
+  <data name="NavUpdates" xml:space="preserve"><value>التحديثات</value></data>
+  <data name="CheckOnStart" xml:space="preserve"><value>البحث عن التحديثات عند بدء إتمام</value></data>
+  <data name="CheckOnStartHint" xml:space="preserve"><value>يسأل إتمام متجر Microsoft عبر Windows، ولا يُرسَل شيء عنك أو عما تكتبه.</value></data>
+  <data name="CheckNow" xml:space="preserve"><value>البحث عن تحديث الآن</value></data>
+  <data name="CheckNowButton" xml:space="preserve"><value>بحث</value></data>
+  <data name="UpdateChecking" xml:space="preserve"><value>جارٍ البحث…</value></data>
+  <data name="UpdateAvailable" xml:space="preserve"><value>يتوفر إصدار جديد: افتح إتمام في متجر Microsoft لتحديثه.</value></data>
+  <data name="UpdateUpToDate" xml:space="preserve"><value>لديك أحدث إصدار.</value></data>
+  <data name="UpdateUnavailable" xml:space="preserve"><value>التحديثات تأتي من متجر Microsoft: هذه النسخة لم تُثبَّت منه، أو تعذّر الوصول إليه.</value></data>
+  <data name="OpenStore" xml:space="preserve"><value>إتمام في متجر Microsoft</value></data>
+  <data name="OpenStoreHint" xml:space="preserve"><value>التحديثات والتقييمات والمراجعات.</value></data>
+  <data name="OpenButton" xml:space="preserve"><value>فتح</value></data>
 </root>

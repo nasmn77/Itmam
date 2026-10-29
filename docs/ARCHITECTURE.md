@@ -181,11 +181,14 @@
 - الإعدادات: `%LOCALAPPDATA%\Itmam\settings.json` (‏`SettingsStore`: ملف مؤقت ثم استبدال؛ الملف التالف يُحفظ باسم `settings.json.corrupt-*` وتُستخدم القيم الافتراضية). تفضيلات فقط، بلا أي نص مكتوب.
 - المظهر: `PopupAppearance.From(AppSettings)` ← `PopupColors.For(appearance)` (ألوان السمة، أو خلفية مخصصة مع نص أسود أو أبيض يُختار بتباين WCAG عبر `ColorContrast`). `BarRenderer` يرسم عناصر الشريط الحقيقي والمعاينة الحية في صفحة «المظهر» معًا. العتامة بنافذة طبقية (`Form.Opacity`) لا تفعّل الشريط ولا تُظهره.
 - التشغيل مع Windows (`StartupRegistration`): ‏`StartupTask` باسم "ItmamStartup" في حزمة MSIX (يُطابَق مع الإعداد عند البدء)؛ و`HKCU\…\Run` دون حزمة، فقط حين يفعّله المستخدم من الإعدادات (نسخ التطوير لا تُسجَّل تلقائيًا أبدًا).
+- التحديثات (من الإصدار 1.1، قرار المستخدم): بعد 12 ثانية من البدء، وإن كان «البحث عن التحديثات» مفعّلًا، يستدعي `StoreUpdates.CheckAsync` الدالة `StoreContext.GetAppAndOptionalStorePackageUpdatesAsync`. خدمة المتجر في Windows هي التي تتصل، والحزمة بلا صلاحية `internetClient`. إن وُجد تحديث يظهر إشعار يفتح النقرُ عليه `ms-windows-store://pdp/?productid=9P08F7KGRJB0`. لا يعمل إلا في نسخة المتجر؛ ونسخ التطوير والتجربة تعطي «غير متاح». صفحة «التحديثات» تعرض الإصدار وتبحث عند الطلب.
+- الإشعارات: عند تغيّر حالة التشغيل (القائمة، أو اختصار التشغيل، أو الإيقاف المؤقت وانتهاؤه) يظهر إشعار من الأيقونة، ما دام «إشعار عند إيقاف إتمام واستئنافه» مفعّلًا. الخروج من القائمة أو من الإعدادات يطلب تأكيدًا؛ وتسجيل الخروج من Windows لا يطلبه.
 
 ### ضمانات الخصوصية في الشيفرة
 
 - الحروف المكتوبة توجد في الذاكرة فقط: في القناة، وفي `WordBuffer`، وعلى الشاشة.
 - النص الوحيد الذي يُقرأ من التطبيقات الأخرى هو ما لا يزيد عن 49 حرفًا قبل المؤشر، بعد انتقال المؤشر إلى نص موجود، وأبدًا من حقول كلمات المرور أو التطبيقات المستثناة؛ ولا يُحتفظ إلا بالكلمة الحالية.
+- السؤال الوحيد الذي يخرج من الجهاز هو سؤال متجر Microsoft عن وجود إصدار أحدث (`StoreUpdates`، قابل للإطفاء)، ولا يحمل شيئًا عن المستخدم أو عما يكتبه.
 - لا يكتب أي مسار في الشيفرة حروفًا في سجل أو ملف أو شبكة. قائمة الأحداث في نافذة التشخيص تعرض *أنواع* الأحداث وأزمنتها فقط (الحروف تظهر بصيغة `Character (letter)`).
 - تشخيص الخطافات (`HookDiagnostics`) عدّادات وأزمنة فقط.
 - الكلمات المتعلَّمة تُحفظ بصيغة «الكلمة ← العدد / آخر استعمال» فقط (انظر «التعلّم والتخزين»)، ولا تُنسخ إلى أي مكان إلا بتصدير يختاره المستخدم إلى ملف يختاره.
@@ -458,12 +461,22 @@ nothing:
 - Start with Windows (`StartupRegistration`): MSIX `StartupTask` "ItmamStartup" when packaged
   (synced with the setting at start-up); `HKCU\…\Run` when unpackaged, only when the user switches it
   on in Settings (development builds are never registered automatically).
+- Updates (from 1.1, user decision): 12 s after start-up, if "Check for updates" is on, `StoreUpdates.CheckAsync` calls
+  `StoreContext.GetAppAndOptionalStorePackageUpdatesAsync`. The Store service in Windows does the network work; the
+  package has no `internetClient` capability. If an update exists, a notification opens
+  `ms-windows-store://pdp/?productid=9P08F7KGRJB0` when clicked. Store installations only; development and test builds
+  report "unavailable". The Updates page shows the version and checks on demand.
+- Notifications: when the on/off state changes (menu, toggle shortcut, a pause and its end) the tray shows a notification,
+  unless "Notify when Itmam is turned off or on" is off. Exiting from the menu or Settings asks for confirmation; Windows
+  sign-out never asks.
 
 ### Privacy guarantees in the code
 
 - Typed characters exist only in memory: in the channel, in `WordBuffer`, and on screen.
 - The only text read from other apps is ≤ 49 characters before the caret, after the caret moved
   into existing text, never from password fields or excluded apps; only the current word is kept.
+- The only question that leaves the device is asking Microsoft Store whether a newer version exists (`StoreUpdates`,
+  can be turned off); it carries nothing about the user or what they type.
 - No code path writes characters to a log, file, or the network. The diagnostics window's event list
   shows event *kinds* and latencies only (letters are shown as `Character (letter)`).
 - Hook diagnostics (`HookDiagnostics`) are counters and timings only.

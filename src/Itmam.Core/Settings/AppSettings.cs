@@ -28,6 +28,15 @@ public sealed record AppSettings
     /// <summary>Start Itmam when the user signs in.</summary>
     public bool StartWithWindows { get; init; } = true;
 
+    /// <summary>
+    /// Ask the Microsoft Store (through Windows) whether a newer version exists, shortly after start-up.
+    /// User decision: the app itself still has no network capability and sends nothing else.
+    /// </summary>
+    public bool CheckForUpdates { get; init; } = true;
+
+    /// <summary>Show a notification when Itmam is turned off, paused or resumed.</summary>
+    public bool NotifyOnToggle { get; init; } = true;
+
     public UiLanguage Language { get; init; } = UiLanguage.Arabic;
 
     /// <summary>Suggestions shown (1–5).</summary>

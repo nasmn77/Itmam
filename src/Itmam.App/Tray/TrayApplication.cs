@@ -1,7 +1,9 @@
+using System.Diagnostics;
 using System.Globalization;
 using Itmam.App.Resources;
 using Itmam.App.SettingsUi;
 using Itmam.Core.Settings;
+using Itmam.Win32;
 using Microsoft.Win32;
 
 namespace Itmam.App.Tray;
@@ -34,6 +36,9 @@ internal sealed class TrayApplication : ApplicationContext
     private Debugging.DebugWindow? _diagnostics;
 #endif
     private bool _exited;
+    private bool _wasEnabled;
+    private DateTime? _wasPausedUntil;
+    private Action? _balloonClick; // what clicking the notification currently shown does
 
     /// <param name="app">The running Itmam components.</param>
     public TrayApplication(ItmamApp app)
@@ -49,7 +54,7 @@ internal sealed class TrayApplication : ApplicationContext
         _settingsItem.Font = new Font(_menu.Font, FontStyle.Bold);
         _settingsItem.Click += (_, _) => ShowSettings(SettingsPage.General);
         _aboutItem.Click += (_, _) => ShowSettings(SettingsPage.About);
-        _exitItem.Click += (_, _) => Exit();
+        _exitItem.Click += (_, _) => ConfirmAndExit();
 
         _menu.Items.AddRange([_enabled, _pause, new ToolStripSeparator(), _settingsItem, _aboutItem]);
 #if DEBUG
@@ -60,15 +65,101 @@ internal sealed class TrayApplication : ApplicationContext
 
         _icon = new NotifyIcon { ContextMenuStrip = _menu, Visible = true };
         _icon.DoubleClick += (_, _) => ShowSettings(SettingsPage.General);
+        _icon.BalloonTipClicked += (_, _) => Interlocked.Exchange(ref _balloonClick, null)?.Invoke();
+        _icon.BalloonTipClosed += (_, _) => _balloonClick = null;
 
+        _wasEnabled = _app.IsEnabled;
         _pauseTimer.Tick += (_, _) => _app.EndPauseIfDue();
-        _app.EnabledChanged += Refresh;
+        _app.EnabledChanged += OnEnabledChanged;
         _app.LanguageChanged += OnLanguageChanged;
         SystemEvents.SessionEnding += OnSessionEnding;
         ApplyLanguage();
 
         // User decision: confirm on every start (Itmam has no window), including start with Windows.
         ShowRunningNoticeSoon();
+        CheckForUpdatesSoon();
+    }
+
+    /// <summary>Itmam's page in the Microsoft Store (update notification, Settings → Updates).</summary>
+    public static void OpenStorePage() =>
+        Process.Start(new ProcessStartInfo(StoreUpdates.StorePage.ToString()) { UseShellExecute = true });
+
+    // User decision: a notification when Itmam is turned off, paused or resumed (tray, Ctrl+Alt, end of a pause).
+    private void OnEnabledChanged()
+    {
+        Refresh();
+        var enabled = _app.IsEnabled;
+        var pausedUntil = _app.PausedUntil;
+        if (enabled == _wasEnabled && pausedUntil == _wasPausedUntil)
+        {
+            return;
+        }
+
+        _wasEnabled = enabled;
+        _wasPausedUntil = pausedUntil;
+        if (!_app.Settings.NotifyOnToggle || _exited)
+        {
+            return;
+        }
+
+        var (title, text) = enabled
+            ? (Strings.NotifyOnTitle, Strings.NotifyOnText)
+            : pausedUntil is { } until
+                ? (Strings.NotifyPausedTitle, string.Format(CultureInfo.CurrentCulture, Strings.NotifyPausedText, until.ToString("t", CultureInfo.CurrentCulture)))
+                : (Strings.NotifyOffTitle, string.Format(CultureInfo.CurrentCulture, Strings.NotifyOffText, "‪" + HotkeyNames.Format(_app.Settings.Hotkeys.ToggleEnabled) + "‬"));
+        ShowNotification(title, text, onClick: null);
+    }
+
+    // User decision: ask Microsoft Store once, shortly after start-up (not to slow it down), whether a
+    // newer version exists; the notification opens Itmam's Store page.
+    private void CheckForUpdatesSoon()
+    {
+        if (!_app.Settings.CheckForUpdates || !StartupRegistration.IsPackaged)
+        {
+            return;
+        }
+
+        var delay = new System.Windows.Forms.Timer { Interval = 12_000 };
+        delay.Tick += async (_, _) =>
+        {
+            delay.Dispose();
+            if (await StoreUpdates.CheckAsync() == UpdateCheck.UpdateAvailable && !_exited)
+            {
+                ShowNotification(Strings.UpdateTitle, Strings.UpdateText, OpenStorePage);
+            }
+        };
+        delay.Start();
+    }
+
+    private void ShowNotification(string title, string text, Action? onClick)
+    {
+        _balloonClick = onClick;
+        _icon.ShowBalloonTip(5_000, title, text, ToolTipIcon.Info);
+    }
+
+    // User decision: exiting asks first (tray menu, Settings → Exit). Windows sign-out never asks.
+    private void ConfirmAndExit()
+    {
+        if (_exited)
+        {
+            return;
+        }
+
+        var arabic = _app.Settings.Language == UiLanguage.Arabic;
+        var text = string.Format(CultureInfo.CurrentCulture, Strings.ConfirmExit, "‪" + HotkeyNames.Format(_app.Settings.Hotkeys.ToggleEnabled) + "‬");
+        var options = arabic ? MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign : 0;
+
+        // From Settings the window owns the question; from the tray (no window) a hidden topmost owner keeps it
+        // in front of other apps.
+        IWin32Window? settings = _settings is { Visible: true } ? _settings : null;
+        using var hidden = settings is null ? new Form { TopMost = true, ShowInTaskbar = false, Opacity = 0, StartPosition = FormStartPosition.CenterScreen } : null;
+        hidden?.Show();
+        var answer = MessageBox.Show(settings ?? hidden, text, Strings.AppName,
+            MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2, options);
+        if (answer == DialogResult.Yes)
+        {
+            Exit();
+        }
     }
 
     /// <summary>Opens Settings (also used when a second copy of Itmam is started).</summary>
@@ -101,8 +192,8 @@ internal sealed class TrayApplication : ApplicationContext
         delay.Start();
     }
 
-    // The settings window's exit button: exit after its click has finished (it is disposed by Exit).
-    private void ExitLater() => SynchronizationContext.Current?.Post(_ => Exit(), null);
+    // The settings window's exit button: ask, then exit after its click has finished (it is disposed by Exit).
+    private void ExitLater() => SynchronizationContext.Current?.Post(_ => ConfirmAndExit(), null);
 
     // Menu texts and direction follow the interface language.
     private void ApplyLanguage()

@@ -16,7 +16,7 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 
 يعمل في المفكرة وWord والمتصفحات ومعظم البرامج، من قاموس عربي فيه أكثر من 500 ألف كلمة، ويتعلّم كلماتك أنت فيقدّم ما تستعمله أكثر.
 
-خصوصيتك أولًا: إتمام لا يتصل بالإنترنت إطلاقًا، ولا يحفظ ما تكتبه. لا يُحفظ إلا الكلمة وعدد مرات استعمالها، على جهازك فقط. ولا يعمل في حقول كلمات المرور ولا في التطبيقات التي تستثنيها. والشيفرة المصدرية مفتوحة للمراجعة على GitHub.
+خصوصيتك أولًا: إتمام نفسه لا يتصل بالإنترنت، ولا يحفظ ما تكتبه. لا يُحفظ إلا الكلمة وعدد مرات استعمالها، على جهازك فقط. ولا يعمل في حقول كلمات المرور ولا في التطبيقات التي تستثنيها. والشيفرة المصدرية مفتوحة للمراجعة على GitHub.
 
 **المزايا** (حتى 20 بندًا):
 - اقتراحات فورية أثناء الكتابة في أي برنامج
@@ -29,7 +29,7 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 - اختصارات قابلة للتغيير، وCtrl+Alt للإيقاف والتشغيل
 - صفحة «كلماتي»: إضافة وتعديل وحظر واستيراد وتصدير
 - صامت في حقول كلمات المرور والتطبيقات المستثناة والألعاب بملء الشاشة
-- بلا إنترنت، بلا إعلانات، بلا جمع بيانات
+- بلا إعلانات، بلا جمع بيانات، والتحديثات عبر متجر Microsoft فقط
 - واجهة عربية وإنجليزية، ومفتوح المصدر (MIT)
 
 **كلمات البحث** (7 على الأكثر): اتمام · اكمال الكلمات · اقتراح الكلمات · لوحة المفاتيح العربية · الكتابة بالعربي · التنبؤ بالنص · الكتابة التنبؤية
@@ -50,7 +50,7 @@ Itmam suggests Arabic words as you type on your keyboard, in any Windows app, li
 
 It works in Notepad, Word, browsers and most apps, with an Arabic dictionary of more than 500,000 words, and learns your own words so the ones you use most come first.
 
-Your privacy first: Itmam never connects to the internet and never saves what you type. Only each word and how many times you used it are kept, on your device. It does nothing in password fields or in apps you exclude. The source code is open for review on GitHub.
+Your privacy first: Itmam itself never connects to the internet and never saves what you type. Only each word and how many times you used it are kept, on your device. It does nothing in password fields or in apps you exclude. The source code is open for review on GitHub.
 
 **Features** (up to 20):
 - Instant suggestions as you type, in any app
@@ -63,7 +63,7 @@ Your privacy first: Itmam never connects to the internet and never saves what yo
 - Configurable shortcuts; Ctrl+Alt turns it off and on
 - "My words": add, edit, block, import and export
 - Silent in password fields, excluded apps and full-screen games
-- No internet, no ads, no data collection
+- No ads, no data collection; updates only through Microsoft Store
 - Arabic and English interface; open source (MIT)
 
 **Search terms** (7 max): Arabic keyboard · Arabic word prediction · Arabic autocomplete · predictive text · word suggestions · Arabic typing · اتمام

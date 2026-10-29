@@ -99,5 +99,19 @@ public sealed class SettingsStoreTests : IDisposable
         settings.Enabled.ShouldBeFalse();
         settings.AddSpaceAfterAccept.ShouldBeTrue();
         settings.Hotkeys.ShouldBe(new HotkeySettings());
+        settings.CheckForUpdates.ShouldBeTrue();  // added in 1.1: on for people updating from 1.0
+        settings.NotifyOnToggle.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Update_check_and_toggle_notifications_can_be_turned_off()
+    {
+        var store = new SettingsStore(SettingsPath);
+        store.Save(new AppSettings { CheckForUpdates = false, NotifyOnToggle = false });
+
+        var loaded = new SettingsStore(SettingsPath).Load();
+
+        loaded.CheckForUpdates.ShouldBeFalse();
+        loaded.NotifyOnToggle.ShouldBeFalse();
     }
 }

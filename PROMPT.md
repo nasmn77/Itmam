@@ -176,6 +176,7 @@ Single instance via named mutex; a second launch opens Settings of the running i
 ## 11. Privacy & security (hard requirements; the Store review will check these)
 
 - **No network access at all.** Do not declare `internetClient` in the manifest. No telemetry, no update checks, no crash upload.
+  (User decision 2026-10-29, version 1.1: an update check through Microsoft Store's `StoreContext` is allowed — see CLAUDE.md.)
 - Never log typed text. Debug logs (Debug builds only) may contain event types and timings, never characters.
 - `docs/PRIVACY.md` (Arabic + English) explaining exactly what is stored, where, and how to delete it.
 - Code must be easy to audit: the hook and storage code paths documented in `docs/ARCHITECTURE.md`.

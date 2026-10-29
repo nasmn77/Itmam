@@ -56,7 +56,7 @@ Itmam has no main window and no taskbar button; it runs from an icon next to the
 
 ## Privacy
 
-- No internet connection, no statistics, no automatic updates, no crash reports.
+- Itmam itself never connects to the internet: no statistics, no crash reports. It only asks Microsoft Store about updates at start-up, which can be turned off in Settings → "Updates".
 - For each word only the word, how many times it was used and when are kept, in a file on your device. No sentences, no word order.
 - Nothing is read or learned in password fields or excluded apps.
 

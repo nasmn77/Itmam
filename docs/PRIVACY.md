@@ -6,9 +6,9 @@
 
 ## العربية
 
-**تاريخ السريان:** 28 أكتوبر 2026
+**تاريخ السريان:** الإصدار 1.1 (29 أكتوبر 2026)
 
-**إتمام لا يتصل بالإنترنت إطلاقًا.** لا يرسل أي بيانات إلى أي جهة، ولا يجمع إحصاءات استخدام، ولا يتحقق من التحديثات، ولا يرفع تقارير الأعطال. كل ما يفعله يبقى على جهازك.
+**إتمام نفسه لا يتصل بالإنترنت.** لا يرسل أي بيانات إلى أي جهة، ولا يجمع إحصاءات استخدام، ولا يرفع تقارير الأعطال. كل ما يفعله بما تكتبه يبقى على جهازك. الاستثناء الوحيد سؤال متجر Microsoft عن التحديثات (انظر «التحقق من التحديثات» أدناه).
 
 ### ما الذي يقرؤه التطبيق
 
@@ -21,6 +21,12 @@
 - لا يحفظ ما تكتبه، ولا الجمل، ولا ترتيب الكلمات، ولا يكتب أي حرف تكتبه في أي سجل.
 - لا يعمل إطلاقًا ولا يقرأ أي نص في: حقول كلمات المرور، والتطبيقات المستثناة، والتطبيقات التي تعمل بصلاحيات المسؤول، والألعاب والعروض بملء الشاشة.
 - لا يشارك أي بيانات مع أي طرف، ولا يعرض إعلانات.
+
+### التحقق من التحديثات
+
+- بعد بدء التشغيل بثوانٍ، يسأل إتمام **متجر Microsoft** عبر Windows: هل يوجد إصدار أحدث من إتمام؟ وإن وُجد يظهر إشعار، والنقر عليه يفتح صفحة إتمام في المتجر.
+- خدمة المتجر في Windows هي التي تتصل، كما تفعل لتحديث كل تطبيقاتك. إتمام نفسه لا يملك صلاحية الاتصال بالإنترنت، ولا يُرسَل في هذا السؤال أي شيء عنك أو عما تكتبه.
+- يمكنك إطفاؤه من الإعدادات ← «التحديثات» ← «البحث عن التحديثات عند بدء إتمام». ويبقى المتجر يحدّث التطبيق بطريقته المعتادة.
 
 ### ما الذي يُحفظ على جهازك
 
@@ -47,9 +53,9 @@
 
 ## English
 
-**Effective date:** October 28, 2026
+**Effective date:** version 1.1 (October 29, 2026)
 
-**Itmam never connects to the internet.** It sends no data to anyone, collects no usage statistics, does not check for updates and does not upload crash reports. Everything it does stays on your device.
+**Itmam itself never connects to the internet.** It sends no data to anyone, collects no usage statistics and does not upload crash reports. Everything it does with what you type stays on your device. The only exception is asking Microsoft Store about updates (see "Update check" below).
 
 ### What the app reads
 
@@ -62,6 +68,12 @@
 - It does not save what you type, sentences or word order, and never writes any typed character to a log.
 - It does nothing and reads no text in password fields, excluded apps, apps running as administrator, or full-screen games and presentations.
 - It shares no data with anyone and shows no ads.
+
+### Update check
+
+- A few seconds after it starts, Itmam asks **Microsoft Store** through Windows whether a newer version of Itmam exists. If so, a notification appears; clicking it opens Itmam's page in the Store.
+- The Store service in Windows does the network work, as it does to update all your apps. Itmam itself has no permission to connect to the internet, and nothing about you or what you type is sent with this question.
+- You can turn it off in Settings → "Updates" → "Check for updates when Itmam starts". The Store keeps updating the app in its usual way.
 
 ### What is stored on your device
 

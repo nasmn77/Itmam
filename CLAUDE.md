@@ -123,7 +123,10 @@ Tests run on Microsoft.Testing.Platform (opted in via `global.json` → `test.ru
 - The `.wapproj` is created in Phase 7: the MSIX tooling (DesktopBridge targets) is not installed in Visual Studio yet.
 
 ## Privacy rules (hard requirements)
-- No network access at runtime: no `internetClient` capability, no telemetry, no update checks, no crash upload.
+- No network access at runtime: no `internetClient` capability, no telemetry, no crash upload. **Exception (user decision,
+  2026-10-29, from 1.1):** `StoreUpdates` asks Microsoft Store through `StoreContext` whether a newer package exists
+  (12 s after start-up, setting "CheckForUpdates", default on); the Store service does the network work, nothing else is
+  sent. Documented in the privacy policy (docs/PRIVACY.md, site/) — keep it in sync.
 - Never log typed characters. Debug logs (Debug builds only) contain event types and timings only.
 - Learn only word → count/last-used. Never sentences or word order. Never learn in password fields or excluded apps.
 - Hook and storage code paths must be documented in `docs/ARCHITECTURE.md`.
