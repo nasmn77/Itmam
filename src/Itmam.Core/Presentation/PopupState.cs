@@ -2,8 +2,11 @@ using System.Drawing;
 
 namespace Itmam.Core.Presentation;
 
-/// <summary>What the suggestion bar shows right now: the words (best first) and its screen bounds.</summary>
-public sealed record PopupSnapshot(IReadOnlyList<string> Words, Rectangle Bounds)
+/// <summary>
+/// What the suggestion bar shows right now: the words (best first), its screen bounds, and the bounds of
+/// the actions strip shown next to it after a right-click (empty when none).
+/// </summary>
+public sealed record PopupSnapshot(IReadOnlyList<string> Words, Rectangle Bounds, Rectangle Actions = default)
 {
     public static readonly PopupSnapshot Hidden = new([], Rectangle.Empty);
 
@@ -26,10 +29,10 @@ public sealed class PopupState
     public void Hide() => Volatile.Write(ref _current, PopupSnapshot.Hidden);
 
     /// <summary>
-    /// The bar shows a suggestion's actions (right-click): no word for the keys to accept, but clicks
-    /// inside <paramref name="bounds"/> still belong to the bar.
+    /// The actions strip (right-click) is shown at <paramref name="bounds"/>, or hidden (empty): clicks
+    /// there belong to the bar, not to the app.
     /// </summary>
-    public void ShowActions(Rectangle bounds) => Volatile.Write(ref _current, new PopupSnapshot([], bounds));
+    public void SetActions(Rectangle bounds) => Volatile.Write(ref _current, Current with { Actions = bounds });
 
     /// <summary>
     /// A suggestion was just accepted and Backspace may undo it. Set by the pipeline; cleared by the

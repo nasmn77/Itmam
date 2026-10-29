@@ -59,15 +59,16 @@ internal sealed class SuggestionController : IDisposable
 
         var sequence = Interlocked.Increment(ref _sequence);
         IReadOnlyList<string> words = [];
+        var sources = new Dictionary<string, string>(StringComparer.Ordinal);
         // Silenced windows (password field, elevated/excluded app, full screen) never show the bar.
         if (update is { IsArabicLayout: true, IsDetached: false, SuggestionsSuppressed: false, Silenced: SilenceReason.None }
             && _isEnabled())
         {
-            words = Suggest(update);
+            words = Suggest(update, sources);
         }
 
         var started = update.Input?.Timestamp ?? Stopwatch.GetTimestamp();
-        _requests.Writer.TryWrite(new Request(sequence, words, started));
+        _requests.Writer.TryWrite(new Request(sequence, words, started, sources));
     }
 
     public void Dispose()
@@ -99,6 +100,7 @@ internal sealed class SuggestionController : IDisposable
                     if (request.Sequence == Volatile.Read(ref _sequence))
                     {
                         _popup.ShowSuggestions(request.Words, caret.Bounds, rightToLeft: true, belowPointer: caret.Source == CaretSource.Mouse);
+                        PhraseSources = request.Sources;
                         Shown?.Invoke(new SuggestionShown(request.Words.Count, caret.Source, Stopwatch.GetElapsedTime(request.Started)));
                     }
                 });
@@ -131,16 +133,22 @@ internal sealed class SuggestionController : IDisposable
     /// <summary>Fixed expressions to complete; <see cref="PhraseIndex.Empty"/> turns phrase suggestions off.</summary>
     public PhraseIndex Phrases { get; set; } = PhraseIndex.Empty;
 
+    /// <summary>
+    /// For the bar on screen: the whole phrase each phrase suggestion comes from (it shows only the rest).
+    /// UI thread.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> PhraseSources { get; private set; } = new Dictionary<string, string>();
+
     /// <summary>The user's text shortcuts («ع1» → its text).</summary>
     public TextShortcuts Shortcuts { get; set; } = TextShortcuts.Empty;
 
     // A text shortcut typed exactly comes first, then a phrase the user is typing (Tab inserts the whole
     // rest of it), then dictionary words. Phrases can show the bar right after a space, before any
     // letter: the next word of «بسم …»; shortcuts show whatever the minimum letters setting.
-    private IReadOnlyList<string> Suggest(PipelineUpdate update)
+    private IReadOnlyList<string> Suggest(PipelineUpdate update, Dictionary<string, string> sources)
     {
         var max = _engine.Options.MaxSuggestions;
-        IReadOnlyList<string> phrases = Phrases.Suggest(update.RecentWords ?? [], update.Word, max);
+        IReadOnlyList<string> phrases = Phrases.Suggest(update.RecentWords ?? [], update.Word, max, sources);
         if (Shortcuts.Find(update.Word) is { } shortcut)
         {
             phrases = [shortcut, .. phrases.Where(p => p != shortcut).Take(max - 1)];
@@ -188,5 +196,5 @@ internal sealed class SuggestionController : IDisposable
         }
     }
 
-    private readonly record struct Request(long Sequence, IReadOnlyList<string> Words, long Started);
+    private readonly record struct Request(long Sequence, IReadOnlyList<string> Words, long Started, IReadOnlyDictionary<string, string> Sources);
 }

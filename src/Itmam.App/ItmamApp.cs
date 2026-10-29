@@ -201,25 +201,36 @@ internal sealed class ItmamApp : IDisposable
 
     public void Dispose() => Shutdown();
 
-    // Right-click on the bar (user decision 1.1): the bar shows what applies to this suggestion —
-    // delete a learned word or phrase (learned again if used again), add a phrase to "My phrases".
-    // Nothing for a dictionary word or a phrase already in "My phrases". UI thread.
+    // Right-click on the bar (user decision 1.1): a strip next to the bar shows what applies to this
+    // suggestion. For a phrase the bar shows only its rest, so the actions use the whole phrase it comes
+    // from: delete it if learned (learned again if typed again), remove it from or add it to "My phrases".
+    // A single word: delete it if learned. Nothing for a dictionary word. UI thread.
     private void ShowSuggestionMenu(int index, string text)
     {
-        var isPhrase = text.Contains(' ', StringComparison.Ordinal);
         var actions = new List<(string, Action)>();
-        if (isPhrase ? Learning.IsLearnedPhrase(text) : Learning.IsLearnedWord(text))
+        if (text.Contains(' ', StringComparison.Ordinal))
+        {
+            var whole = Suggestions.PhraseSources.GetValueOrDefault(text) ?? text;
+            if (Learning.IsLearnedPhrase(whole))
+            {
+                actions.Add((Resources.Strings.BarMenuDelete, () => Hooks.Post(InputEvent.Forget(index, whole))));
+            }
+
+            var key = LearningService.PhraseKey(whole);
+            if (Settings.MyPhrases.FirstOrDefault(p => LearningService.PhraseKey(p) == key) is { } mine)
+            {
+                actions.Add((Resources.Strings.BarMenuRemoveFromMyPhrases,
+                    () => UpdateSettings(Settings with { MyPhrases = [.. Settings.MyPhrases.Where(p => p != mine)] })));
+            }
+            else if (PhraseIndex.Clean(whole) is { } phrase && !Settings.TextShortcuts.Any(s => s.Text == text))
+            {
+                actions.Add((Resources.Strings.BarMenuAddToMyPhrases,
+                    () => UpdateSettings(Settings with { MyPhrases = [.. Settings.MyPhrases, phrase] })));
+            }
+        }
+        else if (Learning.IsLearnedWord(text))
         {
             actions.Add((Resources.Strings.BarMenuDelete, () => Hooks.Post(InputEvent.Forget(index, text))));
-        }
-
-        var key = LearningService.PhraseKey(text);
-        if (isPhrase && PhraseIndex.Clean(text) is { } phrase
-            && !Settings.MyPhrases.Any(p => LearningService.PhraseKey(p) == key)
-            && !Settings.TextShortcuts.Any(s => s.Text == text))
-        {
-            actions.Add((Resources.Strings.BarMenuAddToMyPhrases,
-                () => UpdateSettings(Settings with { MyPhrases = [.. Settings.MyPhrases, phrase] })));
         }
 
         Popup.ShowActions(actions);

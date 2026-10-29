@@ -43,6 +43,17 @@ public class PhraseIndexTests
     }
 
     [Fact]
+    public void Each_suggestion_records_the_whole_phrase_it_comes_from()
+    {
+        var sources = new Dictionary<string, string>();
+
+        Index.Suggest(Context("بسم"), "", 3, sources).ShouldBe(["الله الرحمن الرحيم", "الله"]);
+
+        sources["الله الرحمن الرحيم"].ShouldBe("بسم الله الرحمن الرحيم");
+        sources["الله"].ShouldBe("بسم الله الرحمن الرحيم");
+    }
+
+    [Fact]
     public void Too_few_letters_offer_nothing() =>
         Index.Suggest([], "جز", 3).ShouldBeEmpty();
 

@@ -81,7 +81,11 @@ public sealed class PhraseIndex
     /// <param name="context">Normalized keys of the words typed right before the current one.</param>
     /// <param name="typed">The word being typed (may be empty right after a space).</param>
     /// <param name="max">Most suggestions to return.</param>
-    public IReadOnlyList<string> Suggest(IReadOnlyList<string> context, string typed, int max)
+    /// <param name="sources">
+    /// Filled with the whole phrase each suggestion comes from (the bar shows only the rest of it), so the
+    /// right-click actions can delete or keep the whole phrase.
+    /// </param>
+    public IReadOnlyList<string> Suggest(IReadOnlyList<string> context, string typed, int max, IDictionary<string, string>? sources = null)
     {
         var literal = ArabicText.StripIgnorable(typed);
         if (max <= 0 || (literal.Length > 0 && !ArabicText.IsArabicWord(literal)))
@@ -128,7 +132,7 @@ public sealed class PhraseIndex
         {
             if (position < phrase.Words.Count - 1)
             {
-                Add(result, string.Join(' ', phrase.Words.Skip(position)), phraseLimit);
+                Add(result, string.Join(' ', phrase.Words.Skip(position)), phraseLimit, phrase, sources);
             }
         }
 
@@ -136,7 +140,7 @@ public sealed class PhraseIndex
         {
             if (position > 0)
             {
-                Add(result, phrase.Words[position], max);
+                Add(result, phrase.Words[position], max, phrase, sources);
             }
         }
 
@@ -190,11 +194,12 @@ public sealed class PhraseIndex
     private static bool StartsWith(IReadOnlyList<string> keys, IReadOnlyList<string> prefix) =>
         prefix.Count <= keys.Count && prefix.Select((key, i) => keys[i] == key).All(same => same);
 
-    private static void Add(List<string> result, string suggestion, int max)
+    private static void Add(List<string> result, string suggestion, int max, Phrase phrase, IDictionary<string, string>? sources)
     {
         if (result.Count < max && !result.Contains(suggestion))
         {
             result.Add(suggestion);
+            sources?.TryAdd(suggestion, phrase.Text);
         }
     }
 

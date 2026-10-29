@@ -32,9 +32,8 @@ internal sealed class SuggestionPopup : Form
     private int _selected = -1;
     private int _hovered = -1;
     private Rectangle _shown;
-
-    // Set while the bar shows a suggestion's actions instead of suggestions (right-click).
-    private IReadOnlyList<Action>? _actions;
+    private Rectangle _caret;
+    private ActionStrip? _strip;
 
     /// <param name="state">Published on every show/hide so the keyboard hook knows what is on screen.</param>
     public SuggestionPopup(PopupState state)
@@ -95,7 +94,7 @@ internal sealed class SuggestionPopup : Form
     {
         var monitor = Monitors.FromPoint(new Point(caret.X, caret.Y + (caret.Height / 2)));
         _metrics = SuggestionBarMetrics.ForFontSize(_appearance.FontPixels).Scale(monitor.Scale);
-        _actions = null;
+        HideActions();
         _words = words;
         _rightToLeft = rightToLeft;
         ApplyTheme();
@@ -111,15 +110,16 @@ internal sealed class SuggestionPopup : Form
         _hovered = -1;
         PopupWindows.ShowWithoutActivation(Handle, bounds);
         _shown = bounds;
+        _caret = caret;
         IsShowing = true;
         _state.Show(words, bounds);
         Invalidate();
     }
 
     /// <summary>
-    /// Right-click menu, drawn in the bar itself (user decision 1.1, after a real menu took the focus
-    /// and stayed open): the actions replace the suggestions in place, never take focus, and the next
-    /// key or update shows the suggestions again. A click runs an action and hides the bar.
+    /// Right-click actions (user decision 1.1), in a small strip next to the bar on the side away from
+    /// the caret. Like the bar it never takes focus (a real menu did, stayed open and stopped the bar);
+    /// the next key, click elsewhere or bar update hides it, and a click runs an action.
     /// </summary>
     public void ShowActions(IReadOnlyList<(string Label, Action Run)> actions)
     {
@@ -128,22 +128,26 @@ internal sealed class SuggestionPopup : Form
             return;
         }
 
-        _actions = [.. actions.Select(a => a.Run)];
-        _words = [.. actions.Select(a => a.Label)];
-        using (var measure = Graphics.FromHwnd(Handle))
-        {
-            _layout = BarRenderer.Measure(measure, _words, FontFor(_metrics.FontPixels), _metrics, _rightToLeft);
-        }
+        _strip ??= new ActionStrip(this);
+        var size = _strip.Prepare(actions, _metrics, PopupColors.For(_appearance), _appearance with { HighlightFirst = false, ShowHotkeyHints = false },
+            FontFor(_metrics.FontPixels), _rightToLeft);
+        var gap = _metrics.CaretGap;
+        var barAboveCaret = _shown.Bottom <= _caret.Top + 1;
+        var top = barAboveCaret ? _shown.Top - gap - size.Height : _shown.Bottom + gap;
+        var left = _rightToLeft ? _shown.Right - size.Width : _shown.Left;
+        var bounds = new Rectangle(new Point(left, top), size);
+        _strip.ShowAt(bounds);
+        _state.SetActions(bounds);
+    }
 
-        // Same place, anchored on the side the bar grows from.
-        var left = _rightToLeft ? _shown.Right - _layout.Size.Width : _shown.Left;
-        var bounds = new Rectangle(new Point(left, _shown.Top), _layout.Size);
-        _selected = -1;
-        _hovered = -1;
-        PopupWindows.ShowWithoutActivation(Handle, bounds);
-        _shown = bounds;
-        _state.ShowActions(bounds);
-        Invalidate();
+    /// <summary>Hides the actions strip (its action ran, or anything else happened).</summary>
+    public void HideActions()
+    {
+        if (_strip is { IsShowing: true })
+        {
+            _strip.HideStrip();
+            _state.SetActions(Rectangle.Empty);
+        }
     }
 
     /// <summary>Native navigation selection (-1: none), painted with the Windows accent color.</summary>
@@ -164,7 +168,7 @@ internal sealed class SuggestionPopup : Form
 
     public void HideSuggestions()
     {
-        _actions = null;
+        HideActions();
         _state.Hide();
         if (IsHandleCreated && IsShowing)
         {
@@ -195,14 +199,7 @@ internal sealed class SuggestionPopup : Form
     protected override void OnMouseDown(MouseEventArgs e)
     {
         base.OnMouseDown(e);
-        if (_actions is { } actions)
-        {
-            var action = ItemAt(e.Location) is var chosen and >= 0 && e.Button == MouseButtons.Left ? actions[chosen] : null;
-            HideSuggestions();
-            action?.Invoke();
-            return;
-        }
-
+        HideActions();
         if (ItemAt(e.Location) is var index and >= 0)
         {
             if (e.Button == MouseButtons.Left)
@@ -269,6 +266,7 @@ internal sealed class SuggestionPopup : Form
         if (disposing)
         {
             SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
+            _strip?.Dispose();
             foreach (var font in _fonts.Values)
             {
                 font.Dispose();
