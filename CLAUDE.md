@@ -45,7 +45,7 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
   (privacy), age rating questionnaire all "No", listings ar + en (texts from STORE_LISTING.md, screenshots docs/store,
   logos docs/store/logos), certification notes in Additional Testing Information. Super hero art is ready in docs/store/logos
   (add it in the next submission).
-- **1.0.1 (branch `release-1.0.1`, verified by the user, waiting for 1.0.0 to be published before submitting):**
+- **1.1.0 (branch `release-1.1`, waiting for 1.0.0 to be published before submitting; merge into main only then, because it changes the published privacy policy):** user decisions 2026-10-29: update check through Microsoft Store (`StoreUpdates`, notification opens the Store page, Settings → Updates), on/off notifications «تم إيقاف إتمام» / «تم إيقاف إتمام مؤقتًا» / «تم تشغيل إتمام» (setting, default on), confirmation before exiting (not on sign-out). Also the two 1.0.1 fixes, verified by the user:
   (1) `CaretSource.FocusedField` fallback before the mouse pointer when a web control reports no caret (the bar had
   appeared at the top of Partner Center in Edge); (2) the caret is read again 60 ms after the bar is shown when no
   newer key arrived (the hook reads it before the app inserts the letter; an empty dir=auto field such as Google
