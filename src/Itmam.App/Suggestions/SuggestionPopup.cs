@@ -66,8 +66,8 @@ internal sealed class SuggestionPopup : Form
     /// <summary>A suggestion was clicked: (index, word). Raised on the UI thread.</summary>
     public event Action<int, string>? SuggestionClicked;
 
-    /// <summary>A suggestion was right-clicked: forget it as a learned word. Raised on the UI thread.</summary>
-    public event Action<int, string>? SuggestionForgetRequested;
+    /// <summary>A suggestion was right-clicked: (index, word, screen point) for its menu. Raised on the UI thread.</summary>
+    public event Action<int, string, Point>? SuggestionMenuRequested;
 
     protected override bool ShowWithoutActivation => true;
 
@@ -166,7 +166,7 @@ internal sealed class SuggestionPopup : Form
             }
             else if (e.Button == MouseButtons.Right)
             {
-                SuggestionForgetRequested?.Invoke(index, _words[index]);
+                SuggestionMenuRequested?.Invoke(index, _words[index], PointToScreen(e.Location));
             }
         }
     }

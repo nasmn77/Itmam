@@ -58,10 +58,11 @@ internal sealed class ItmamApp : IDisposable
         Popup = new SuggestionPopup(popupState);
         _ = Popup.Handle; // create the (hidden) window now so the first suggestion is not delayed
         Popup.SuggestionClicked += (index, word) => Hooks.Post(InputEvent.Accept(index, word));
-        Popup.SuggestionForgetRequested += (index, word) => Hooks.Post(InputEvent.Forget(index, word));
+        Popup.SuggestionMenuRequested += ShowSuggestionMenu;
         Suggestions = new SuggestionController(Engine, new CaretLocator(UiAutomation), Popup, () => Hooks.IsEnabled, Learning.SyncRoot);
 
         // Learning first, so a just-forgotten word is gone before the bar is recomputed. Same thread as the engine.
+        Pipeline.UndoAvailableChanged += popupState.SetUndoAccept;
         Pipeline.Updated += OnPipelineUpdated;
         Pipeline.Updated += Suggestions.OnPipelineUpdated;
 
@@ -199,6 +200,42 @@ internal sealed class ItmamApp : IDisposable
     }
 
     public void Dispose() => Shutdown();
+
+    // Right-click on the bar (user decision 1.1): a small menu with what applies to this suggestion —
+    // delete a learned word or phrase (learned again if used again), add a phrase to "My phrases".
+    // Nothing for a dictionary word or a phrase already in "My phrases". UI thread.
+    private void ShowSuggestionMenu(int index, string text, Point screen)
+    {
+        var isPhrase = text.Contains(' ', StringComparison.Ordinal);
+        var items = new List<ToolStripItem>();
+        if (isPhrase ? Learning.IsLearnedPhrase(text) : Learning.IsLearnedWord(text))
+        {
+            items.Add(new ToolStripMenuItem(Resources.Strings.BarMenuDelete, null, (_, _) => Hooks.Post(InputEvent.Forget(index, text))));
+        }
+
+        var key = LearningService.PhraseKey(text);
+        if (isPhrase && PhraseIndex.Clean(text) is { } phrase
+            && !Settings.MyPhrases.Any(p => LearningService.PhraseKey(p) == key)
+            && !Settings.TextShortcuts.Any(s => s.Text == text))
+        {
+            items.Add(new ToolStripMenuItem(Resources.Strings.BarMenuAddToMyPhrases, null,
+                (_, _) => UpdateSettings(Settings with { MyPhrases = [.. Settings.MyPhrases, phrase] })));
+        }
+
+        if (items.Count == 0)
+        {
+            return;
+        }
+
+        var menu = new ContextMenuStrip
+        {
+            ShowImageMargin = false,
+            RightToLeft = Settings.Language == UiLanguage.Arabic ? RightToLeft.Yes : RightToLeft.No,
+        };
+        menu.Items.AddRange([.. items]);
+        menu.Closed += (_, _) => _ui.Post(_ => menu.Dispose(), null); // after the clicked item ran
+        menu.Show(screen);
+    }
 
     // A missing or unreadable list only turns the shipped phrases off; the user's own still work.
     private static PhraseIndex LoadPhrases(string path)

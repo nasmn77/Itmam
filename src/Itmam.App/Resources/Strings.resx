@@ -223,4 +223,10 @@
   <data name="TurnOffButton" xml:space="preserve"><value>Turn off</value></data>
   <data name="TurnOnButton" xml:space="preserve"><value>Turn on</value></data>
   <data name="TurnOffHint" xml:space="preserve"><value>Itmam tracks nothing until you turn it on again, here, from the icon's menu or with {0}.</value></data>
+  <data name="PhrasesFileName" xml:space="preserve"><value>Itmam phrases.txt</value></data>
+  <data name="TextShortcutsFileName" xml:space="preserve"><value>Itmam shortcuts.txt</value></data>
+  <data name="ImportExportListHint" xml:space="preserve"><value>A text file to back them up or move them to another PC. Importing adds to the list and keeps what you have.</value></data>
+  <data name="ImportListDone" xml:space="preserve"><value>Added: {0}. Skipped (already there or invalid): {1}.</value></data>
+  <data name="BarMenuDelete" xml:space="preserve"><value>Delete</value></data>
+  <data name="BarMenuAddToMyPhrases" xml:space="preserve"><value>Add to My phrases</value></data>
 </root>

@@ -50,6 +50,12 @@ public enum InputEventKind
     /// done in Settings → My words.
     /// </summary>
     ForgetSuggestion,
+
+    /// <summary>
+    /// Backspace right after accepting a suggestion (user decision 1.1): remove what was inserted and
+    /// type back what had been typed.
+    /// </summary>
+    UndoAccept,
 }
 
 /// <param name="Kind">What happened.</param>

@@ -208,6 +208,9 @@ public sealed class InputPipeline(
     // The words typed in a row just before the current one, for phrase suggestions (memory only).
     private readonly RecentWords _recent = new();
 
+    // The last accept, while Backspace can still undo it (memory only, until the next event).
+    private UndoableAccept? _undoable;
+
     public InputTracker Tracker { get; } = new();
 
     /// <summary>Replaced live from Settings (e.g. the space after accepting).</summary>
@@ -219,6 +222,12 @@ public sealed class InputPipeline(
 
     /// <summary>Raised on the pipeline thread after every event and probe.</summary>
     public event Action<PipelineUpdate>? Updated;
+
+    /// <summary>
+    /// Whether Backspace can undo the accept just made (true right after it, false at the next event).
+    /// The hook reads it through <see cref="Presentation.PopupState.CanUndoAccept"/>.
+    /// </summary>
+    public event Action<bool>? UndoAvailableChanged;
 
     public async Task RunAsync(CancellationToken cancellation)
     {
@@ -327,7 +336,7 @@ public sealed class InputPipeline(
         IReadOnlyList<string>? phrases = null;
         if (_pendingWord is not null || _pendingPhrases is not null)
         {
-            if (kind is InputEventKind.Backspace or InputEventKind.CtrlBackspace)
+            if (kind is InputEventKind.Backspace or InputEventKind.CtrlBackspace or InputEventKind.UndoAccept)
             {
                 // Deleting right after finishing the word: do not learn it, nor the sequences it ends.
                 _pendingWord = null;
@@ -355,6 +364,17 @@ public sealed class InputPipeline(
     {
         var buffer = Tracker.Buffer;
         var kind = record.Input.Kind;
+        if (kind == InputEventKind.UndoAccept)
+        {
+            return UndoAccept();
+        }
+
+        if (_undoable is not null)
+        {
+            _undoable = null;
+            UndoAvailableChanged?.Invoke(false);
+        }
+
         var contextMayChange = kind is not (InputEventKind.Character or InputEventKind.Backspace or InputEventKind.Escape
             or InputEventKind.NavigationSelect or InputEventKind.AcceptSuggestion or InputEventKind.DismissSuggestions or InputEventKind.ForgetSuggestion);
 
@@ -444,10 +464,20 @@ public sealed class InputPipeline(
             return BufferResult.None;
         }
 
-        var edit = TextEdit.Compute(buffer.Text, word, _options.AppendSpaceOnAccept, _charAfterCaret);
+        var typed = buffer.Text;
+        var edit = TextEdit.Compute(typed, word, _options.AppendSpaceOnAccept, _charAfterCaret);
+        var recentBefore = _recent.Save();
         if (!injector.Send(edit))
         {
             return BufferResult.None;
+        }
+
+        // Undo puts the typed text back; not when a space after the caret was replaced (the caret
+        // could not be put back before it).
+        if (edit.DeleteForward == 0)
+        {
+            _undoable = new UndoableAccept(typed, edit, recentBefore);
+            UndoAvailableChanged?.Invoke(true);
         }
 
         // Accepted words join the phrase context; without a trailing space the last one is still being typed.
@@ -460,6 +490,39 @@ public sealed class InputPipeline(
         _suppression = edit.EndsWithSpace ? Suppression.None : Suppression.UntilNextLetter;
         return buffer.AcceptWord(word, edit.EndsWithSpace);
     }
+
+    // Backspace right after an accept: delete what was inserted, type back what had been deleted, and
+    // track the typed word again. The accepted word (pending) is not learned. If there is nothing to
+    // undo any more, the swallowed Backspace is sent as a plain one.
+    private BufferResult UndoAccept()
+    {
+        if (injector is null)
+        {
+            return BufferResult.None;
+        }
+
+        var last = _undoable;
+        _undoable = null;
+        if (last is null)
+        {
+            injector.Send(new TextEdit(1, string.Empty));
+            return BufferResult.None;
+        }
+
+        UndoAvailableChanged?.Invoke(false);
+        var retype = last.Typed[(last.Typed.Length - last.Edit.Backspaces)..];
+        if (!injector.Send(new TextEdit(last.Edit.Text.Length, retype)))
+        {
+            return BufferResult.None;
+        }
+
+        _recent.Restore(last.RecentBefore);
+        _finishedPhrases = null;
+        _suppression = Suppression.UntilNextLetter; // the bar's choice was turned down: hidden until typing goes on
+        return Tracker.Buffer.Restore(last.Typed);
+    }
+
+    private sealed record UndoableAccept(string Typed, TextEdit Edit, (string[] Keys, string[] Words) RecentBefore);
 
     private void CollectPhrases(string word)
     {

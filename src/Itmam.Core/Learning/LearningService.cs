@@ -96,6 +96,15 @@ public sealed partial class LearningService : IDisposable
         }
     }
 
+    /// <summary>A word the user typed or added (not blocked): the bar's menu offers to delete it.</summary>
+    public bool IsLearnedWord(string word)
+    {
+        lock (_lock)
+        {
+            return _index.Get(word) is { IsBlocked: false };
+        }
+    }
+
     /// <summary>Loads the stored words into the index (call once at start-up).</summary>
     public void Load()
     {

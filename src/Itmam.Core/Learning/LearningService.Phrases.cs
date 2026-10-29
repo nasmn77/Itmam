@@ -113,6 +113,15 @@ public sealed partial class LearningService
         }
     }
 
+    /// <summary>A learned (suggested) phrase: the bar's menu offers to delete it.</summary>
+    public bool IsLearnedPhrase(string text)
+    {
+        lock (_lock)
+        {
+            return _phrases.TryGetValue(PhraseKey(text), out var entry) && entry.Count >= _options.PhraseMinUses;
+        }
+    }
+
     /// <summary>Right-click on the bar, or "Delete" in Settings: the phrase is forgotten (learned again if typed again).</summary>
     public bool ForgetPhrase(string text)
     {

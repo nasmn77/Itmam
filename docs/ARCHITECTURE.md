@@ -157,13 +157,17 @@
     user.db.corrupt-<timestamp> (kept) and a fresh database is created.
 ```
 
-ما يُحفظ لكل كلمة: الكلمة، وعدد مرات استعمالها، ووقت آخر استعمال، وهل حظرها المستخدم. لا جمل أبدًا، ولا اسم التطبيق الذي كُتبت فيه، ولا أي شيء كُتب في نافذة صامتة. الكلمة المتعلَّمة تُقترح بعد `MinUsesToSuggest` استعمالًا (افتراضيًا 2). صفحة «كلماتي» تستخدم `LearningService`: إضافة، وتعديل، وحذف، وحظر وإلغاؤه، واستيراد وتصدير (`word<TAB>count`، و`!word` للمحظورة)، وإيقاف مؤقت، وحذف الكل؛ والحظر وإلغاؤه والحذف تطلب تأكيدًا. وفي الشريط، النقر بالزر الأيمن (أو Ctrl+Delete أثناء الاختيار بالأسهم) ينسى كلمة متعلَّمة (`ForgetSuggestion` ← `LearningService.Remove`)، ويتعلّمها من جديد إن استُعملت. الحظر الدائم لا يُتاح إلا في «كلماتي».
+ما يُحفظ لكل كلمة: الكلمة، وعدد مرات استعمالها، ووقت آخر استعمال، وهل حظرها المستخدم. لا جمل أبدًا، ولا اسم التطبيق الذي كُتبت فيه، ولا أي شيء كُتب في نافذة صامتة. الكلمة المتعلَّمة تُقترح بعد `MinUsesToSuggest` استعمالًا (افتراضيًا 2). صفحة «كلماتي» تستخدم `LearningService`: إضافة، وتعديل، وحذف، وحظر وإلغاؤه، واستيراد وتصدير (`word<TAB>count`، و`!word` للمحظورة)، وإيقاف مؤقت، وحذف الكل؛ والحظر وإلغاؤه والحذف تطلب تأكيدًا. وفي الشريط، النقر بالزر الأيمن يفتح قائمة (من الإصدار 1.1: «حذف» للكلمة أو العبارة المتعلَّمة، و«إضافة إلى عباراتي» للعبارات)، وCtrl+Delete أثناء الاختيار بالأسهم ينسى كلمة متعلَّمة (`ForgetSuggestion` ← `LearningService.Remove`)، ويتعلّمها من جديد إن استُعملت. الحظر الدائم لا يُتاح إلا في «كلماتي».
 
 أمان التزامن: خيط المعالجة يتعلّم الكلمات بينما تعدّلها «كلماتي» من خيط الواجهة. كل تغيير يمر عبر `LearningService` تحت قفله (`SyncRoot`)؛ و`SuggestionController` يمسك القفل نفسه بينما يقرأ `SuggestionEngine` الفهرس؛ والصفحة تعرض نسخة (`LearningService.Snapshot`).
 
 ### العبارات المتلازمة (من الإصدار 1.1)
 
 `PhraseIndex` (في Core) يحمّل `data/phrases.txt` و«عباراتي» من الإعدادات (عبارات المستخدم أولًا). ويحتفظ `InputPipeline` في `RecentWords` بآخر 8 كلمات أنهتها مسافة، مطبّعةً وفي الذاكرة فقط، ويمسحها عند أي علامة غير المسافة وعند أي حدث غير الكتابة (Backspace، حركة المؤشر، تغيير التركيز أو اللغة…) وفي النوافذ الصامتة؛ وترسلها `PipelineUpdate.RecentWords`. يقترح `SuggestionController` أولًا بقية العبارة التي يكتبها المستخدم (يُدرجها Tab كاملة) ثم الكلمة التالية فيها، ثم كلمات القاموس. ويظهر الشريط بعد المسافة مباشرة إن كانت هناك كلمة تالية. ولكي يبقى Tab متوقعًا: لا تبدأ عبارة من كلمة شائعة قصيرة (في، على، من…)، ولا تُقترح عند البدء إلا عبارة واحدة حتى تبقى كلمات القاموس في الشريط، وتُعتمد العبارات المطابقة لأكبر عدد من الكلمات فقط. القبول يُدرج العبارة دفعة واحدة، والقبول بلا حروف مكتوبة مسموح.
+
+### التراجع عن القبول (من الإصدار 1.1)
+
+بعد إدراج اقتراح يحفظ `InputPipeline` في الذاكرة ما كُتب قبله وما أُدرج (`UndoableAccept`) ويرفع `PopupState.CanUndoAccept`. في الخطاف، Backspace بلا معدِّلات والعلم مرفوع يُبتلع ويصبح `UndoAccept`، وأي مفتاح آخر (غير المعدِّلات) أو نقرة يُنزل العلم، وكذلك الحدث التالي في المسار. يحذف المسار ما أُدرج ويكتب ما كان قد حُذف دفعة واحدة، ويعيد الكلمة والكلمات المتتالية كما كانت، ولا يتعلّم الكلمة المقبولة ولا تسلسلاتها. وإن لم يبقَ ما يُتراجع عنه يرسل Backspace عاديًا، فلا تضيع الضغطة. لا تراجع حين استُبدلت مسافة بعد المؤشر (`DeleteForward`).
 
 ### الاختصارات النصية (من الإصدار 1.1)
 
@@ -430,8 +434,9 @@ Stored per word: the word, how many times it was used, when it was last used, an
 blocked it. Never sentences, the app it was typed in, or anything typed in a silenced
 window. A learned word is suggested after `MinUsesToSuggest` uses (default 2). "My words" uses
 `LearningService`: add, edit, remove, block/unblock, import/export (`word<TAB>count`,
-`!word` = blocked), pause, delete all; blocking, unblocking and deleting ask for confirmation. On the bar, right-click
-(or Ctrl+Delete while navigating) forgets a learned word (`ForgetSuggestion` →
+`!word` = blocked), pause, delete all; blocking, unblocking and deleting ask for confirmation. On the bar, right-click opens a
+menu (from 1.1: "Delete" for a learned word or phrase, "Add to My phrases" for phrases), and Ctrl+Delete while
+navigating forgets a learned word (`ForgetSuggestion` →
 `LearningService.Remove`); it is learned again if used. Blocking for good is only offered in "My words".
 
 Thread safety: the pipeline thread learns words while "My words" edits them from the UI thread.
@@ -449,6 +454,15 @@ word, then dictionary words; the bar can appear right after a space when a next 
 phrase starts from a short common word (في، على، من…), only one whole phrase is offered at a phrase start so dictionary
 words keep their place, and only the phrases matching the most words count. Accepting inserts the phrase in one batch,
 and accepting with nothing typed yet is allowed.
+
+### Undoing an accept (from 1.1)
+
+After inserting a suggestion, `InputPipeline` keeps in memory what had been typed and what was inserted
+(`UndoableAccept`) and raises `PopupState.CanUndoAccept`. In the hook, Backspace without modifiers while it is raised is
+swallowed as `UndoAccept`; any other non-modifier key or a click lowers it, and so does the pipeline's next event. The
+pipeline deletes what was inserted and types back what had been deleted in one batch, restores the word and the words in
+a row, and learns neither the accepted word nor its sequences. If there is nothing left to undo it sends a plain
+Backspace, so the key press is never lost. No undo when a space after the caret was replaced (`DeleteForward`).
 
 ### Text shortcuts (from 1.1)
 

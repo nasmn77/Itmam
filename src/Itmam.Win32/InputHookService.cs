@@ -347,7 +347,11 @@ public sealed unsafe class InputHookService : IDisposable
     private bool OnKeyDownIntercept(KBDLLHOOKSTRUCT* data)
     {
         var modifiers = CurrentModifiers(data);
-        var decision = _interceptor.OnKeyDown((int)data->vkCode, modifiers, _enabled ? _popup.Current : PopupSnapshot.Hidden);
+        var decision = _interceptor.OnKeyDown((int)data->vkCode, modifiers, _enabled ? _popup.Current : PopupSnapshot.Hidden, _enabled && _popup.CanUndoAccept);
+        if (HotkeyRules.ModifierOf((int)data->vkCode) == KeyModifiers.None)
+        {
+            _popup.SetUndoAccept(false); // only the very next key can undo an accept
+        }
 
         if (decision.Command is { Kind: InputEventKind.ToggleEnabled })
         {
@@ -482,6 +486,7 @@ public sealed unsafe class InputHookService : IDisposable
                 if (message is PInvoke.WM_LBUTTONDOWN or PInvoke.WM_RBUTTONDOWN or PInvoke.WM_MBUTTONDOWN or PInvoke.WM_XBUTTONDOWN)
                 {
                     _interceptor.CancelChord(); // Ctrl+Alt+click is not the toggle
+                    _popup.SetUndoAccept(false);
                 }
 
                 if (_enabled && message is PInvoke.WM_LBUTTONDOWN or PInvoke.WM_RBUTTONDOWN or PInvoke.WM_MBUTTONDOWN or PInvoke.WM_XBUTTONDOWN)

@@ -36,7 +36,9 @@ internal enum SettingsPage
 internal sealed class SettingsWindow : Form
 {
     private const string RepositoryUrl = "https://github.com/nasmn77/Itmam";
-    private const string PrivacyUrl = RepositoryUrl + "/blob/main/docs/PRIVACY.md";
+    // The website's policy, the same one registered in Partner Center; English for the English interface.
+    private const string PrivacyUrl = "https://nasmn77.github.io/Itmam/privacy.html";
+    private const string PrivacyUrlEnglish = "https://nasmn77.github.io/Itmam/en/privacy.html";
     private const string DeveloperEmail = "nasmn77@gmail.com";
     private const int WS_EX_LAYOUTRTL = 0x00400000;
     private const int WS_EX_NOINHERITLAYOUT = 0x00100000;
@@ -951,6 +953,57 @@ internal sealed class SettingsWindow : Form
         }
     }
 
+    // "Import…" / "Export…" for a list kept in settings.json ("My phrases", text shortcuts): a UTF-8 text
+    // file. Importing only adds entries; the page is rebuilt to show them.
+    private void AddImportExportCard<T>(string fileName, Action<TextWriter> write, Func<TextReader, ListImport<T>> read,
+        Func<AppSettings, IReadOnlyList<T>, AppSettings> apply)
+    {
+        var import = new ThemedButton { Text = Strings.ImportButton };
+        import.Click += (_, _) =>
+        {
+            using var dialog = new OpenFileDialog { Filter = Strings.WordsFileFilter };
+            if (dialog.ShowDialog(this) != DialogResult.OK)
+            {
+                return;
+            }
+
+            try
+            {
+                using var reader = new StreamReader(dialog.FileName, System.Text.Encoding.UTF8);
+                var result = read(reader);
+                Update(s => apply(s, result.Merged));
+                ShowInfo(string.Format(CultureInfo.CurrentCulture, Strings.ImportListDone, result.Added, result.Skipped));
+                BeginInvoke(RebuildPage);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                ShowInfo(Strings.FileError);
+            }
+        };
+
+        var export = new ThemedButton { Text = Strings.ExportButton };
+        export.Click += (_, _) =>
+        {
+            using var dialog = new SaveFileDialog { Filter = Strings.WordsFileFilter, FileName = fileName };
+            if (dialog.ShowDialog(this) != DialogResult.OK)
+            {
+                return;
+            }
+
+            try
+            {
+                using var writer = new StreamWriter(dialog.FileName, append: false, new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+                write(writer);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                ShowInfo(Strings.FileError);
+            }
+        };
+
+        AddCard(Strings.ImportExport, Strings.ImportExportListHint, new ButtonRow(import, export));
+    }
+
     private void ShowInfo(string text)
     {
         var options = _mirrored ? MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign : 0;
@@ -978,6 +1031,11 @@ internal sealed class SettingsWindow : Form
         var add = new ThemedButton { Text = Strings.AddWordButton };
         add.Click += (_, _) => EditPhrase(null);
         AddCard(Strings.AddPhrase, Strings.AddPhraseHint, add);
+        AddImportExportCard(
+            Strings.PhrasesFileName,
+            writer => UserListFiles.WritePhrases(writer, _app.Settings.MyPhrases),
+            reader => UserListFiles.ReadPhrases(reader, _app.Settings.MyPhrases),
+            (s, merged) => s with { MyPhrases = merged });
 
         foreach (var phrase in settings.MyPhrases)
         {
@@ -1086,6 +1144,11 @@ internal sealed class SettingsWindow : Form
         var add = new ThemedButton { Text = Strings.AddWordButton };
         add.Click += (_, _) => EditTextShortcut(null);
         AddCard(Strings.AddTextShortcut, Strings.AddTextShortcutHint, add);
+        AddImportExportCard(
+            Strings.TextShortcutsFileName,
+            writer => UserListFiles.WriteShortcuts(writer, _app.Settings.TextShortcuts),
+            reader => UserListFiles.ReadShortcuts(reader, _app.Settings.TextShortcuts),
+            (s, merged) => s with { TextShortcuts = merged });
 
         AddSection(string.Format(CultureInfo.CurrentCulture, Strings.SectionTextShortcuts, shortcuts.Count));
         foreach (var shortcut in shortcuts)
@@ -1221,7 +1284,7 @@ internal sealed class SettingsWindow : Form
 
         AddSection(Strings.AboutPrivacyLink);
         AddText(Strings.AboutPrivacy, secondary: false);
-        AddLink(Strings.AboutPrivacyLink, PrivacyUrl);
+        AddLink(Strings.AboutPrivacyLink, _app.Settings.Language == UiLanguage.Arabic ? PrivacyUrl : PrivacyUrlEnglish);
     }
 
     private async Task LoadStartupStateAsync(ToggleSwitch toggle)

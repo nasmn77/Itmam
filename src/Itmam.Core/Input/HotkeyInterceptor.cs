@@ -58,6 +58,7 @@ public readonly record struct InterceptDecision(InterceptAction Action, InputEve
 /// </summary>
 public sealed class HotkeyInterceptor(HotkeySettings settings)
 {
+    private const int Backspace = 0x08;
     private const int Enter = 0x0D;
     private const int Escape = 0x1B;
     private const int Left = 0x25;
@@ -76,7 +77,11 @@ public sealed class HotkeyInterceptor(HotkeySettings settings)
     /// <summary>Selected item in native navigation mode, or -1 when not navigating.</summary>
     public int Selected { get; private set; } = -1;
 
-    public InterceptDecision OnKeyDown(int virtualKey, KeyModifiers modifiers, PopupSnapshot popup)
+    /// <param name="virtualKey">The key pressed.</param>
+    /// <param name="modifiers">Modifiers held.</param>
+    /// <param name="popup">What the bar shows now.</param>
+    /// <param name="canUndoAccept">A suggestion was accepted just before: Backspace undoes it.</param>
+    public InterceptDecision OnKeyDown(int virtualKey, KeyModifiers modifiers, PopupSnapshot popup, bool canUndoAccept = false)
     {
         // Modifier keys never act on the bar (Ctrl+Delete while navigating starts with Ctrl);
         // they only arm a modifiers-only toggle once exactly its modifiers are held.
@@ -103,6 +108,12 @@ public sealed class HotkeyInterceptor(HotkeySettings settings)
         {
             Selected = -1;
             return InterceptDecision.Swallow(InputEvent.Of(InputEventKind.ToggleEnabled));
+        }
+
+        if (canUndoAccept && virtualKey == Backspace && modifiers == KeyModifiers.None)
+        {
+            Selected = -1;
+            return InterceptDecision.Swallow(InputEvent.Of(InputEventKind.UndoAccept));
         }
 
         // Navigation belongs to one bar: a new or hidden bar ends it.

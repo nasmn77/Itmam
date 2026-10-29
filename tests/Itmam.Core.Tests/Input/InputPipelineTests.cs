@@ -450,6 +450,32 @@ public sealed class InputPipelineTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task Backspace_right_after_an_accept_puts_the_typed_text_back_and_learns_nothing()
+    {
+        Type("احم");
+        Send(InputEvent.Accept(0, "أحمد"));
+        Send(InputEvent.Of(InputEventKind.UndoAccept));
+        var undone = await WaitForAsync(u => u.Input?.Input.Kind == InputEventKind.UndoAccept);
+        await DrainAsync();
+
+        _injector.Edits.ShouldBe([new TextEdit(3, "أحمد "), new TextEdit(5, "احم")]);
+        undone.Word.ShouldBe("احم");
+        _updates.ShouldNotContain(u => u.WordToLearn != null);
+    }
+
+    [Fact]
+    public async Task With_nothing_to_undo_the_swallowed_backspace_is_sent_as_is()
+    {
+        Type("احم");
+        Send(InputEvent.Accept(0, "أحمد"));
+        Type("ب");                                // another key: the accept can no longer be undone
+        Send(InputEvent.Of(InputEventKind.UndoAccept));
+        await DrainAsync();
+
+        _injector.Edits.Last().ShouldBe(new TextEdit(1, ""));
+    }
+
+    [Fact]
     public async Task Accepting_a_hamza_spelling_replaces_the_whole_prefix()
     {
         Type("احم");

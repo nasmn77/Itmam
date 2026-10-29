@@ -24,6 +24,15 @@ public class HotkeyInterceptorTests
         Key(vk, modifiers, PopupSnapshot.Hidden).ShouldBe(InterceptDecision.Pass);
 
     [Fact]
+    public void Backspace_right_after_an_accept_undoes_it_even_with_the_bar_hidden()
+    {
+        _interceptor.OnKeyDown(0x08, KeyModifiers.None, PopupSnapshot.Hidden, canUndoAccept: true)
+            .ShouldBe(InterceptDecision.Swallow(InputEvent.Of(InputEventKind.UndoAccept)));
+        _interceptor.OnKeyDown(0x08, KeyModifiers.Ctrl, PopupSnapshot.Hidden, canUndoAccept: true).ShouldBe(InterceptDecision.Pass);
+        _interceptor.OnKeyDown(0x08, KeyModifiers.None, PopupSnapshot.Hidden).ShouldBe(InterceptDecision.Pass);
+    }
+
+    [Fact]
     public void Tab_accepts_the_first_suggestion() =>
         Key(Tab).ShouldBe(InterceptDecision.Swallow(InputEvent.Accept(0, "مدرسة")));
 

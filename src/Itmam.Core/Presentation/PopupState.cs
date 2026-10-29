@@ -17,10 +17,19 @@ public sealed record PopupSnapshot(IReadOnlyList<string> Words, Rectangle Bounds
 public sealed class PopupState
 {
     private PopupSnapshot _current = PopupSnapshot.Hidden;
+    private int _canUndo;
 
     public PopupSnapshot Current => Volatile.Read(ref _current);
 
     public void Show(IReadOnlyList<string> words, Rectangle bounds) => Volatile.Write(ref _current, new PopupSnapshot(words, bounds));
 
     public void Hide() => Volatile.Write(ref _current, PopupSnapshot.Hidden);
+
+    /// <summary>
+    /// A suggestion was just accepted and Backspace may undo it. Set by the pipeline; cleared by the
+    /// hook at the next key or click, and by the pipeline at its next event.
+    /// </summary>
+    public bool CanUndoAccept => Volatile.Read(ref _canUndo) != 0;
+
+    public void SetUndoAccept(bool available) => Volatile.Write(ref _canUndo, available ? 1 : 0);
 }

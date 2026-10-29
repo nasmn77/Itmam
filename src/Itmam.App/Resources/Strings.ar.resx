@@ -223,4 +223,10 @@
   <data name="TurnOffButton" xml:space="preserve"><value>إيقاف</value></data>
   <data name="TurnOnButton" xml:space="preserve"><value>تشغيل</value></data>
   <data name="TurnOffHint" xml:space="preserve"><value>لا يتتبع إتمام شيئًا حتى تعيد تشغيله من هنا أو من قائمة الأيقونة أو بالاختصار {0}.</value></data>
+  <data name="PhrasesFileName" xml:space="preserve"><value>عباراتي - إتمام.txt</value></data>
+  <data name="TextShortcutsFileName" xml:space="preserve"><value>اختصاراتي - إتمام.txt</value></data>
+  <data name="ImportExportListHint" xml:space="preserve"><value>ملف نصي لنسخها احتياطيًا أو نقلها إلى جهاز آخر. الاستيراد يضيف إلى القائمة ويُبقي ما عندك.</value></data>
+  <data name="ImportListDone" xml:space="preserve"><value>أُضيف: {0}. وتُخطّي (موجود أو غير صالح): {1}.</value></data>
+  <data name="BarMenuDelete" xml:space="preserve"><value>حذف</value></data>
+  <data name="BarMenuAddToMyPhrases" xml:space="preserve"><value>إضافة إلى عباراتي</value></data>
 </root>

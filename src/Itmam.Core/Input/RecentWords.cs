@@ -110,6 +110,18 @@ public sealed class RecentWords
         return end;
     }
 
+    /// <summary>A copy of the words in a row, to put back with <see cref="Restore"/> (an accept undone).</summary>
+    public (string[] Keys, string[] Words) Save() => ([.. _keys], [.. _words]);
+
+    public void Restore((string[] Keys, string[] Words) saved)
+    {
+        _keys.Clear();
+        _keys.AddRange(saved.Keys);
+        _words.Clear();
+        _words.AddRange(saved.Words);
+        Snapshot = [.. _keys];
+    }
+
     public void Clear()
     {
         if (_keys.Count > 0)

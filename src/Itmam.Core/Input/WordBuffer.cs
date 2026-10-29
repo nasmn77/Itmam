@@ -71,7 +71,8 @@ public sealed class WordBuffer
         InputEventKind.Escape => Reset(),
 
         // Handled by InputPipeline; the word itself is unchanged.
-        InputEventKind.AcceptSuggestion or InputEventKind.DismissSuggestions or InputEventKind.NavigationSelect or InputEventKind.ForgetSuggestion => BufferResult.None,
+        InputEventKind.AcceptSuggestion or InputEventKind.DismissSuggestions or InputEventKind.NavigationSelect or InputEventKind.ForgetSuggestion
+            or InputEventKind.UndoAccept => BufferResult.None,
         _ => Detach(), // the caret may have moved anywhere (toggling off/on included)
     };
 
@@ -91,6 +92,17 @@ public sealed class WordBuffer
         }
 
         return new BufferResult(BufferOutcome.Committed, committed);
+    }
+
+    /// <summary>An accept was undone: the word is the text typed before it again.</summary>
+    public BufferResult Restore(string typed)
+    {
+        Reset();
+        _detached = false;
+        _ignoredLetters = 0;
+        _text.Append(typed);
+        LetterCount = typed.Count(ArabicText.IsArabicLetter);
+        return new BufferResult(typed.Length == 0 ? BufferOutcome.Reset : BufferOutcome.Updated);
     }
 
     /// <summary>

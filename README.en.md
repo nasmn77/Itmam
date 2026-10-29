@@ -30,7 +30,9 @@ Website: https://nasmn77.github.io/Itmam/en/ · Repository: https://github.com/n
 | <kbd>↑</kbd>, then <kbd>←</kbd> <kbd>→</kbd>, then <kbd>Enter</kbd> | Choose with the arrow keys, then insert |
 | <kbd>Esc</kbd> | Hide the suggestions until the next word |
 | <kbd>Ctrl</kbd>+<kbd>Alt</kbd> (press and release) | Turn Itmam off or on from anywhere |
-| Right-click a suggestion, or <kbd>Ctrl</kbd>+<kbd>Delete</kbd> while choosing with the arrows | Forget a learned word |
+| <kbd>Backspace</kbd> right after inserting | Undo: puts back what you had typed |
+| Right-click a suggestion | Menu: delete a learned word or phrase, or add the phrase to "My phrases" |
+| <kbd>Ctrl</kbd>+<kbd>Delete</kbd> while choosing with the arrows | Forget a learned word |
 
 Shortcuts can be changed in Settings → "Shortcuts".
 
@@ -43,8 +45,8 @@ Click the Itmam icon next to the clock (right or left button) and choose "Settin
 - **Shortcuts:** record a new shortcut by pressing it; shortcuts that would break typing or Windows shortcuts are refused.
 - **Excluded apps:** programs where Itmam stays completely silent.
 - **My words:** add, edit, block and delete words, import and export, delete all.
-- **Phrases:** turn phrase suggestions and phrase learning on or off, "My phrases", and the learned phrases (delete, move to "My phrases", delete all).
-- **Text shortcuts:** add a shortcut («ع1») and its text, edit, delete.
+- **Phrases:** turn phrase suggestions and phrase learning on or off, "My phrases" (with import and export), and the learned phrases (delete, move to "My phrases", delete all).
+- **Text shortcuts:** add a shortcut («ع1») and its text, edit, delete, import and export.
 - **Updates:** the version, and checking for an update through Microsoft Store.
 
 ## The icon next to the clock
