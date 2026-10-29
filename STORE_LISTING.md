@@ -16,7 +16,7 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 
 يعمل في المفكرة وWord والمتصفحات ومعظم البرامج، من قاموس عربي فيه أكثر من 500 ألف كلمة، ويتعلّم كلماتك أنت فيقدّم ما تستعمله أكثر.
 
-خصوصيتك أولًا: إتمام نفسه لا يتصل بالإنترنت، ولا يحفظ ما تكتبه. لا يُحفظ إلا الكلمة وعدد مرات استعمالها، على جهازك فقط. ولا يعمل في حقول كلمات المرور ولا في التطبيقات التي تستثنيها. والشيفرة المصدرية مفتوحة للمراجعة على GitHub.
+خصوصيتك أولًا: إتمام نفسه لا يتصل بالإنترنت، ولا يحفظ ما تكتبه. لا يُحفظ إلا الكلمة وعدد مرات استعمالها، والعبارات القصيرة التي تكررها، على جهازك فقط. ولا يعمل في حقول كلمات المرور ولا في التطبيقات التي تستثنيها. والشيفرة المصدرية مفتوحة للمراجعة على GitHub.
 
 **المزايا** (حتى 20 بندًا):
 - اقتراحات فورية أثناء الكتابة في أي برنامج
@@ -24,6 +24,7 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 - يتعلّم كلماتك ويقدّم الأكثر استعمالًا
 - يفهم الكتابة بلا همزات: «احمد» تجد «أحمد»
 - يكمل العبارات: «بسم الله الرحمن الرحيم»، «جزاك الله خيرًا» ونحو 250 عبارة
+- يتعلّم العبارات التي تكررها
 - يكمل الكلمة من وسطها بعد النقر أو Backspace
 - Tab للإدراج، وCtrl مع رقم للاقتراح الثاني والثالث، أو الاختيار بالأسهم
 - شريط بتصميم Windows 11، بالوضع الفاتح أو الداكن وبألوان تختارها
@@ -51,7 +52,7 @@ Itmam suggests Arabic words as you type on your keyboard, in any Windows app, li
 
 It works in Notepad, Word, browsers and most apps, with an Arabic dictionary of more than 500,000 words, and learns your own words so the ones you use most come first.
 
-Your privacy first: Itmam itself never connects to the internet and never saves what you type. Only each word and how many times you used it are kept, on your device. It does nothing in password fields or in apps you exclude. The source code is open for review on GitHub.
+Your privacy first: Itmam itself never connects to the internet and never saves what you type. Only each word and how many times you used it, and the short phrases you repeat, are kept, on your device. It does nothing in password fields or in apps you exclude. The source code is open for review on GitHub.
 
 **Features** (up to 20):
 - Instant suggestions as you type, in any app
@@ -59,6 +60,7 @@ Your privacy first: Itmam itself never connects to the internet and never saves 
 - Learns your words and puts the ones you use most first
 - Understands writing without hamza: «احمد» finds «أحمد»
 - Completes phrases: «بسم الله الرحمن الرحيم», «جزاك الله خيرا» and about 250 more
+- Learns the phrases you repeat
 - Continues a word from the middle after a click or Backspace
 - Tab to insert, Ctrl + a number for the others, or choose with the arrow keys
 - A Windows 11 style bar, light or dark, in the colors you choose
@@ -113,7 +115,8 @@ Paste into Partner Center → Submission options → Notes for certification.
 > inserting the chosen word uses `SendInput`; the caret position and the word around it are read with UI Automation.
 > - Keys are tracked only while the foreground window uses an Arabic layout.
 > - Nothing typed is logged or sent anywhere; the app has no network capability and makes no network calls.
-> - Only word → use count / last use is stored, locally (`%LOCALAPPDATA%\Itmam\user.db`), never sentences.
+> - Only word → use count / last use is stored, locally (`%LOCALAPPDATA%\Itmam\user.db`), plus 2–5-word sequences
+>   with their counts to learn repeated phrases (can be turned off; sequences not repeated are deleted after 30 days).
 > - It is silent in password fields (ES_PASSWORD, UI Automation IsPassword), elevated apps, excluded apps and
 >   full-screen games.
 > - Full details: https://nasmn77.github.io/Itmam/en/privacy.html and https://github.com/nasmn77/Itmam (source code and docs/ARCHITECTURE.md are public).

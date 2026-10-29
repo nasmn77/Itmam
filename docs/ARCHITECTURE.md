@@ -157,13 +157,17 @@
     user.db.corrupt-<timestamp> (kept) and a fresh database is created.
 ```
 
-ما يُحفظ لكل كلمة: الكلمة، وعدد مرات استعمالها، ووقت آخر استعمال، وهل حظرها المستخدم. لا جمل أبدًا، ولا ترتيب كلمات، ولا اسم التطبيق الذي كُتبت فيه، ولا أي شيء كُتب في نافذة صامتة. الكلمة المتعلَّمة تُقترح بعد `MinUsesToSuggest` استعمالًا (افتراضيًا 2). صفحة «كلماتي» تستخدم `LearningService`: إضافة، وتعديل، وحذف، وحظر وإلغاؤه، واستيراد وتصدير (`word<TAB>count`، و`!word` للمحظورة)، وإيقاف مؤقت، وحذف الكل؛ والحظر وإلغاؤه والحذف تطلب تأكيدًا. وفي الشريط، النقر بالزر الأيمن (أو Ctrl+Delete أثناء الاختيار بالأسهم) ينسى كلمة متعلَّمة (`ForgetSuggestion` ← `LearningService.Remove`)، ويتعلّمها من جديد إن استُعملت. الحظر الدائم لا يُتاح إلا في «كلماتي».
+ما يُحفظ لكل كلمة: الكلمة، وعدد مرات استعمالها، ووقت آخر استعمال، وهل حظرها المستخدم. لا جمل أبدًا، ولا اسم التطبيق الذي كُتبت فيه، ولا أي شيء كُتب في نافذة صامتة. الكلمة المتعلَّمة تُقترح بعد `MinUsesToSuggest` استعمالًا (افتراضيًا 2). صفحة «كلماتي» تستخدم `LearningService`: إضافة، وتعديل، وحذف، وحظر وإلغاؤه، واستيراد وتصدير (`word<TAB>count`، و`!word` للمحظورة)، وإيقاف مؤقت، وحذف الكل؛ والحظر وإلغاؤه والحذف تطلب تأكيدًا. وفي الشريط، النقر بالزر الأيمن (أو Ctrl+Delete أثناء الاختيار بالأسهم) ينسى كلمة متعلَّمة (`ForgetSuggestion` ← `LearningService.Remove`)، ويتعلّمها من جديد إن استُعملت. الحظر الدائم لا يُتاح إلا في «كلماتي».
 
 أمان التزامن: خيط المعالجة يتعلّم الكلمات بينما تعدّلها «كلماتي» من خيط الواجهة. كل تغيير يمر عبر `LearningService` تحت قفله (`SyncRoot`)؛ و`SuggestionController` يمسك القفل نفسه بينما يقرأ `SuggestionEngine` الفهرس؛ والصفحة تعرض نسخة (`LearningService.Snapshot`).
 
 ### العبارات المتلازمة (من الإصدار 1.1)
 
 `PhraseIndex` (في Core) يحمّل `data/phrases.txt` و«عباراتي» من الإعدادات (عبارات المستخدم أولًا). ويحتفظ `InputPipeline` في `RecentWords` بآخر 8 كلمات أنهتها مسافة، مطبّعةً وفي الذاكرة فقط، ويمسحها عند أي علامة غير المسافة وعند أي حدث غير الكتابة (Backspace، حركة المؤشر، تغيير التركيز أو اللغة…) وفي النوافذ الصامتة؛ وترسلها `PipelineUpdate.RecentWords`. يقترح `SuggestionController` أولًا بقية العبارة التي يكتبها المستخدم (يُدرجها Tab كاملة) ثم الكلمة التالية فيها، ثم كلمات القاموس. ويظهر الشريط بعد المسافة مباشرة إن كانت هناك كلمة تالية. ولكي يبقى Tab متوقعًا: لا تبدأ عبارة من كلمة شائعة قصيرة (في، على، من…)، ولا تُقترح عند البدء إلا عبارة واحدة حتى تبقى كلمات القاموس في الشريط، وتُعتمد العبارات المطابقة لأكبر عدد من الكلمات فقط. القبول يُدرج العبارة دفعة واحدة، والقبول بلا حروف مكتوبة مسموح.
+
+### العبارات المتعلَّمة (من الإصدار 1.1، قرار المستخدم: مفعّلة افتراضيًا)
+
+حين تنتهي كلمة، يكوّن `RecentWords.SequencesEndingWith` التسلسلات من كلمتين إلى 5 التي تنتهي بها (بالتهجئة المكتوبة، بلا تشكيل). وتبقى معلّقة مع الكلمة: إن تلاها Backspace أُسقطت معها، وإلا أرسلتها `PipelineUpdate.PhrasesToLearn`. ثم يعدّها `LearningService.LearnPhrases` في جدول `phrases` في `user.db` (المفتاح المطبّع ← آخر تهجئة، والعدد، ووقت آخر كتابة). وما بلغ 3 مرات يصير عبارة متعلَّمة. لا يُعدّ شيء أثناء إيقاف التعلّم أو إطفاء «تعلّم العبارات»، ولا ما فيه كلمة أقل من حرفين أو كلمة محظورة، ولا شيء في النوافذ الصامتة (لا يرى المسار فيها شيئًا). التنظيف عند البدء ومرة كل يوم: يُحذف ما لم يُتعلَّم ولم يُكتب منذ 30 يومًا. والحدود 20,000 تسلسل غير متعلَّم و2,000 عبارة متعلَّمة، ويُحذف الأقدم استعمالًا أولًا. `LearnedPhrases()` يرتّبها بالأكثر استعمالًا، ويترك العبارة التي تحتويها عبارة متعلَّمة أطول مكتوبة بقدرها تقريبًا (¾ عددها على الأقل). يضع `ItmamApp.UpdatePhrases` في `PhraseIndex` «عباراتي» ثم المتعلَّمة ثم المضمّنة، ويعيد بناءه عند `LearnedPhrasesChanged` على خيط المسار قبل حساب الشريط. والنقر بالزر الأيمن على عبارة في الشريط ينساها (`ForgetPhrase`). وفي صفحة «العبارات»: القائمة، والحذف، والنقل إلى «عباراتي»، و«حذف العبارات المتعلَّمة» (مع كل التسلسلات المعدودة).
 
 ### أين يصمت إتمام
 
@@ -192,7 +196,7 @@
 
 - الحروف المكتوبة توجد في الذاكرة فقط: في القناة، وفي `WordBuffer`، وعلى الشاشة.
 - النص الوحيد الذي يُقرأ من التطبيقات الأخرى هو ما لا يزيد عن 49 حرفًا قبل المؤشر، بعد انتقال المؤشر إلى نص موجود، وأبدًا من حقول كلمات المرور أو التطبيقات المستثناة؛ ولا يُحتفظ إلا بالكلمة الحالية.
-- آخر 8 كلمات متتالية (للعبارات) تبقى في الذاكرة فقط وتُنسى عند أي حركة للمؤشر؛ ولا يُحفظ ترتيب الكلمات أبدًا.
+- آخر 8 كلمات متتالية (للعبارات) تبقى في الذاكرة فقط وتُنسى عند أي حركة للمؤشر. ولا يُحفظ من ترتيب الكلمات إلا تسلسلات من كلمتين إلى 5 مع عددها (العبارات المتعلَّمة، قابلة للإطفاء)، وما لم يتكرر يُحذف بعد 30 يومًا.
 - السؤال الوحيد الذي يخرج من الجهاز هو سؤال متجر Microsoft عن وجود إصدار أحدث (`StoreUpdates`، قابل للإطفاء)، ولا يحمل شيئًا عن المستخدم أو عما يكتبه.
 - لا يكتب أي مسار في الشيفرة حروفًا في سجل أو ملف أو شبكة. قائمة الأحداث في نافذة التشخيص تعرض *أنواع* الأحداث وأزمنتها فقط (الحروف تظهر بصيغة `Character (letter)`).
 - تشخيص الخطافات (`HookDiagnostics`) عدّادات وأزمنة فقط.
@@ -419,7 +423,7 @@ refuses keys that type text, editing keys, common Windows shortcuts, duplicates 
 ```
 
 Stored per word: the word, how many times it was used, when it was last used, and whether the user
-blocked it. Never sentences, word order, the app it was typed in, or anything typed in a silenced
+blocked it. Never sentences, the app it was typed in, or anything typed in a silenced
 window. A learned word is suggested after `MinUsesToSuggest` uses (default 2). "My words" uses
 `LearningService`: add, edit, remove, block/unblock, import/export (`word<TAB>count`,
 `!word` = blocked), pause, delete all; blocking, unblocking and deleting ask for confirmation. On the bar, right-click
@@ -441,6 +445,21 @@ word, then dictionary words; the bar can appear right after a space when a next 
 phrase starts from a short common word (في، على، من…), only one whole phrase is offered at a phrase start so dictionary
 words keep their place, and only the phrases matching the most words count. Accepting inserts the phrase in one batch,
 and accepting with nothing typed yet is allowed.
+
+### Learned phrases (from 1.1, user decision: on by default)
+
+When a word is finished, `RecentWords.SequencesEndingWith` forms the 2–5-word sequences ending with it (as typed,
+without tashkeel). They stay pending with the word: dropped with it if Backspace follows, otherwise carried by
+`PipelineUpdate.PhrasesToLearn`. `LearningService.LearnPhrases` counts them in the `phrases` table of `user.db`
+(normalized key → spelling typed last, count, last time typed); 3 times makes a learned phrase. Nothing is counted while
+learning is paused or "Learn phrases" is off, nothing with a word under 2 letters or a blocked word, and nothing in
+silenced windows (the pipeline sees nothing there). Clean-up at start and once a day: a sequence not learned and not
+typed for 30 days is deleted; limits are 20,000 sequences not learned and 2,000 learned phrases, the least recently
+typed going first. `LearnedPhrases()` orders them by use and leaves out a phrase contained in a longer learned one typed
+nearly as often (at least ¾ of its count). `ItmamApp.UpdatePhrases` builds the `PhraseIndex` from "My phrases", then the
+learned ones, then the shipped list, and rebuilds it on `LearnedPhrasesChanged` on the pipeline thread before the bar is
+recomputed. Right-click on a phrase in the bar forgets it (`ForgetPhrase`). The "Phrases" page lists them: delete,
+move to "My phrases", and "Delete learned phrases" (with every sequence counted).
 
 ### Where Itmam is silent
 
@@ -491,8 +510,9 @@ nothing:
 - Typed characters exist only in memory: in the channel, in `WordBuffer`, and on screen.
 - The only text read from other apps is ≤ 49 characters before the caret, after the caret moved
   into existing text, never from password fields or excluded apps; only the current word is kept.
-- The last 8 words in a row (for phrases) stay in memory only and are forgotten on any caret move; word order is
-  never stored.
+- The last 8 words in a row (for phrases) stay in memory only and are forgotten on any caret move. Word order is
+  stored only as 2–5-word sequences with their counts (learned phrases, can be turned off); one not repeated is
+  deleted after 30 days.
 - The only question that leaves the device is asking Microsoft Store whether a newer version exists (`StoreUpdates`,
   can be turned off); it carries nothing about the user or what they type.
 - No code path writes characters to a log, file, or the network. The diagnostics window's event list

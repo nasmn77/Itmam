@@ -47,7 +47,10 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
   (add it in the next submission).
 - **1.1.0 (branch `release-1.1`, waiting for 1.0.0 to be published before submitting; merge into main only then, because it changes the published privacy policy):** user decisions 2026-10-29: update check through Microsoft Store (`StoreUpdates`, notification opens the Store page, Settings → Updates), on/off notifications «تم إيقاف إتمام» / «تم إيقاف إتمام مؤقتًا» / «تم تشغيل إتمام» (setting, default on), confirmation before exiting (not on sign-out); **common phrases** (user decision: whole phrase first, Tab inserts it, then word
   by word; 249 phrases in `data/phrases.txt`, MIT, compiled by hand; "My phrases" in settings.json; `RecentWords` = last 8
-  words, memory only — privacy policy updated; no phrase starts from a short common word, one whole phrase at a start). Also the two 1.0.1 fixes, verified by the user:
+  words, memory only — privacy policy updated; no phrase starts from a short common word, one whole phrase at a start);
+  **learned phrases** (user decisions: automatic, ON by default; counts kept on disk with expiry): 2–5-word sequences typed
+  in a row are counted in user.db table `phrases` (schema 2), learned at 3 uses, not-learned ones deleted after 30 days,
+  limits 20,000 / 2,000; order My phrases → learned → shipped; right-click forgets; Settings → Phrases lists them. Also the two 1.0.1 fixes, verified by the user:
   (1) `CaretSource.FocusedField` fallback before the mouse pointer when a web control reports no caret (the bar had
   appeared at the top of Partner Center in Edge); (2) the caret is read again 60 ms after the bar is shown when no
   newer key arrived (the hook reads it before the app inserts the letter; an empty dir=auto field such as Google
@@ -130,8 +133,9 @@ Tests run on Microsoft.Testing.Platform (opted in via `global.json` → `test.ru
   (12 s after start-up, setting "CheckForUpdates", default on); the Store service does the network work, nothing else is
   sent. Documented in the privacy policy (docs/PRIVACY.md, site/) — keep it in sync.
 - Never log typed characters. Debug logs (Debug builds only) contain event types and timings only.
-- Learn only word → count/last-used. Never sentences or word order. Never learn in password fields or excluded apps.
-  Phrases come only from the shipped list and "My phrases"; the last 8 words (RecentWords) stay in memory only.
+- Learn only word → count/last-used. Never sentences. Never learn in password fields or excluded apps.
+  **Exception (user decision, 2026-10-29, from 1.1):** 2–5-word sequences → count/last-used (learned phrases, setting
+  "LearnPhrases", default on; not learned after 30 days → deleted). The last 8 words (RecentWords) stay in memory only.
 - Hook and storage code paths must be documented in `docs/ARCHITECTURE.md`.
 
 ## Engineering rules

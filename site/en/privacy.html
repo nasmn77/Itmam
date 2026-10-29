@@ -32,13 +32,13 @@
   <ul>
     <li><strong>Keystrokes</strong>, only while you type with an Arabic keyboard layout, to know the word you are typing and suggest completions. Typing in any other language (e.g. English) is not tracked.</li>
     <li><strong>Only the current word before the caret:</strong> when the caret moves into existing text (Backspace, a mouse click, arrow keys, or switching to another field or window), the app uses Windows UI Automation to read at most 49 characters before the caret so it can continue the word the caret is in. It keeps only that word, in memory, and discards the rest immediately.</li>
-    <li><strong>The last words you typed in a row</strong> (8 at most), to complete common phrases such as «بسم الله الرحمن الرحيم». They stay in memory only, are never stored or learned from, and are forgotten at any boundary other than a space, any caret move or window change. Only the built-in list and the phrases you add yourself are ever suggested.</li>
+    <li><strong>The last words you typed in a row</strong> (8 at most), to complete common phrases such as «بسم الله الرحمن الرحيم». They stay in memory only and are forgotten at any boundary other than a space, any caret move or window change. What is kept from them is described under "Learned phrases" below.</li>
     <li><strong>The program file name</strong> of the app you type in (e.g. <code>notepad.exe</code>), to know whether it is an excluded app. This name is not stored.</li>
   </ul>
 
   <h2>What it does not do</h2>
   <ul>
-    <li>It does not save what you type, sentences or word order, and never writes any typed character to a log.</li>
+    <li>It does not save what you type and never writes any typed character to a log. Word order is kept only in the short sequences described under "Learned phrases" below, and you can turn that off.</li>
     <li>It does nothing and reads no text in password fields, excluded apps, apps running as administrator, or full-screen games and presentations.</li>
     <li>It shares no data with anyone and shows no ads.</li>
   </ul>
@@ -52,14 +52,15 @@
 
   <h2>What is stored on your device</h2>
   <ul>
-    <li><strong>Your words:</strong> for each word: the word itself, how many times you used it, when you last used it, and whether you blocked it. Nothing else: no sentences, no word order, not the app you typed in. Location: <code>%LOCALAPPDATA%\Itmam\user.db</code> (inside the app's private folder when installed from the Store).</li>
+    <li><strong>Your words:</strong> for each word: the word itself, how many times you used it, when you last used it, and whether you blocked it. Nothing else: no sentences, not the app you typed in. Location: <code>%LOCALAPPDATA%\Itmam\user.db</code> (inside the app's private folder when installed from the Store).</li>
+    <li><strong>Learned phrases</strong> (from 1.1, on by default): sequences of 2 to 5 Arabic words you typed in a row, with how many times and when you last typed them, in the same file. A sequence typed 3 times is suggested as a phrase; one not repeated is deleted 30 days after it was last typed. The app and the text around it are not kept, and nothing is counted in the places listed under "Never learned". To turn it off: Settings → "Phrases" → "Learn phrases from my typing".</li>
     <li><strong>Your settings:</strong> such as colors, shortcuts, the excluded apps list and the "My phrases" you add yourself, in <code>%LOCALAPPDATA%\Itmam\settings.json</code>. They contain nothing you type in other apps.</li>
-    <li><strong>Never learned:</strong> words in password fields, excluded apps, apps running as administrator, full-screen games, blocked words, and any word you delete right after typing it.</li>
+    <li><strong>Never learned:</strong> words in password fields, excluded apps, apps running as administrator, full-screen games, blocked words and any sequence containing one, and any word you delete right after typing it.</li>
   </ul>
 
   <h2>Your control over your data</h2>
   <ul>
-    <li><strong>Delete:</strong> Settings → "My words": delete a word, "Delete all my words", or pause learning new words.</li>
+    <li><strong>Delete:</strong> Settings → "My words": delete a word, "Delete all my words", or pause learning new words. Settings → "Phrases": delete a learned phrase, "Delete learned phrases" (with everything counted so far), or stop learning them.</li>
     <li><strong>Export:</strong> your words are copied nowhere unless you choose "Export…" yourself; they are then written to the file you pick.</li>
     <li><strong>Uninstall:</strong> removes the app and its files from your device.</li>
   </ul>
