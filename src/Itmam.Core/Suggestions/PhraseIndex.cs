@@ -109,9 +109,20 @@ public sealed class PhraseIndex
         var best = matches.Max(m => m.Position);
         matches.RemoveAll(m => m.Position != best);
 
-        // Starting a phrase, one whole phrase is enough: the dictionary's words for the same letters
-        // (الله، اللغة… for «الل») must keep their place. Inside a phrase, offer up to two endings.
-        var phraseLimit = Math.Min(max, matches[0].Position == 0 ? 1 : 2);
+        // A longer phrase that continues an earlier one comes right before it: «نفيدكم علما بأن الموضوع»
+        // first, «نفيدكم علما» second. Otherwise the shorter one, accepted (and so counted) more often,
+        // would always win and the whole phrase could never be inserted at once.
+        var family = matches.Select(m => matches.FindIndex(p => StartsWith(m.Phrase.Keys, p.Phrase.Keys))).ToArray();
+        matches = [.. matches.Select((m, i) => (Match: m, Family: family[i]))
+            .OrderBy(m => m.Family)
+            .ThenByDescending(m => m.Match.Phrase.Keys.Count)
+            .Select(m => m.Match)];
+
+        // Starting a phrase, one whole phrase is enough (two when one continues the other): the
+        // dictionary's words for the same letters (الله، اللغة… for «الل») must keep their place.
+        // Inside a phrase, offer up to two endings.
+        var sameFamily = family.Count(f => f == family.Min()) > 1;
+        var phraseLimit = Math.Min(max, matches[0].Position == 0 && !sameFamily ? 1 : 2);
         var result = new List<string>(max);
         foreach (var (phrase, position) in matches)
         {
@@ -175,6 +186,9 @@ public sealed class PhraseIndex
 
         return true;
     }
+
+    private static bool StartsWith(IReadOnlyList<string> keys, IReadOnlyList<string> prefix) =>
+        prefix.Count <= keys.Count && prefix.Select((key, i) => keys[i] == key).All(same => same);
 
     private static void Add(List<string> result, string suggestion, int max)
     {

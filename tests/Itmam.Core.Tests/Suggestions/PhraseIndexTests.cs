@@ -33,6 +33,16 @@ public class PhraseIndexTests
         Index.Suggest([], "جزا", 3).ShouldBe(["جزاك الله خيرا"]);
 
     [Fact]
+    public void A_longer_phrase_continuing_a_more_used_one_comes_first()
+    {
+        // Learned phrases, most used first: the short one is accepted, and so counted, more often.
+        var learned = PhraseIndex.Empty.With(["نفيدكم علما", "نفيدكم علما بأن الموضوع"]);
+
+        learned.Suggest([], "نفيد", 5).ShouldBe(["نفيدكم علما بأن الموضوع", "نفيدكم علما"]);
+        learned.Suggest(Context("نفيدكم"), "", 5).ShouldBe(["علما بأن الموضوع", "علما"]);
+    }
+
+    [Fact]
     public void Too_few_letters_offer_nothing() =>
         Index.Suggest([], "جز", 3).ShouldBeEmpty();
 
