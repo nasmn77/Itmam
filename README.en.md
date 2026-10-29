@@ -56,7 +56,7 @@ Itmam has no main window and no taskbar button; it runs from an icon next to the
 
 ## Turning off vs. exiting
 
-- **Turn off** (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>, "Turn off Itmam" in the icon's menu or in Settings → "Exit", or "Pause for 1 hour"): Itmam stays next to the clock with a gray icon, tracks nothing and intercepts no key until you turn it on again.
+- **Turn off** (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>, "Turn off Itmam" in the icon's menu or in Settings → "Exit", or "Pause for 1 hour"): Itmam tracks nothing and intercepts no key until you turn it on again.
 - **Exit** (from the icon's menu or the "Exit" page in Settings): closes completely until your next sign-in or until you start it yourself.
 - **To stop it starting with Windows:** Settings → General → "Start with Windows", or Windows Settings → Apps → Startup.
 

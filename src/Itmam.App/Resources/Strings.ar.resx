@@ -222,5 +222,5 @@
   <data name="TurnOnTitle" xml:space="preserve"><value>تشغيل إتمام</value></data>
   <data name="TurnOffButton" xml:space="preserve"><value>إيقاف</value></data>
   <data name="TurnOnButton" xml:space="preserve"><value>تشغيل</value></data>
-  <data name="TurnOffHint" xml:space="preserve"><value>يبقى إتمام قرب الساعة بأيقونة رمادية، ولا يتتبع شيئًا حتى تعيد تشغيله من هنا أو من قائمة الأيقونة أو بالاختصار {0}.</value></data>
+  <data name="TurnOffHint" xml:space="preserve"><value>لا يتتبع إتمام شيئًا حتى تعيد تشغيله من هنا أو من قائمة الأيقونة أو بالاختصار {0}.</value></data>
 </root>

@@ -222,5 +222,5 @@
   <data name="TurnOnTitle" xml:space="preserve"><value>Turn on Itmam</value></data>
   <data name="TurnOffButton" xml:space="preserve"><value>Turn off</value></data>
   <data name="TurnOnButton" xml:space="preserve"><value>Turn on</value></data>
-  <data name="TurnOffHint" xml:space="preserve"><value>Itmam stays next to the clock with a gray icon and tracks nothing until you turn it on again, here, from the icon's menu or with {0}.</value></data>
+  <data name="TurnOffHint" xml:space="preserve"><value>Itmam tracks nothing until you turn it on again, here, from the icon's menu or with {0}.</value></data>
 </root>
