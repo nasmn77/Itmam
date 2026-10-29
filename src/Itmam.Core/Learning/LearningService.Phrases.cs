@@ -79,7 +79,7 @@ public sealed partial class LearningService
     /// contains it and is typed nearly as often: after «السلام عليكم ورحمة الله» is learned, «عليكم ورحمة»
     /// alone is only noise, unless it is also typed elsewhere.
     /// </summary>
-    /// <param name="all">Every learned phrase, none left out (the list in Settings).</param>
+    /// <param name="all">Every learned phrase, none left out.</param>
     public IReadOnlyList<StoredPhrase> LearnedPhrases(bool all = false)
     {
         lock (_lock)
@@ -123,17 +123,33 @@ public sealed partial class LearningService
     }
 
     /// <summary>Right-click on the bar, or "Delete" in Settings: the phrase is forgotten (learned again if typed again).</summary>
+    /// <remarks>
+    /// Its parts go with it unless they are typed much more on their own (see <see cref="LearnedPhrases"/>):
+    /// otherwise deleting «مرحبا بكم في معرضنا» would only bring «مرحبا بكم» forward in its place.
+    /// </remarks>
     public bool ForgetPhrase(string text)
     {
         lock (_lock)
         {
             var key = PhraseKey(text);
-            if (!_phrases.Remove(key))
+            if (!_phrases.Remove(key, out var entry))
             {
                 return false;
             }
 
             MarkPhraseRemoved(key);
+            var words = key.Split(' ');
+            for (var length = 2; length < words.Length; length++)
+            {
+                for (var start = 0; start + length <= words.Length; start++)
+                {
+                    var part = string.Join(' ', words, start, length);
+                    if (_phrases.TryGetValue(part, out var shorter) && entry.Count * 4 >= shorter.Count * 3)
+                    {
+                        RemovePhraseEntry(part);
+                    }
+                }
+            }
         }
 
         LearnedPhrasesChanged?.Invoke();

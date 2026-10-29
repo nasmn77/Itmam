@@ -330,6 +330,26 @@ public sealed class LearningServiceTests : IDisposable
     }
 
     [Fact]
+    public void Deleting_a_phrase_deletes_its_parts_unless_they_are_typed_much_more_alone()
+    {
+        var (learning, _) = Start();
+        for (var i = 0; i < 3; i++)
+        {
+            learning.LearnPhrases(["مرحبا بكم", "بكم في", "مرحبا بكم في", "السلام عليكم", "السلام عليكم ورحمة", "عليكم ورحمة"]);
+        }
+
+        for (var i = 0; i < 3; i++)
+        {
+            learning.LearnPhrases(["السلام عليكم"]); // also typed on its own
+        }
+
+        learning.ForgetPhrase("مرحبا بكم في");
+        learning.ForgetPhrase("السلام عليكم ورحمة");
+
+        learning.LearnedPhrases(all: true).Select(p => p.Text).ShouldBe(["السلام عليكم"]);
+    }
+
+    [Fact]
     public void A_sequence_not_learned_expires_after_thirty_days_but_a_learned_phrase_stays()
     {
         var (learning, _) = Start();
