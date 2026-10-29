@@ -493,6 +493,18 @@ public sealed class InputPipelineTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task Enter_after_an_accepted_word_and_its_space_still_ends_the_chain()
+    {
+        Type("يوما ");
+        await AfterCharacterAsync(' ');
+        Send(InputEvent.Accept(0, "سعيدا"));      // inserts «سعيدا »
+        Type((char)13 + "ارجو ");
+        await DrainAsync();
+
+        PhrasesLearned().ShouldBe(["يوما سعيدا"]);
+    }
+
+    [Fact]
     public async Task An_accepted_phrase_counts_as_typed()
     {
         Type("بسم ");

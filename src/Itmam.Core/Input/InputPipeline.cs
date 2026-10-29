@@ -461,8 +461,10 @@ public sealed class InputPipeline(
                 _recent.Clear();
             }
         }
-        else if (result.Outcome == BufferOutcome.Reset)
+        else if (result.Outcome == BufferOutcome.Reset
+            || (input.Character != ' ' && Text.ArabicText.IsWordBoundary(input.Character)))
         {
+            // Also Enter or punctuation after a space (an accepted word ends with one): the chain stops.
             _recent.Clear();
         }
     }
