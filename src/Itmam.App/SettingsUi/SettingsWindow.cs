@@ -998,7 +998,7 @@ internal sealed class SettingsWindow : Form
     // or delete them all together with every sequence counted so far.
     private void BuildLearnedPhrases()
     {
-        var phrases = _app.Learning.LearnedPhrases();
+        var phrases = _app.Learning.LearnedPhrases(all: true); // shorter ones inside longer ones too
         AddSection(string.Format(CultureInfo.CurrentCulture, Strings.SectionLearnedPhrases, phrases.Count));
         if (phrases.Count == 0)
         {

@@ -79,7 +79,8 @@ public sealed partial class LearningService
     /// contains it and is typed nearly as often: after «السلام عليكم ورحمة الله» is learned, «عليكم ورحمة»
     /// alone is only noise, unless it is also typed elsewhere.
     /// </summary>
-    public IReadOnlyList<StoredPhrase> LearnedPhrases()
+    /// <param name="all">Every learned phrase, none left out (the list in Settings).</param>
+    public IReadOnlyList<StoredPhrase> LearnedPhrases(bool all = false)
     {
         lock (_lock)
         {
@@ -87,7 +88,7 @@ public sealed partial class LearningService
                 .Where(p => p.Value.Count >= _options.PhraseMinUses && !HasBlockedWord(p.Value.Text))
                 .ToDictionary(p => p.Key, p => p.Value, StringComparer.Ordinal);
             var covered = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var (key, entry) in learned)
+            foreach (var (key, entry) in all ? [] : learned)
             {
                 var words = key.Split(' ');
                 for (var length = 2; length < words.Length; length++)

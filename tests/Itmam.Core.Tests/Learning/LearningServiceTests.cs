@@ -315,6 +315,7 @@ public sealed class LearningServiceTests : IDisposable
         }
 
         learning.LearnedPhrases().Select(p => p.Text).ShouldBe(["السلام عليكم ورحمة"]);
+        learning.LearnedPhrases(all: true).Count.ShouldBe(3); // Settings lists every one
 
         for (var i = 0; i < 3; i++)
         {
