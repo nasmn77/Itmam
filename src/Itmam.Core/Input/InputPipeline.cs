@@ -211,6 +211,9 @@ public sealed class InputPipeline(
     // The last accept, while Backspace can still undo it (memory only, until the next event).
     private UndoableAccept? _undoable;
 
+    // The text before the caret came from a paste: it was not typed, so it never joins the phrase chain.
+    private bool _contextFromPaste;
+
     public InputTracker Tracker { get; } = new();
 
     /// <summary>Replaced live from Settings (e.g. the space after accepting).</summary>
@@ -407,6 +410,7 @@ public sealed class InputPipeline(
         if (contextMayChange)
         {
             _charAfterCaret = null; // the caret may have moved: what follows it is unknown
+            _contextFromPaste = kind == InputEventKind.Paste;
         }
 
         var result = Tracker.Process(record.Input, record.KeyboardLayout);
@@ -594,9 +598,10 @@ public sealed class InputPipeline(
         {
             result = Tracker.Buffer.ResumeFromContext(caret.Text, _options.ProbeChars);
             _charAfterCaret = caret.CharAfter;
-            if (result.Outcome is BufferOutcome.Updated or BufferOutcome.Reset)
+            if (result.Outcome is BufferOutcome.Updated or BufferOutcome.Reset && !_contextFromPaste)
             {
-                // Words typed while the context was unknown (e.g. right after a focus event) still chain.
+                // Words typed while the context was unknown (e.g. right after a focus event) still chain;
+                // pasted words do not (only what is typed is learned).
                 _recent.ResumeFrom(caret.Text, _options.ProbeChars);
             }
             outcome = result.Outcome switch

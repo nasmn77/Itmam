@@ -439,6 +439,19 @@ public sealed class InputPipelineTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task Pasted_words_never_join_the_phrase_chain()
+    {
+        _context.Next = "أرجو لكم يوما سعيدا";
+        Send(InputEvent.Of(InputEventKind.Paste));
+        (await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedWithWord)).RecentWords.ShouldBeEmpty();
+
+        Type(" ");
+        await DrainAsync();
+
+        PhrasesLearned().ShouldBeEmpty();
+    }
+
+    [Fact]
     public async Task An_accepted_phrase_counts_as_typed()
     {
         Type("بسم ");
