@@ -161,11 +161,11 @@
   <data name="ConfirmClearWords" xml:space="preserve"><value>Delete all your words? This cannot be undone. Export them first if you want a copy.</value></data>
   <data name="ConfirmBlockWord" xml:space="preserve"><value>Block {0}? It will never be suggested, even from the dictionary.</value></data>
   <data name="ConfirmUnblockWord" xml:space="preserve"><value>Unblock {0}? It can be suggested again.</value></data>
-  <data name="NotifyOffTitle" xml:space="preserve"><value>Itmam is off</value></data>
+  <data name="NotifyOffTitle" xml:space="preserve"><value>Itmam was turned off</value></data>
   <data name="NotifyOffText" xml:space="preserve"><value>No suggestions until you turn it on again ({0}).</value></data>
-  <data name="NotifyPausedTitle" xml:space="preserve"><value>Itmam is paused</value></data>
+  <data name="NotifyPausedTitle" xml:space="preserve"><value>Itmam was paused</value></data>
   <data name="NotifyPausedText" xml:space="preserve"><value>It comes back on by itself at {0}.</value></data>
-  <data name="NotifyOnTitle" xml:space="preserve"><value>Itmam is on</value></data>
+  <data name="NotifyOnTitle" xml:space="preserve"><value>Itmam was turned on</value></data>
   <data name="NotifyOnText" xml:space="preserve"><value>Suggestions are back.</value></data>
   <data name="UpdateTitle" xml:space="preserve"><value>A new version of Itmam is available</value></data>
   <data name="UpdateText" xml:space="preserve"><value>Click to open it in Microsoft Store.</value></data>
