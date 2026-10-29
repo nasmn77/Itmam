@@ -22,6 +22,7 @@ internal enum SettingsPage
     Excluded,
     Words,
     Phrases,
+    TextShortcuts,
     Updates,
     About,
     Exit,
@@ -180,7 +181,7 @@ internal sealed class SettingsWindow : Form
         _navigation.Controls.Add(header);
 
         var top = 72;
-        foreach (var (page, title) in new[] { (SettingsPage.General, Strings.NavGeneral), (SettingsPage.Appearance, Strings.NavAppearance), (SettingsPage.Shortcuts, Strings.NavShortcuts), (SettingsPage.Excluded, Strings.NavExcluded), (SettingsPage.Words, Strings.NavWords), (SettingsPage.Phrases, Strings.NavPhrases), (SettingsPage.Updates, Strings.NavUpdates), (SettingsPage.About, Strings.NavAbout), (SettingsPage.Exit, Strings.NavExit) })
+        foreach (var (page, title) in new[] { (SettingsPage.General, Strings.NavGeneral), (SettingsPage.Appearance, Strings.NavAppearance), (SettingsPage.Shortcuts, Strings.NavShortcuts), (SettingsPage.Excluded, Strings.NavExcluded), (SettingsPage.Words, Strings.NavWords), (SettingsPage.Phrases, Strings.NavPhrases), (SettingsPage.TextShortcuts, Strings.NavTextShortcuts), (SettingsPage.Updates, Strings.NavUpdates), (SettingsPage.About, Strings.NavAbout), (SettingsPage.Exit, Strings.NavExit) })
         {
             var item = new NavItem { Text = title, Left = 8, Top = top, Width = _navigation.Width - 16, Height = 40, Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
             item.Click += (_, _) => SelectPage(page);
@@ -239,6 +240,9 @@ internal sealed class SettingsWindow : Form
                 break;
             case SettingsPage.Phrases:
                 BuildPhrasesPage();
+                break;
+            case SettingsPage.TextShortcuts:
+                BuildTextShortcutsPage();
                 break;
             case SettingsPage.Updates:
                 BuildUpdatesPage();
@@ -299,9 +303,9 @@ internal sealed class SettingsWindow : Form
         AddCard(Strings.AddSpace, null, space);
 
         AddSection(Strings.SectionLearning);
-        var pause = new ToggleSwitch { Checked = settings.LearningPaused };
-        pause.CheckedChanged += (_, _) => Update(s => s with { LearningPaused = pause.Checked });
-        AddCard(Strings.PauseLearning, null, pause);
+        var learn = new ToggleSwitch { Checked = !settings.LearningPaused };
+        learn.CheckedChanged += (_, _) => Update(s => s with { LearningPaused = !learn.Checked });
+        AddCard(Strings.LearnNewWords, null, learn);
 
         var uses = Numbers(1, 5, settings.MinUsesToSuggest);
         uses.SelectedIndexChanged += (_, _) => Update(s => s with { MinUsesToSuggest = uses.SelectedIndex + 1 });
@@ -716,9 +720,9 @@ internal sealed class SettingsWindow : Form
         AddTitle(Strings.NavWords);
         AddText(Strings.WordsIntro, secondary: true);
 
-        var pause = new ToggleSwitch { Checked = settings.LearningPaused };
-        pause.CheckedChanged += (_, _) => Update(s => s with { LearningPaused = pause.Checked });
-        AddCard(Strings.PauseLearning, Strings.PauseLearningHint, pause);
+        var learn = new ToggleSwitch { Checked = !settings.LearningPaused };
+        learn.CheckedChanged += (_, _) => Update(s => s with { LearningPaused = !learn.Checked });
+        AddCard(Strings.LearnNewWords, Strings.LearnNewWordsHint, learn);
 
         var add = new ThemedButton { Text = Strings.AddWordButton };
         add.Click += (_, _) => AddWord(blocked: false);
@@ -1068,6 +1072,63 @@ internal sealed class SettingsWindow : Form
         }
 
         Update(s => s with { MyPhrases = [.. s.MyPhrases.Where(p => p != existing).Append(text).Distinct()] });
+        BeginInvoke(RebuildPage);
+    }
+
+    // User decision (1.1): a text shortcut («ع1») typed exactly shows its text first in the bar; Tab inserts
+    // it. Kept in settings.json, like "My phrases".
+    private void BuildTextShortcutsPage()
+    {
+        var shortcuts = _app.Settings.TextShortcuts;
+        AddTitle(Strings.NavTextShortcuts);
+        AddText(Strings.TextShortcutsIntro, secondary: true);
+
+        var add = new ThemedButton { Text = Strings.AddWordButton };
+        add.Click += (_, _) => EditTextShortcut(null);
+        AddCard(Strings.AddTextShortcut, Strings.AddTextShortcutHint, add);
+
+        AddSection(string.Format(CultureInfo.CurrentCulture, Strings.SectionTextShortcuts, shortcuts.Count));
+        foreach (var shortcut in shortcuts)
+        {
+            var change = new ThemedButton { Text = Strings.EditWordButton };
+            change.Click += (_, _) => EditTextShortcut(shortcut);
+            var remove = new ThemedButton { Text = Strings.DeleteButton };
+            remove.Click += (_, _) =>
+            {
+                if (Confirm(Strings.ConfirmDeleteTextShortcut, shortcut.Key, leftToRight: false))
+                {
+                    Update(s => s with { TextShortcuts = [.. s.TextShortcuts.Where(t => t.Key != shortcut.Key)] });
+                    BeginInvoke(RebuildPage); // after this click is handled
+                }
+            };
+            AddCard(shortcut.Key, shortcut.Text, new ButtonRow(change, remove));
+        }
+    }
+
+    // Add (existing = null) or edit a text shortcut; a key already used is replaced after a confirmation.
+    private void EditTextShortcut(TextShortcut? existing)
+    {
+        if (TextShortcutDialog.Ask(this, existing is null ? Strings.AddTextShortcut : Strings.EditTextShortcut, existing, _palette, _mirrored) is not { } edited
+            || edited == existing)
+        {
+            return;
+        }
+
+        var replaced = _app.Settings.TextShortcuts.Any(t => t.Key == edited.Key && t.Key != existing?.Key);
+        if (replaced && !Confirm(Strings.ConfirmReplaceTextShortcut, edited.Key, leftToRight: false))
+        {
+            return;
+        }
+
+        Update(s =>
+        {
+            // An edited shortcut keeps its place; a new one goes last.
+            var list = s.TextShortcuts.ToList();
+            var index = existing is null ? -1 : list.FindIndex(t => t.Key == existing.Key);
+            list.RemoveAll(t => t.Key == edited.Key || t.Key == existing?.Key);
+            list.Insert(index < 0 ? list.Count : Math.Min(index, list.Count), edited);
+            return s with { TextShortcuts = list };
+        });
         BeginInvoke(RebuildPage);
     }
 

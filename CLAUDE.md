@@ -14,7 +14,7 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
   a word, import/export, sort, search, virtual word list with edit/block/delete, delete all with confirmation; index guarded by
   `LearningService.SyncRoot`, also held by `SuggestionController`). 6b complete: awaiting the user's review. Phases 0–5 merged. User decisions: phase 6 split in two; Windows 11 style settings (side navigation);
   diagnostics window in Debug builds only (tray → Diagnostics); "Itmam is running" notice on EVERY start, including start with
-  Windows (user decision, overrides the brief's one-time notice); app icon = concept A (suggestion bar + «ت», tools/IconGenerator). Debug: `--demo-settings [general|appearance|shortcuts|excluded|words|about|exit] [en] [end]`, `--demo-popup x y [navy] [translucent] [large] [hints]`.
+  Windows (user decision, overrides the brief's one-time notice); app icon = concept A (suggestion bar + «ت», tools/IconGenerator). Debug: `--demo-settings [general|appearance|shortcuts|excluded|words|phrases|textshortcuts|updates|about|exit] [en] [end]`, `--demo-popup x y [navy] [translucent] [large] [hints]`.
 - Phase 5 decisions: learn words of ≥ 2 letters; silent full screen only for D3D exclusive + presentation mode (not F11
   browser/video); a finished word stays *pending* and is dropped if Backspace/Ctrl+Backspace follows it at once (user question);
   SQLite in Core (`SqliteUserWordStore`, WAL, corrupt file kept as `user.db.corrupt-*`); `ForegroundGuard` silences password
@@ -50,7 +50,11 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
   words, memory only — privacy policy updated; no phrase starts from a short common word, one whole phrase at a start);
   **learned phrases** (user decisions: automatic, ON by default; counts kept on disk with expiry): 2–5-word sequences typed
   in a row are counted in user.db table `phrases` (schema 2), learned at 3 uses, not-learned ones deleted after 30 days,
-  limits 20,000 / 2,000; order My phrases → learned → shipped; right-click forgets; Settings → Phrases lists them. Also the two 1.0.1 fixes, verified by the user:
+  limits 20,000 / 2,000; order My phrases → learned → shipped; right-click forgets; Settings → Phrases lists them (all of them; only the bar leaves out phrases inside a longer one); **text shortcuts**
+  (user decisions: shown first in the bar, Tab inserts — never replaced automatically; own page «الاختصارات النصية»;
+  `TextShortcuts` in Core, kept in settings.json; digits after a letter stay in the word); tray icon: left or right
+  click opens the menu (no double-click); «تعلّم الكلمات الجديدة» toggle (inverse of LearningPaused). Version shown is
+  read from the package at runtime. Also the two 1.0.1 fixes, verified by the user:
   (1) `CaretSource.FocusedField` fallback before the mouse pointer when a web control reports no caret (the bar had
   appeared at the top of Partner Center in Edge); (2) the caret is read again 60 ms after the bar is shown when no
   newer key arrived (the hook reads it before the app inserts the letter; an empty dir=auto field such as Google

@@ -104,7 +104,7 @@ Paste into Partner Center → Submission options → Notes for certification.
 
 > **What Itmam does.** Itmam is an Arabic word-prediction app for the physical keyboard. While the user types with an
 > Arabic keyboard layout, it shows a small suggestion bar above the caret; Tab (or a click) inserts the chosen word.
-> It runs in the notification area (tray); open Settings by double-clicking the tray icon.
+> It runs in the notification area (tray); click the tray icon (either button) and choose Settings.
 >
 > **How to test.** Add an Arabic keyboard layout (Settings → Time & language → Language & region → Arabic), switch to
 > it, open Notepad and type «مرح»: a bar with word suggestions appears above the caret, and Tab inserts the first

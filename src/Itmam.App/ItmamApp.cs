@@ -234,6 +234,7 @@ internal sealed class ItmamApp : IDisposable
         ExcludedApps.Replace(settings.ExcludedApps);
         Popup.Appearance = PopupAppearance.From(settings);
         UpdatePhrases();
+        Suggestions.Shortcuts = new TextShortcuts(settings.TextShortcuts);
     }
 
     // "My phrases" first, then the learned ones (most used first), then the shipped list. Rebuilt when a

@@ -131,12 +131,21 @@ internal sealed class SuggestionController : IDisposable
     /// <summary>Fixed expressions to complete; <see cref="PhraseIndex.Empty"/> turns phrase suggestions off.</summary>
     public PhraseIndex Phrases { get; set; } = PhraseIndex.Empty;
 
-    // A phrase the user is typing comes first (Tab inserts the whole rest of it), then dictionary words.
-    // Phrases can show the bar right after a space, before any letter: the next word of «بسم …».
+    /// <summary>The user's text shortcuts («ع1» → its text).</summary>
+    public TextShortcuts Shortcuts { get; set; } = TextShortcuts.Empty;
+
+    // A text shortcut typed exactly comes first, then a phrase the user is typing (Tab inserts the whole
+    // rest of it), then dictionary words. Phrases can show the bar right after a space, before any
+    // letter: the next word of «بسم …»; shortcuts show whatever the minimum letters setting.
     private IReadOnlyList<string> Suggest(PipelineUpdate update)
     {
         var max = _engine.Options.MaxSuggestions;
-        var phrases = Phrases.Suggest(update.RecentWords ?? [], update.Word, max);
+        IReadOnlyList<string> phrases = Phrases.Suggest(update.RecentWords ?? [], update.Word, max);
+        if (Shortcuts.Find(update.Word) is { } shortcut)
+        {
+            phrases = [shortcut, .. phrases.Where(p => p != shortcut).Take(max - 1)];
+        }
+
         if (update.Letters < _engine.Options.MinChars)
         {
             return phrases;

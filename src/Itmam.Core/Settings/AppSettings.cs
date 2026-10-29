@@ -49,6 +49,12 @@ public sealed record AppSettings
     /// </summary>
     public IReadOnlyList<string> MyPhrases { get; init; } = [];
 
+    /// <summary>
+    /// Text shortcuts the user added in Settings (user decision 1.1): typing a key shows its text first
+    /// in the bar, and Tab inserts it.
+    /// </summary>
+    public IReadOnlyList<Suggestions.TextShortcut> TextShortcuts { get; init; } = [];
+
     public UiLanguage Language { get; init; } = UiLanguage.Arabic;
 
     /// <summary>Suggestions shown (1–5).</summary>
@@ -103,6 +109,13 @@ public sealed record AppSettings
         Hotkeys = Hotkeys ?? new HotkeySettings(),
         ExcludedApps = ExcludedApps ?? ExcludedAppsDefaults(),
         MyPhrases = [.. (MyPhrases ?? []).Select(Suggestions.PhraseIndex.Clean).OfType<string>().Distinct()],
+        TextShortcuts = [.. (TextShortcuts ?? [])
+            .Where(s => s is not null)
+            .Select(s => Suggestions.TextShortcuts.CleanKey(s.Key ?? "") is { } key && Suggestions.TextShortcuts.CleanText(s.Text ?? "") is { } text
+                ? new Suggestions.TextShortcut(key, text)
+                : null)
+            .OfType<Suggestions.TextShortcut>()
+            .DistinctBy(s => s.Key)],
     };
 
     private static IReadOnlyList<string> ExcludedAppsDefaults() => [.. Input.ExcludedApps.Defaults];

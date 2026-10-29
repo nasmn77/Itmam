@@ -28,7 +28,9 @@ public readonly record struct BufferResult(BufferOutcome Outcome, string? Commit
 /// </summary>
 /// <remarks>
 /// Rules: Arabic letters append; tashkeel/tatweel append (inside a word) but are ignored for matching;
-/// whitespace, digits and punctuation commit; other letters (e.g. Latin) and Esc reset.
+/// whitespace, punctuation and digits at the start of a word commit; digits after a letter append, so a
+/// text shortcut such as «ع1» is seen whole (such a word is never learned); other letters (e.g. Latin)
+/// and Esc reset.
 /// Events that may move the caret anywhere — Ctrl+Backspace, navigation, shortcuts, paste, focus,
 /// foreground, mouse and layout changes — discard the word without committing it and leave the
 /// buffer <see cref="IsDetached">detached</see>: the text before the caret is unknown until it is
@@ -181,6 +183,18 @@ public sealed class WordBuffer
 
     private BufferResult ApplyCharacter(char c)
     {
+        // A digit after a letter belongs to a text shortcut («ع1»).
+        if (char.IsDigit(c) && LetterCount > 0 && !_detached)
+        {
+            if (_text.Length >= MaxLength)
+            {
+                return Detach();
+            }
+
+            _text.Append(c);
+            return new BufferResult(BufferOutcome.Updated);
+        }
+
         if (ArabicText.IsWordBoundary(c))
         {
             return Commit();

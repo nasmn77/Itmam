@@ -28,7 +28,6 @@
   <data name="MinLetters" xml:space="preserve"><value>Letters before suggestions appear</value></data>
   <data name="AddSpace" xml:space="preserve"><value>Add a space after accepting a suggestion</value></data>
   <data name="SectionLearning" xml:space="preserve"><value>Learning</value></data>
-  <data name="PauseLearning" xml:space="preserve"><value>Pause learning new words</value></data>
   <data name="MinUses" xml:space="preserve"><value>Uses before a new word is suggested</value></data>
   <data name="SectionLanguage" xml:space="preserve"><value>Language</value></data>
   <data name="UiLanguage" xml:space="preserve"><value>Interface language</value></data>
@@ -120,7 +119,6 @@
   <data name="ConfirmResetExcluded" xml:space="preserve"><value>Restore the default list? Apps you added will be removed from it, and removed default apps will be excluded again.</value></data>
   <data name="NavWords" xml:space="preserve"><value>My words</value></data>
   <data name="WordsIntro" xml:space="preserve"><value>Words Itmam learned from you. Only the word, how many times you used it and when are kept, on this device.</value></data>
-  <data name="PauseLearningHint" xml:space="preserve"><value>Nothing new is learned; your words are still suggested.</value></data>
   <data name="AddWord" xml:space="preserve"><value>Add a word</value></data>
   <data name="AddWordHint" xml:space="preserve"><value>Added words are suggested at once. Blocked words are never suggested, even from the dictionary.</value></data>
   <data name="AddWordButton" xml:space="preserve"><value>Add…</value></data>
@@ -205,4 +203,18 @@
   <data name="ClearPhrases" xml:space="preserve"><value>Delete learned phrases</value></data>
   <data name="ClearPhrasesHint" xml:space="preserve"><value>Deletes every learned phrase and every sequence counted so far from this device. My phrases are kept.</value></data>
   <data name="ConfirmClearPhrases" xml:space="preserve"><value>Delete all learned phrases? This cannot be undone.</value></data>
+  <data name="LearnNewWords" xml:space="preserve"><value>Learn new words</value></data>
+  <data name="LearnNewWordsHint" xml:space="preserve"><value>When off, nothing new is learned (words or phrases); your words are still suggested.</value></data>
+  <data name="NavTextShortcuts" xml:space="preserve"><value>Text shortcuts</value></data>
+  <data name="TextShortcutsIntro" xml:space="preserve"><value>Type a short code and the bar offers its text first; Tab inserts it in place of the code. For example «ع1» → «السلام عليكم ورحمة الله وبركاته».</value></data>
+  <data name="AddTextShortcut" xml:space="preserve"><value>Add a shortcut</value></data>
+  <data name="AddTextShortcutHint" xml:space="preserve"><value>A code of Arabic letters, digits allowed after the first letter, and the text it inserts.</value></data>
+  <data name="EditTextShortcut" xml:space="preserve"><value>Edit shortcut</value></data>
+  <data name="SectionTextShortcuts" xml:space="preserve"><value>My shortcuts ({0})</value></data>
+  <data name="TextShortcutKeyPrompt" xml:space="preserve"><value>Shortcut (e.g. ع1):</value></data>
+  <data name="TextShortcutTextPrompt" xml:space="preserve"><value>Text it inserts:</value></data>
+  <data name="NotATextShortcutKey" xml:space="preserve"><value>The shortcut must start with an Arabic letter and contain only Arabic letters and digits, without spaces.</value></data>
+  <data name="NotATextShortcutText" xml:space="preserve"><value>Type the text the shortcut inserts.</value></data>
+  <data name="ConfirmDeleteTextShortcut" xml:space="preserve"><value>Delete the shortcut «{0}»?</value></data>
+  <data name="ConfirmReplaceTextShortcut" xml:space="preserve"><value>The shortcut «{0}» already exists. Replace its text?</value></data>
 </root>

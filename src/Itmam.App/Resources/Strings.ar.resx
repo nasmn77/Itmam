@@ -28,7 +28,6 @@
   <data name="MinLetters" xml:space="preserve"><value>عدد الحروف قبل ظهور الاقتراحات</value></data>
   <data name="AddSpace" xml:space="preserve"><value>إضافة مسافة بعد قبول الاقتراح</value></data>
   <data name="SectionLearning" xml:space="preserve"><value>التعلم</value></data>
-  <data name="PauseLearning" xml:space="preserve"><value>إيقاف تعلم الكلمات الجديدة مؤقتًا</value></data>
   <data name="MinUses" xml:space="preserve"><value>مرات الاستخدام قبل اقتراح كلمة جديدة</value></data>
   <data name="SectionLanguage" xml:space="preserve"><value>اللغة</value></data>
   <data name="UiLanguage" xml:space="preserve"><value>لغة الواجهة</value></data>
@@ -120,7 +119,6 @@
   <data name="ConfirmResetExcluded" xml:space="preserve"><value>استعادة القائمة الافتراضية؟ ستُحذف منها التطبيقات التي أضفتها، وتُستثنى من جديد التطبيقات الافتراضية التي أزلتها.</value></data>
   <data name="NavWords" xml:space="preserve"><value>كلماتي</value></data>
   <data name="WordsIntro" xml:space="preserve"><value>الكلمات التي تعلّمها إتمام منك. لا يُحفظ إلا الكلمة وعدد مرات استعمالها ووقت آخر استعمال، على هذا الجهاز فقط.</value></data>
-  <data name="PauseLearningHint" xml:space="preserve"><value>لا يتعلّم كلمات جديدة، وتبقى كلماتك تُقترح.</value></data>
   <data name="AddWord" xml:space="preserve"><value>إضافة كلمة</value></data>
   <data name="AddWordHint" xml:space="preserve"><value>الكلمة المضافة تُقترح فورًا. والكلمة المحظورة لا تُقترح أبدًا، ولو كانت في القاموس.</value></data>
   <data name="AddWordButton" xml:space="preserve"><value>إضافة…</value></data>
@@ -205,4 +203,18 @@
   <data name="ClearPhrases" xml:space="preserve"><value>حذف العبارات المتعلَّمة</value></data>
   <data name="ClearPhrasesHint" xml:space="preserve"><value>يحذف من جهازك كل العبارات المتعلَّمة وكل ما عُدّ من تسلسلات حتى الآن. وتبقى «عباراتي».</value></data>
   <data name="ConfirmClearPhrases" xml:space="preserve"><value>حذف كل العبارات المتعلَّمة؟ لا يمكن التراجع عن ذلك.</value></data>
+  <data name="LearnNewWords" xml:space="preserve"><value>تعلّم الكلمات الجديدة</value></data>
+  <data name="LearnNewWordsHint" xml:space="preserve"><value>عند إيقافه لا يُتعلَّم شيء جديد (كلمات ولا عبارات)، وتبقى كلماتك تُقترح.</value></data>
+  <data name="NavTextShortcuts" xml:space="preserve"><value>الاختصارات النصية</value></data>
+  <data name="TextShortcutsIntro" xml:space="preserve"><value>اكتب رمزًا قصيرًا فيقترح الشريط عبارته أولًا، ويضعها Tab مكان الرمز. مثلًا «ع1» ← «السلام عليكم ورحمة الله وبركاته».</value></data>
+  <data name="AddTextShortcut" xml:space="preserve"><value>إضافة اختصار</value></data>
+  <data name="AddTextShortcutHint" xml:space="preserve"><value>رمز من حروف عربية، ويمكن أن تأتي بعد أول حرف أرقام، والعبارة التي يضعها.</value></data>
+  <data name="EditTextShortcut" xml:space="preserve"><value>تعديل اختصار</value></data>
+  <data name="SectionTextShortcuts" xml:space="preserve"><value>اختصاراتي ({0})</value></data>
+  <data name="TextShortcutKeyPrompt" xml:space="preserve"><value>الاختصار (مثل ع1):</value></data>
+  <data name="TextShortcutTextPrompt" xml:space="preserve"><value>العبارة التي يضعها:</value></data>
+  <data name="NotATextShortcutKey" xml:space="preserve"><value>يجب أن يبدأ الاختصار بحرف عربي، وأن يتكون من حروف عربية وأرقام فقط، دون مسافات.</value></data>
+  <data name="NotATextShortcutText" xml:space="preserve"><value>اكتب العبارة التي يضعها الاختصار.</value></data>
+  <data name="ConfirmDeleteTextShortcut" xml:space="preserve"><value>حذف الاختصار «{0}»؟</value></data>
+  <data name="ConfirmReplaceTextShortcut" xml:space="preserve"><value>الاختصار «{0}» موجود. استبدال عبارته؟</value></data>
 </root>

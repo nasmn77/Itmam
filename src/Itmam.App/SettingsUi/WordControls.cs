@@ -3,6 +3,7 @@ using System.Drawing.Drawing2D;
 using System.Globalization;
 using Itmam.App.Resources;
 using Itmam.Core.Learning;
+using Itmam.Core.Suggestions;
 using Itmam.Win32;
 
 namespace Itmam.App.SettingsUi;
@@ -325,6 +326,105 @@ internal sealed class WordList : ThemedControl
         }
 
         return -1;
+    }
+}
+
+/// <summary>Asks for a text shortcut: its key («ع1») and the text it inserts.</summary>
+internal sealed class TextShortcutDialog : Form
+{
+    private readonly TextBox _key = new() { BorderStyle = BorderStyle.FixedSingle };
+    private readonly TextBox _text = new() { BorderStyle = BorderStyle.FixedSingle };
+    private readonly Label _error = new() { AutoSize = false, UseMnemonic = false };
+
+    private TextShortcutDialog(string title, TextShortcut? initial, SettingsPalette palette, bool rtl)
+    {
+        Text = title;
+        FormBorderStyle = FormBorderStyle.FixedDialog;
+        MinimizeBox = MaximizeBox = ShowInTaskbar = false;
+        StartPosition = FormStartPosition.CenterParent;
+        AutoScaleDimensions = new SizeF(96f, 96f); // laid out at 100 %, scaled to the monitor
+        AutoScaleMode = AutoScaleMode.Dpi;
+        Font = new Font("Segoe UI", 10f);
+        ClientSize = new Size(460, 250);
+        RightToLeft = rtl ? RightToLeft.Yes : RightToLeft.No;
+        RightToLeftLayout = rtl;
+        KeyPreview = true;
+        BackColor = palette.Window;
+        ForeColor = palette.Text;
+
+        var keyLabel = new Label { Text = Strings.TextShortcutKeyPrompt, AutoSize = false, Bounds = new Rectangle(16, 14, 428, 24), UseMnemonic = false };
+        _key.Bounds = new Rectangle(16, 40, 160, 30);
+        var textLabel = new Label { Text = Strings.TextShortcutTextPrompt, AutoSize = false, Bounds = new Rectangle(16, 82, 428, 24), UseMnemonic = false };
+        _text.Bounds = new Rectangle(16, 108, 428, 30);
+        foreach (var box in new[] { _key, _text })
+        {
+            box.Font = new Font("Segoe UI", 12f);
+            box.BackColor = palette.ControlFill;
+            box.ForeColor = palette.Text;
+        }
+
+        _key.Text = initial?.Key ?? string.Empty;
+        _text.Text = initial?.Text ?? string.Empty;
+        _text.MaxLength = TextShortcuts.MaxTextLength;
+        _key.MaxLength = TextShortcuts.MaxKeyLength;
+        _error.Bounds = new Rectangle(16, 146, 428, 48);
+        _error.ForeColor = Color.FromArgb(0xE8, 0x11, 0x23);
+
+        var ok = new ThemedButton { Text = Strings.OkButton, Palette = palette, Top = 204 };
+        var cancel = new ThemedButton { Text = Strings.CancelButton, Palette = palette, Top = 204 };
+        ok.Left = 444 - ok.Width - cancel.Width - 8;
+        cancel.Left = 444 - cancel.Width;
+        ok.Click += (_, _) => Accept();
+        cancel.Click += (_, _) => DialogResult = DialogResult.Cancel;
+        Controls.AddRange([keyLabel, _key, textLabel, _text, _error, ok, cancel]);
+        Shown += (_, _) =>
+        {
+            WindowChrome.SetDarkTitleBar(Handle, palette.IsDark);
+            _key.SelectAll();
+            _key.Focus();
+        };
+    }
+
+    public TextShortcut? Shortcut { get; private set; }
+
+    /// <summary>Shows the dialog; null when cancelled.</summary>
+    public static TextShortcut? Ask(IWin32Window owner, string title, TextShortcut? initial, SettingsPalette palette, bool rtl)
+    {
+        using var dialog = new TextShortcutDialog(title, initial, palette, rtl) { TopMost = owner is Form { TopMost: true } };
+        return dialog.ShowDialog(owner) == DialogResult.OK ? dialog.Shortcut : null;
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        base.OnKeyDown(e);
+        if (e.KeyCode == Keys.Enter)
+        {
+            e.SuppressKeyPress = true;
+            Accept();
+        }
+        else if (e.KeyCode == Keys.Escape)
+        {
+            DialogResult = DialogResult.Cancel;
+        }
+    }
+
+    private void Accept()
+    {
+        if (TextShortcuts.CleanKey(_key.Text) is not { } key)
+        {
+            _error.Text = Strings.NotATextShortcutKey;
+            _key.Focus();
+        }
+        else if (TextShortcuts.CleanText(_text.Text) is not { } text)
+        {
+            _error.Text = Strings.NotATextShortcutText;
+            _text.Focus();
+        }
+        else
+        {
+            Shortcut = new TextShortcut(key, text);
+            DialogResult = DialogResult.OK;
+        }
     }
 }
 

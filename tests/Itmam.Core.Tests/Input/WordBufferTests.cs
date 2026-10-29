@@ -21,6 +21,18 @@ public class WordBufferTests
     private BufferResult Send(InputEventKind kind) => _buffer.Apply(InputEvent.Of(kind));
 
     [Fact]
+    public void Digits_after_a_letter_belong_to_the_word_and_alone_are_a_boundary()
+    {
+        Type("ع1").Outcome.ShouldBe(BufferOutcome.Updated); // a text shortcut
+        _buffer.Text.ShouldBe("ع1");
+        _buffer.LetterCount.ShouldBe(1);
+        Type(" ").CommittedWord.ShouldBe("ع1");
+
+        Type("1").Outcome.ShouldBe(BufferOutcome.None);
+        _buffer.IsEmpty.ShouldBeTrue();
+    }
+
+    [Fact]
     public void Arabic_letters_append()
     {
         Type("كتا").Outcome.ShouldBe(BufferOutcome.Updated);
@@ -50,8 +62,6 @@ public class WordBufferTests
     [InlineData('،')]
     [InlineData('؛')]
     [InlineData('؟')]
-    [InlineData('3')]
-    [InlineData('٣')]
     public void Boundary_commits_word_without_marks(char boundary)
     {
         Type("كِتاب");

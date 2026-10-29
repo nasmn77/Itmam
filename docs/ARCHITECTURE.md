@@ -165,6 +165,10 @@
 
 `PhraseIndex` (في Core) يحمّل `data/phrases.txt` و«عباراتي» من الإعدادات (عبارات المستخدم أولًا). ويحتفظ `InputPipeline` في `RecentWords` بآخر 8 كلمات أنهتها مسافة، مطبّعةً وفي الذاكرة فقط، ويمسحها عند أي علامة غير المسافة وعند أي حدث غير الكتابة (Backspace، حركة المؤشر، تغيير التركيز أو اللغة…) وفي النوافذ الصامتة؛ وترسلها `PipelineUpdate.RecentWords`. يقترح `SuggestionController` أولًا بقية العبارة التي يكتبها المستخدم (يُدرجها Tab كاملة) ثم الكلمة التالية فيها، ثم كلمات القاموس. ويظهر الشريط بعد المسافة مباشرة إن كانت هناك كلمة تالية. ولكي يبقى Tab متوقعًا: لا تبدأ عبارة من كلمة شائعة قصيرة (في، على، من…)، ولا تُقترح عند البدء إلا عبارة واحدة حتى تبقى كلمات القاموس في الشريط، وتُعتمد العبارات المطابقة لأكبر عدد من الكلمات فقط. القبول يُدرج العبارة دفعة واحدة، والقبول بلا حروف مكتوبة مسموح.
 
+### الاختصارات النصية (من الإصدار 1.1)
+
+`TextShortcuts` (في Core) يحمل اختصارات المستخدم من `settings.json` (مثل «ع1» ← «السلام عليكم ورحمة الله وبركاته»). الاختصار حرف عربي ثم حروف عربية أو أرقام؛ ولذلك يُبقي `WordBuffer` الأرقام التي تأتي بعد حرف داخل الكلمة (الرقم في أول الكلمة ما زال حدًّا)، ولا تُتعلَّم كلمة فيها رقم. يضع `SuggestionController` عبارة الاختصار المكتوب بالضبط أولًا في الشريط، مهما كان الحد الأدنى للحروف، ويضعها Tab مكان الاختصار بالطريقة نفسها التي تُقبل بها الاقتراحات. المطابقة تتجاهل التشكيل والهمزات، والأرقام الهندية تساوي الأرقام العربية الغربية.
+
 ### العبارات المتعلَّمة (من الإصدار 1.1، قرار المستخدم: مفعّلة افتراضيًا)
 
 حين تنتهي كلمة، يكوّن `RecentWords.SequencesEndingWith` التسلسلات من كلمتين إلى 5 التي تنتهي بها (بالتهجئة المكتوبة، بلا تشكيل). وتبقى معلّقة مع الكلمة: إن تلاها Backspace أُسقطت معها، وإلا أرسلتها `PipelineUpdate.PhrasesToLearn`. ثم يعدّها `LearningService.LearnPhrases` في جدول `phrases` في `user.db` (المفتاح المطبّع ← آخر تهجئة، والعدد، ووقت آخر كتابة). وما بلغ 3 مرات يصير عبارة متعلَّمة. لا يُعدّ شيء أثناء إيقاف التعلّم أو إطفاء «تعلّم العبارات»، ولا ما فيه كلمة أقل من حرفين أو كلمة محظورة، ولا شيء في النوافذ الصامتة (لا يرى المسار فيها شيئًا). التنظيف عند البدء ومرة كل يوم: يُحذف ما لم يُتعلَّم ولم يُكتب منذ 30 يومًا. والحدود 20,000 تسلسل غير متعلَّم و2,000 عبارة متعلَّمة، ويُحذف الأقدم استعمالًا أولًا. `LearnedPhrases()` يرتّبها بالأكثر استعمالًا، ويترك العبارة التي تحتويها عبارة متعلَّمة أطول مكتوبة بقدرها تقريبًا (¾ عددها على الأقل). يضع `ItmamApp.UpdatePhrases` في `PhraseIndex` «عباراتي» ثم المتعلَّمة ثم المضمّنة، ويعيد بناءه عند `LearnedPhrasesChanged` على خيط المسار قبل حساب الشريط. والنقر بالزر الأيمن على عبارة في الشريط ينساها (`ForgetPhrase`). وفي صفحة «العبارات»: القائمة، والحذف، والنقل إلى «عباراتي»، و«حذف العبارات المتعلَّمة» (مع كل التسلسلات المعدودة). وحين يُقرأ السياق قبل المؤشر (بعد حدث تركيز أو نقرة…) يعيد `RecentWords.ResumeFrom` بناء الكلمات المتتالية من النص المقروء، فلا تضيع عبارة كُتبت قبل اكتمال القراءة.
@@ -445,6 +449,15 @@ word, then dictionary words; the bar can appear right after a space when a next 
 phrase starts from a short common word (في، على، من…), only one whole phrase is offered at a phrase start so dictionary
 words keep their place, and only the phrases matching the most words count. Accepting inserts the phrase in one batch,
 and accepting with nothing typed yet is allowed.
+
+### Text shortcuts (from 1.1)
+
+`TextShortcuts` (Core) holds the user's shortcuts from `settings.json` (e.g. «ع1» → «السلام عليكم ورحمة الله وبركاته»). A key
+is an Arabic letter followed by Arabic letters or digits, so `WordBuffer` keeps digits typed after a letter inside the
+word (a digit at the start of a word is still a boundary), and a word containing a digit is never learned.
+`SuggestionController` puts the text of a key typed exactly first in the bar, whatever the minimum letters setting, and
+Tab inserts it in place of the key like any accepted suggestion. Matching ignores tashkeel and hamza seats, and
+Arabic-Indic digits equal Western ones.
 
 ### Learned phrases (from 1.1, user decision: on by default)
 

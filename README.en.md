@@ -15,6 +15,7 @@ Website: https://nasmn77.github.io/Itmam/en/ · Repository: https://github.com/n
 - **Understands Arabic writing:** «احمد» finds «أحمد», «ان» suggests «أن», «إن» and «أنا», and the article «ال» and attached prepositions and conjunctions are handled.
 - **A bar that looks like Windows 11's own**, following light or dark mode, with the colors, size and opacity you choose.
 - **Completes common phrases:** «بسم الله الرحمن الرحيم», «السلام عليكم ورحمة الله وبركاته», «جزاك الله خيرا» and about 250 others, whole with Tab or word by word, plus "My phrases" you add yourself.
+- **Text shortcuts:** type «ع1» and the bar offers «السلام عليكم ورحمة الله وبركاته»; Tab puts it in place, with the shortcuts you choose.
 - **Learns your phrases:** words you type in a row 3 times are then suggested as a whole phrase (can be turned off).
 - **Completes a word from the middle:** go back into a word with a click or Backspace and it continues from the caret.
 - **Silent where it should be:** password fields, excluded apps (such as terminals and remote desktop) and full-screen games.
@@ -35,7 +36,7 @@ Shortcuts can be changed in Settings → "Shortcuts".
 
 ## Settings
 
-Open Settings by double-clicking the Itmam icon next to the clock:
+Click the Itmam icon next to the clock (right or left button) and choose "Settings":
 
 - **General:** start with Windows, number of suggestions, letters before they appear, interface language.
 - **Appearance:** theme, bar, text and selection colors, opacity, text size, with a live preview.
@@ -43,6 +44,7 @@ Open Settings by double-clicking the Itmam icon next to the clock:
 - **Excluded apps:** programs where Itmam stays completely silent.
 - **My words:** add, edit, block and delete words, import and export, delete all.
 - **Phrases:** turn phrase suggestions and phrase learning on or off, "My phrases", and the learned phrases (delete, move to "My phrases", delete all).
+- **Text shortcuts:** add a shortcut («ع1») and its text, edit, delete.
 - **Updates:** the version, and checking for an update through Microsoft Store.
 
 ## The icon next to the clock

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.Reflection;
 using Itmam.App.Resources;
 using Itmam.App.SettingsUi;
 using Itmam.Core.Settings;
@@ -64,7 +65,7 @@ internal sealed class TrayApplication : ApplicationContext
         _menu.Items.AddRange([new ToolStripSeparator(), _exitItem]);
 
         _icon = new NotifyIcon { ContextMenuStrip = _menu, Visible = true };
-        _icon.DoubleClick += (_, _) => ShowSettings(SettingsPage.General);
+        _icon.MouseUp += (_, e) => ShowMenuOnLeftClick(e); // user decision: either button opens the menu
         _icon.BalloonTipClicked += (_, _) => Interlocked.Exchange(ref _balloonClick, null)?.Invoke();
         _icon.BalloonTipClosed += (_, _) => _balloonClick = null;
 
@@ -159,6 +160,26 @@ internal sealed class TrayApplication : ApplicationContext
         if (answer == DialogResult.Yes)
         {
             Exit();
+        }
+    }
+
+    // The right button opens the menu by itself. NotifyIcon's own (non-public) ShowContextMenu also
+    // brings the menu to the foreground so it closes when clicking elsewhere; Show() is the fallback.
+    private void ShowMenuOnLeftClick(MouseEventArgs e)
+    {
+        if (e.Button != MouseButtons.Left)
+        {
+            return;
+        }
+
+        var show = typeof(NotifyIcon).GetMethod("ShowContextMenu", BindingFlags.Instance | BindingFlags.NonPublic, Type.EmptyTypes);
+        if (show is not null)
+        {
+            show.Invoke(_icon, null);
+        }
+        else
+        {
+            _menu.Show(Cursor.Position);
         }
     }
 
