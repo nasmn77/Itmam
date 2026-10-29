@@ -231,4 +231,5 @@
   <data name="BarMenuAddToMyPhrases" xml:space="preserve"><value>Add to My phrases</value></data>
   <data name="HiddenPhrases" xml:space="preserve"><value>Deleted built-in phrases ({0})</value></data>
   <data name="RestoreButton" xml:space="preserve"><value>Restore</value></data>
+  <data name="BarMenuBlock" xml:space="preserve"><value>Block</value></data>
 </root>

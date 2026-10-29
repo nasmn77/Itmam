@@ -31,7 +31,7 @@ Website: https://nasmn77.github.io/Itmam/en/ · Repository: https://github.com/n
 | <kbd>Esc</kbd> | Hide the suggestions until the next word |
 | <kbd>Ctrl</kbd>+<kbd>Alt</kbd> (press and release) | Turn Itmam off or on from anywhere |
 | <kbd>Backspace</kbd> right after inserting | Undo: puts back what you had typed |
-| Right-click a suggestion | Menu: delete a learned word or phrase, or add the phrase to "My phrases" |
+| Right-click a suggestion | Actions over the suggestion: "Delete" a learned word or a phrase, "Block" a word, "Add to My phrases" |
 | <kbd>Ctrl</kbd>+<kbd>Delete</kbd> while choosing with the arrows | Forget a learned word |
 
 Shortcuts can be changed in Settings → "Shortcuts".

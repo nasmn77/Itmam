@@ -231,4 +231,5 @@
   <data name="BarMenuAddToMyPhrases" xml:space="preserve"><value>إضافة إلى عباراتي</value></data>
   <data name="HiddenPhrases" xml:space="preserve"><value>العبارات المضمّنة المحذوفة ({0})</value></data>
   <data name="RestoreButton" xml:space="preserve"><value>استعادة</value></data>
+  <data name="BarMenuBlock" xml:space="preserve"><value>حظر</value></data>
 </root>

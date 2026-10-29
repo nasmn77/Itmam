@@ -205,7 +205,7 @@ internal sealed class ItmamApp : IDisposable
     // to it. For a phrase the bar shows only its rest, so the actions use the whole phrase it comes from.
     // "Delete" removes the phrase from wherever it comes from — learned (learned again if typed again),
     // "My phrases", the built-in list (hidden, restorable in Settings) — since one of them alone would
-    // leave it in the bar. A single word: delete it if learned. Nothing for a dictionary word. UI thread.
+    // leave it in the bar. A single word: delete it if learned, block it (never suggested again). UI thread.
     private void ShowSuggestionMenu(int index, string text)
     {
         var actions = new List<(string, Action)>();
@@ -242,9 +242,19 @@ internal sealed class ItmamApp : IDisposable
                     () => UpdateSettings(Settings with { MyPhrases = [.. Settings.MyPhrases, phrase] })));
             }
         }
-        else if (Learning.IsLearnedWord(text))
+        else if (!text.Contains(' ', StringComparison.Ordinal))
         {
-            actions.Add((Resources.Strings.BarMenuDelete, () => Hooks.Post(InputEvent.Forget(index, text))));
+            if (Learning.IsLearnedWord(text))
+            {
+                actions.Add((Resources.Strings.BarMenuDelete, () => Hooks.Post(InputEvent.Forget(index, text))));
+            }
+
+            // User decision: block from the bar, without a confirmation (unblock in "My words").
+            actions.Add((Resources.Strings.BarMenuBlock, () =>
+            {
+                Learning.SetBlocked(text, blocked: true);
+                Popup.HideSuggestions(); // the next key shows the bar without it
+            }));
         }
 
         Popup.ShowActions(index, actions);
