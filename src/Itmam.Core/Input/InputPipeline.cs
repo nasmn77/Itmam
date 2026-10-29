@@ -446,6 +446,13 @@ public sealed class InputPipeline(
             CollectPhrases(finished);
         }
 
+        // Choosing in the bar with the arrows, forgetting a suggestion or Esc leave the text and the caret
+        // as they are: the words before the caret still chain (one could choose a phrase word by word).
+        if (input.Kind is InputEventKind.NavigationSelect or InputEventKind.ForgetSuggestion or InputEventKind.Escape)
+        {
+            return;
+        }
+
         if (input.Kind != InputEventKind.Character)
         {
             _recent.Clear();

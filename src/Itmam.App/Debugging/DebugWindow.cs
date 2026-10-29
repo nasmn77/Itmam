@@ -78,7 +78,8 @@ internal sealed class DebugWindow : Form
     {
         var what = update.Input is { } record
             ? $"{Describe(record.Input),-22} → {update.Result.Outcome,-9} {Stopwatch.GetElapsedTime(record.Timestamp).TotalMilliseconds,6:F2} ms"
-            : $"{"Context probe",-22} → {update.Probe} ({update.Letters} letters)";
+            : update.Probe is null ? $"{"Recovered word",-22}" : $"{"Context probe",-22} → {update.Probe} ({update.Letters} letters)";
+        what += $"  chain {update.RecentWords?.Count ?? 0}{(update.PhrasesToLearn is { Count: > 0 } p ? $"  +{p.Count} sequences" : string.Empty)}";
         var line = $"{DateTime.Now:HH:mm:ss.fff}  {what}";
         if (!IsDisposed)
         {
@@ -107,7 +108,7 @@ internal sealed class DebugWindow : Form
         _state.Text =
             $"Layout: {(update.IsArabicLayout ? "Arabic" : "other (silent)")}  0x{update.Layout:X8}" +
             (update.Silenced != SilenceReason.None ? $"   SILENT: {update.Silenced}" : string.Empty) + "\n" +
-            $"Letters: {update.Letters}   Last: {update.Result.Outcome}   Commits: {_commits}   Learned: {_learned} (user words: {_learnedCount()})" +
+            $"Letters: {update.Letters}   Last: {update.Result.Outcome}   Commits: {_commits}   Learned: {_learned} (user words: {_learnedCount()})   Chain: {update.RecentWords?.Count ?? 0} words" +
             (update.IsDetached ? "   [paused: caret inside an unseen word]" : string.Empty) +
             $"\nBar: {_lastShown}";
 

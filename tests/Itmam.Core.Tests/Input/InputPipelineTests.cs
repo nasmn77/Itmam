@@ -505,6 +505,22 @@ public sealed class InputPipelineTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task Choosing_words_with_the_arrows_keeps_the_chain()
+    {
+        Type("ارجو ");
+        await AfterCharacterAsync(' ');
+        Send(InputEvent.Select(0));                // ↑ into the bar
+        Send(InputEvent.Accept(0, "ان"));
+        Send(InputEvent.Select(0));
+        Send(InputEvent.Select(1));
+        Send(InputEvent.Accept(1, "تكون"));
+        Type("ب");
+        await DrainAsync();
+
+        PhrasesLearned().ShouldBe(["ارجو ان", "ان تكون", "ارجو ان تكون"]);
+    }
+
+    [Fact]
     public async Task An_accepted_phrase_counts_as_typed()
     {
         Type("بسم ");
