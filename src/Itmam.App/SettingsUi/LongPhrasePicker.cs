@@ -21,7 +21,8 @@ internal sealed class LongPhrasePicker : Form
     private readonly ITextInjector _injector;
     private IReadOnlyList<LongPhrase> _shown;
     private bool _inserting;
-    private long _shownAt;
+    private readonly System.Windows.Forms.Timer _keysWatch = new() { Interval = 30 };
+    private long _keysUpAt;
     private int _focusRetries;
 
     /// <param name="phrases">The user's long phrases.</param>
@@ -69,9 +70,20 @@ internal sealed class LongPhrasePicker : Form
         _list.DoubleClick += (_, _) => InsertSelected();
         Controls.AddRange([_search, _list, _preview]);
 
+        // Shown at once, keys still held (user decision). Some apps (the new Notepad) take the focus back
+        // when the shortcut's keys go up: until shortly after that, losing the focus does not close it.
+        _keysWatch.Tick += (_, _) =>
+        {
+            if (!PopupWindows.AnyModifierDown())
+            {
+                _keysUpAt = Environment.TickCount64;
+                _keysWatch.Stop();
+            }
+        };
         Load += (_, _) =>
         {
-            _shownAt = Environment.TickCount64;
+            _keysUpAt = Environment.TickCount64;
+            _keysWatch.Start();
             WindowChrome.SetDarkTitleBar(Handle, palette.IsDark);
             WindowChrome.SetDarkScrollbars(_list.Handle, palette.IsDark);
             PlaceNear(near);
@@ -79,7 +91,6 @@ internal sealed class LongPhrasePicker : Form
         };
         Shown += (_, _) =>
         {
-            _shownAt = Environment.TickCount64;
             PopupWindows.BringToFront(Handle);
             Activate();
             _search.Focus();
@@ -91,8 +102,9 @@ internal sealed class LongPhrasePicker : Form
                 return;
             }
 
-            // The app may take the focus back right after the shortcut: take it again (twice at most).
-            if (Environment.TickCount64 - _shownAt < 700 && _focusRetries++ < 2)
+            // The app took the focus back while or right after the shortcut's keys went up: take it again.
+            var keysJustUsed = _keysWatch.Enabled || Environment.TickCount64 - _keysUpAt < 700;
+            if (keysJustUsed && _focusRetries++ < 5)
             {
                 BeginInvoke(() =>
                 {
@@ -105,6 +117,16 @@ internal sealed class LongPhrasePicker : Form
 
             Close(); // clicked elsewhere
         };
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _keysWatch.Dispose();
+        }
+
+        base.Dispose(disposing);
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
