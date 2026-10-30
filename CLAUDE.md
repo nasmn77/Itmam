@@ -40,12 +40,12 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
   user in Notepad, Word and Chrome.
 - Phase 2 notes: input path documented in `docs/ARCHITECTURE.md`; `Program.cs` temporarily runs `DebugWindow` (replaced in
   Phase 6). Key classification (`KeyClassifier`) and layout gating (`InputTracker`) live in Core and are unit-tested.
-- **Store submission 1 (v1.0.0.0) sent for certification on 2026-10-28** (publish as soon as it passes). Partner Center:
+- **Store submission 1 (v1.0.0.0) sent for certification on 2026-10-28, PUBLISHED by 2026-10-30** (the user confirmed). Partner Center:
   pricing free (0 USD, all markets), category Productivity, OneDrive backup and clip recording declarations turned off
   (privacy), age rating questionnaire all "No", listings ar + en (texts from STORE_LISTING.md, screenshots docs/store,
   logos docs/store/logos), certification notes in Additional Testing Information. Super hero art is ready in docs/store/logos
   (add it in the next submission).
-- **1.1.0 (branch `release-1.1`, waiting for 1.0.0 to be published before submitting; merge into main only then, because it changes the published privacy policy):** user decisions 2026-10-29: update check through Microsoft Store (`StoreUpdates`, notification opens the Store page, Settings → Updates), on/off notifications «تم إيقاف إتمام» / «تم إيقاف إتمام مؤقتًا» / «تم تشغيل إتمام» (setting, default on), confirmation before exiting (not on sign-out); **common phrases** (user decision: whole phrase first, Tab inserts it, then word
+- **1.1.0 (branch `release-1.1`; 1.0.0 is published, so it can now be merged into main — that publishes the new privacy policy on the site — and submitted):** user decisions 2026-10-29: update check through Microsoft Store (`StoreUpdates`, notification opens the Store page, Settings → Updates), on/off notifications «تم إيقاف إتمام» / «تم إيقاف إتمام مؤقتًا» / «تم تشغيل إتمام» (setting, default on), confirmation before exiting (not on sign-out); **common phrases** (user decision: whole phrase first, Tab inserts it, then word
   by word; 249 phrases in `data/phrases.txt`, MIT, compiled by hand; "My phrases" in settings.json; `RecentWords` = last 8
   words, memory only — privacy policy updated; no phrase starts from a short common word, one whole phrase at a start);
   **learned phrases** (user decisions: automatic, ON by default; counts kept on disk with expiry): 2–5-word sequences typed
