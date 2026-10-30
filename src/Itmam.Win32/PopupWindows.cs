@@ -37,6 +37,11 @@ public static class PopupWindows
     /// <summary>Gives the focus back to <paramref name="window"/>; allowed while our own window is in front.</summary>
     public static bool Activate(nint window) => PInvoke.SetForegroundWindow(new HWND(window));
 
+    /// <summary>Shift, Ctrl, Alt or Win is held down (the keys of a shortcut not released yet).</summary>
+    public static bool AnyModifierDown() =>
+        PInvoke.GetAsyncKeyState(0x10) < 0 || PInvoke.GetAsyncKeyState(0x11) < 0 || PInvoke.GetAsyncKeyState(0x12) < 0
+        || PInvoke.GetAsyncKeyState(0x5B) < 0 || PInvoke.GetAsyncKeyState(0x5C) < 0;
+
     /// <summary>
     /// Brings our <paramref name="window"/> to the front from a global shortcut. Windows refuses
     /// SetForegroundWindow to a background process (the hook does not count as its input), so the

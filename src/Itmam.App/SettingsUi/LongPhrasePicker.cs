@@ -21,6 +21,8 @@ internal sealed class LongPhrasePicker : Form
     private readonly ITextInjector _injector;
     private IReadOnlyList<LongPhrase> _shown;
     private bool _inserting;
+    private long _shownAt;
+    private int _focusRetries;
 
     /// <param name="phrases">The user's long phrases.</param>
     /// <param name="target">The window the user was typing in.</param>
@@ -69,6 +71,7 @@ internal sealed class LongPhrasePicker : Form
 
         Load += (_, _) =>
         {
+            _shownAt = Environment.TickCount64;
             WindowChrome.SetDarkTitleBar(Handle, palette.IsDark);
             WindowChrome.SetDarkScrollbars(_list.Handle, palette.IsDark);
             PlaceNear(near);
@@ -76,16 +79,31 @@ internal sealed class LongPhrasePicker : Form
         };
         Shown += (_, _) =>
         {
+            _shownAt = Environment.TickCount64;
             PopupWindows.BringToFront(Handle);
             Activate();
             _search.Focus();
         };
         Deactivate += (_, _) =>
         {
-            if (!_inserting)
+            if (_inserting)
             {
-                Close(); // clicked elsewhere
+                return;
             }
+
+            // The app may take the focus back right after the shortcut: take it again (twice at most).
+            if (Environment.TickCount64 - _shownAt < 700 && _focusRetries++ < 2)
+            {
+                BeginInvoke(() =>
+                {
+                    PopupWindows.BringToFront(Handle);
+                    Activate();
+                    _search.Focus();
+                });
+                return;
+            }
+
+            Close(); // clicked elsewhere
         };
     }
 

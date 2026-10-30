@@ -279,9 +279,16 @@ internal sealed class ItmamApp : IDisposable
         {
             near = (await _caret.LocateAsync(rightToLeft: true, CancellationToken.None).ConfigureAwait(false)).Bounds;
         }
-        catch (Exception ex) when (ex is InvalidOperationException or System.Runtime.InteropServices.COMException or TimeoutException)
+        catch (Exception ex) when (ex is InvalidOperationException or System.Runtime.InteropServices.COMException or TimeoutException or OperationCanceledException)
         {
             near = new Rectangle(Cursor.Position, Size.Empty);
+        }
+
+        // Open once the shortcut's keys are released: some apps (the new Notepad) take the focus back
+        // when Ctrl goes up, which closed the list at once.
+        for (var i = 0; i < 40 && PopupWindows.AnyModifierDown(); i++)
+        {
+            await Task.Delay(25).ConfigureAwait(false);
         }
 
         _ui.Post(_ => LongPhrasesRequested?.Invoke(target, near), null);
