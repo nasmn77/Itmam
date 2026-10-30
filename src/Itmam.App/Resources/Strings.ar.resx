@@ -60,7 +60,7 @@
   <data name="BarBackground" xml:space="preserve"><value>لون الشريط</value></data>
   <data name="BarBackgroundHint" xml:space="preserve"><value>«تلقائي» يتبع السمة، مثل شريط الاقتراحات في Windows.</value></data>
   <data name="BarHighlight" xml:space="preserve"><value>لون التحديد</value></data>
-  <data name="BarHighlightHint" xml:space="preserve"><value>يظهر عند اختيار اقتراح بالأسهم. «تلقائي» يستخدم لون التمييز في Windows.</value></data>
+  <data name="BarHighlightHint" xml:space="preserve"><value>للاقتراح الأول، وعند الاختيار بالأسهم. «تلقائي» يستخدم لون التمييز في Windows.</value></data>
   <data name="BarText" xml:space="preserve"><value>لون النص</value></data>
   <data name="BarTextHint" xml:space="preserve"><value>«تلقائي» يختار اللون الأوضح على الشريط.</value></data>
   <data name="ContrastWarning" xml:space="preserve"><value>التباين منخفض ({0:0.0}:1): قد تصعب قراءة الاقتراحات.</value></data>
@@ -70,7 +70,7 @@
   <data name="BarOpacity" xml:space="preserve"><value>العتامة</value></data>
   <data name="BarFontSize" xml:space="preserve"><value>حجم النص</value></data>
   <data name="HighlightFirst" xml:space="preserve"><value>تمييز الاقتراح الأول</value></data>
-  <data name="HighlightFirstHint" xml:space="preserve"><value>وهو الذي يُقبل بـ Tab. شريط Windows لا يميّزه.</value></data>
+  <data name="HighlightFirstHint" xml:space="preserve"><value>وهو الذي يُقبل بـ Tab، بلون التحديد نفسه.</value></data>
   <data name="HotkeyHints" xml:space="preserve"><value>إظهار أرقام الاقتراحات</value></data>
   <data name="HotkeyHintsHint" xml:space="preserve"><value>أرقام صغيرة للاختصار الذي يقبل الاقتراح 1، 2، 3…</value></data>
   <data name="ResetLook" xml:space="preserve"><value>استعادة مظهر Windows</value></data>
@@ -182,11 +182,11 @@
   <data name="OpenStore" xml:space="preserve"><value>إتمام في متجر Microsoft</value></data>
   <data name="OpenStoreHint" xml:space="preserve"><value>التحديثات والتقييمات والمراجعات.</value></data>
   <data name="OpenButton" xml:space="preserve"><value>فتح</value></data>
-  <data name="NavPhrases" xml:space="preserve"><value>العبارات</value></data>
+  <data name="NavPhrases" xml:space="preserve"><value>عباراتي</value></data>
   <data name="PhrasesIntro" xml:space="preserve"><value>مضمّنة {0} عبارة متلازمة: التحية، والذكر، والدعاء، والمناسبات، والرسائل الرسمية. اكتب أولها فيُدرجها Tab كاملة، أو أكمل كلمة بعد كلمة.</value></data>
   <data name="SuggestPhrases" xml:space="preserve"><value>اقتراح العبارات المتلازمة</value></data>
   <data name="SuggestPhrasesHint" xml:space="preserve"><value>بعد «بسم » يقترح الشريط «الله الرحمن الرحيم». يُقترح من «عباراتي» ثم العبارات المتعلَّمة من كتابتك ثم القائمة المضمّنة.</value></data>
-  <data name="SectionMyPhrases" xml:space="preserve"><value>عباراتي ({0})</value></data>
+  <data name="SectionMyPhrases" xml:space="preserve"><value>العبارات التي أضفتها ({0})</value></data>
   <data name="AddPhrase" xml:space="preserve"><value>إضافة عبارة</value></data>
   <data name="AddPhraseHint" xml:space="preserve"><value>توقيعك، أو اسم جهة عملك، أو أي عبارة تكتبها كثيرًا. تُقترح قبل العبارات المضمّنة.</value></data>
   <data name="EditPhrase" xml:space="preserve"><value>تعديل عبارة</value></data>

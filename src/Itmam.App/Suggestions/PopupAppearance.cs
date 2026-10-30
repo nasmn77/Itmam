@@ -113,7 +113,9 @@ internal sealed record PopupColors(Color Background, Color Text, Color Border, C
             colors = theme with { Text = text, Hint = Mix(theme.Background, text, 0.55) };
         }
 
-        return colors with { Selection = Color.FromArgb(0x60, appearance.Highlight ?? AccentColor()) };
+        // The first suggestion is highlighted like the arrow-key selection (user decision 1.1).
+        var selection = Color.FromArgb(0x60, appearance.Highlight ?? AccentColor());
+        return colors with { Selection = selection, FirstHighlight = selection };
     }
 
     /// <summary>Windows accent color (Settings → Personalization → Colors), for the navigation selection.</summary>

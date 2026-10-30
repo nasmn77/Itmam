@@ -47,7 +47,7 @@ Click the Itmam icon next to the clock (right or left button) and choose "Settin
 - **Shortcuts:** record a new shortcut by pressing it; shortcuts that would break typing or Windows shortcuts are refused.
 - **Excluded apps:** programs where Itmam stays completely silent.
 - **My words:** add, edit, block and delete words, import and export, delete all.
-- **Phrases:** turn phrase suggestions and phrase learning on or off, "My phrases" (with import and export), and the learned phrases (delete, move to "My phrases", delete all).
+- **My phrases:** turn phrase suggestions and phrase learning on or off, "My phrases" (with import and export), and the learned phrases (delete, move to "My phrases", delete all).
 - **Text shortcuts:** add a shortcut («ع1») and its text, edit, delete, import and export.
 - **Long phrases:** add a phrase with its name and text (up to 4,000 characters, several lines), edit, delete, import and export.
 - **Updates:** the version, and checking for an update through Microsoft Store.

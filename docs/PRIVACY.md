@@ -33,13 +33,13 @@
 
 - **كلماتك:** لكل كلمة: الكلمة نفسها، وعدد مرات استعمالها، ووقت آخر استعمال، وهل حظرتها. لا شيء غير ذلك: لا جمل، ولا اسم التطبيق الذي كتبت فيه.
   المكان: `%LOCALAPPDATA%\Itmam\user.db` (عند التثبيت من المتجر يكون داخل المجلد الخاص بالتطبيق).
-- **العبارات المتعلَّمة** (من الإصدار 1.1، مفعّلة افتراضيًا): من كلمتين إلى 5 كلمات عربية كتبتها متتالية، مع عدد مرات كتابتها ووقت آخرها، في الملف نفسه. التسلسل الذي تكتبه مرتين يُقترح عبارةً، وما لم يتكرر يُحذف بعد 30 يومًا من آخر كتابة له. لا يُحفظ معها اسم التطبيق ولا ما قبلها أو بعدها، ولا يُعدّ شيء في المواضع المذكورة في «ما لا يُتعلَّم». لإيقافها: الإعدادات ← «العبارات» ← «تعلّم العبارات من كتابتي».
+- **العبارات المتعلَّمة** (من الإصدار 1.1، مفعّلة افتراضيًا): من كلمتين إلى 5 كلمات عربية كتبتها متتالية، مع عدد مرات كتابتها ووقت آخرها، في الملف نفسه. التسلسل الذي تكتبه مرتين يُقترح عبارةً، وما لم يتكرر يُحذف بعد 30 يومًا من آخر كتابة له. لا يُحفظ معها اسم التطبيق ولا ما قبلها أو بعدها، ولا يُعدّ شيء في المواضع المذكورة في «ما لا يُتعلَّم». لإيقافها: الإعدادات ← «عباراتي» ← «تعلّم العبارات من كتابتي».
 - **إعداداتك:** مثل الألوان والاختصارات وقائمة التطبيقات المستثناة، و«عباراتي» و«الاختصارات النصية» و«العبارات الطويلة» التي تضيفها بنفسك، في `%LOCALAPPDATA%\Itmam\settings.json`. لا تحتوي أي نص مما تكتبه في البرامج الأخرى.
 - **ما لا يُتعلَّم:** الكلمات في حقول كلمات المرور، والتطبيقات المستثناة، والتطبيقات التي تعمل بصلاحيات المسؤول، والألعاب بملء الشاشة، والكلمات المحظورة وأي تسلسل فيه كلمة محظورة، وأي كلمة تمسحها مباشرة بعد كتابتها.
 
 ### تحكّمك في بياناتك
 
-- **الحذف:** من الإعدادات ← «كلماتي»: حذف كلمة، أو «حذف كل كلماتي»، أو إطفاء «تعلّم الكلمات الجديدة». ومن «العبارات»: حذف عبارة متعلَّمة، أو «حذف العبارات المتعلَّمة» مع كل ما عُدّ، أو إيقاف تعلّمها.
+- **الحذف:** من الإعدادات ← «كلماتي»: حذف كلمة، أو «حذف كل كلماتي»، أو إطفاء «تعلّم الكلمات الجديدة». ومن «عباراتي»: حذف عبارة متعلَّمة، أو «حذف العبارات المتعلَّمة» مع كل ما عُدّ، أو إيقاف تعلّمها.
 - **التصدير:** لا تُنسخ كلماتك إلى أي مكان إلا إذا اخترت «تصدير…» بنفسك، فتُكتب في الملف الذي تختاره أنت.
 - **إلغاء التثبيت:** يحذف التطبيق وملفاته من جهازك.
 
@@ -82,13 +82,13 @@
 
 - **Your words:** for each word: the word itself, how many times you used it, when you last used it, and whether you blocked it. Nothing else: no sentences, not the app you typed in.
   Location: `%LOCALAPPDATA%\Itmam\user.db` (inside the app's private folder when installed from the Store).
-- **Learned phrases** (from 1.1, on by default): sequences of 2 to 5 Arabic words you typed in a row, with how many times and when you last typed them, in the same file. A sequence typed twice is suggested as a phrase; one not repeated is deleted 30 days after it was last typed. The app and the text around it are not kept, and nothing is counted in the places listed under "Never learned". To turn it off: Settings → "Phrases" → "Learn phrases from my typing".
+- **Learned phrases** (from 1.1, on by default): sequences of 2 to 5 Arabic words you typed in a row, with how many times and when you last typed them, in the same file. A sequence typed twice is suggested as a phrase; one not repeated is deleted 30 days after it was last typed. The app and the text around it are not kept, and nothing is counted in the places listed under "Never learned". To turn it off: Settings → "My phrases" → "Learn phrases from my typing".
 - **Your settings:** such as colors, shortcuts, the excluded apps list and the "My phrases", text shortcuts and long phrases you add yourself, in `%LOCALAPPDATA%\Itmam\settings.json`. They contain nothing you type in other apps.
 - **Never learned:** words in password fields, excluded apps, apps running as administrator, full-screen games, blocked words and any sequence containing one, and any word you delete right after typing it.
 
 ### Your control over your data
 
-- **Delete:** Settings → "My words": delete a word, "Delete all my words", or turn off "Learn new words". Settings → "Phrases": delete a learned phrase, "Delete learned phrases" (with everything counted so far), or stop learning them.
+- **Delete:** Settings → "My words": delete a word, "Delete all my words", or turn off "Learn new words". Settings → "My phrases": delete a learned phrase, "Delete learned phrases" (with everything counted so far), or stop learning them.
 - **Export:** your words are copied nowhere unless you choose "Export…" yourself; they are then written to the file you pick.
 - **Uninstall:** removes the app and its files from your device.
 
