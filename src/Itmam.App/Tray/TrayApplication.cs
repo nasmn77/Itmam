@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Reflection;
 using Itmam.App.Resources;
 using Itmam.App.SettingsUi;
+using Itmam.Core.Input;
 using Itmam.Core.Settings;
 using Itmam.Win32;
 using Microsoft.Win32;
@@ -25,6 +26,7 @@ internal sealed class TrayApplication : ApplicationContext
     private readonly ContextMenuStrip _menu;
     private readonly ToolStripMenuItem _enabled = new();
     private readonly ToolStripMenuItem _pause = new();
+    private readonly ToolStripMenuItem _excludeApp = new();
     private readonly ToolStripMenuItem _settingsItem = new();
     private readonly ToolStripMenuItem _aboutItem = new();
     private readonly ToolStripMenuItem _exitItem = new();
@@ -53,12 +55,14 @@ internal sealed class TrayApplication : ApplicationContext
         _menu = new ContextMenuStrip { ShowImageMargin = false, ShowCheckMargin = false };
         _enabled.Click += (_, _) => _app.SetEnabled(!_app.IsEnabled);
         _pause.Click += (_, _) => TogglePause();
+        _excludeApp.Click += (_, _) => ToggleLastAppExcluded();
+        _menu.Opening += (_, _) => RefreshExcludeApp();
         _settingsItem.Font = new Font(_menu.Font, FontStyle.Bold);
         _settingsItem.Click += (_, _) => ShowSettings(SettingsPage.General);
         _aboutItem.Click += (_, _) => ShowSettings(SettingsPage.About);
         _exitItem.Click += (_, _) => ConfirmAndExit();
 
-        _menu.Items.AddRange([_enabled, _pause, new ToolStripSeparator(), _settingsItem, _aboutItem]);
+        _menu.Items.AddRange([_enabled, _pause, _excludeApp, new ToolStripSeparator(), _settingsItem, _aboutItem]);
 #if DEBUG
         _diagnosticsItem.Click += (_, _) => ShowDiagnostics();
         _menu.Items.Add(_diagnosticsItem);
@@ -163,6 +167,51 @@ internal sealed class TrayApplication : ApplicationContext
         {
             Exit();
         }
+    }
+
+    // "Turn off Itmam in notepad.exe" / "Turn on Itmam in …" for the app the user was last working in
+    // (user decision 1.1). Hidden until that app is known.
+    private void RefreshExcludeApp()
+    {
+        var app = _app.LastApp;
+        _excludeApp.Visible = app is not null;
+        if (app is not null)
+        {
+            var excluded = _app.Settings.ExcludedApps.Contains(ExcludedApps.NormalizeName(app), StringComparer.OrdinalIgnoreCase);
+            _excludeApp.Text = string.Format(CultureInfo.CurrentCulture, excluded ? Strings.MenuIncludeApp : Strings.MenuExcludeApp, "\u202A" + app + "\u202C");
+        }
+    }
+
+    // Adds or removes the app in the excluded apps, after a confirmation (as on the Excluded apps page).
+    private void ToggleLastAppExcluded()
+    {
+        if (_app.LastApp is not { } app)
+        {
+            return;
+        }
+
+        var name = ExcludedApps.NormalizeName(app);
+        var excluded = _app.Settings.ExcludedApps.Contains(name, StringComparer.OrdinalIgnoreCase);
+        var question = string.Format(CultureInfo.CurrentCulture, excluded ? Strings.ConfirmIncludeApp : Strings.ConfirmExcludeApp, "\u202A" + app + "\u202C");
+        if (!Ask(question))
+        {
+            return;
+        }
+
+        var settings = _app.Settings;
+        _app.UpdateSettings(settings with
+        {
+            ExcludedApps = excluded ? ExcludedApps.Without(settings.ExcludedApps, name) : ExcludedApps.With(settings.ExcludedApps, name),
+        });
+    }
+
+    // Yes/No question in front of other apps ("No" is the default).
+    private bool Ask(string text)
+    {
+        var options = _app.Settings.Language == UiLanguage.Arabic ? MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign : 0;
+        using var owner = new Form { TopMost = true, ShowInTaskbar = false, Opacity = 0, StartPosition = FormStartPosition.CenterScreen };
+        owner.Show();
+        return MessageBox.Show(owner, text, Strings.AppName, MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2, options) == DialogResult.Yes;
     }
 
     // The right button opens the menu by itself. NotifyIcon's own (non-public) ShowContextMenu also

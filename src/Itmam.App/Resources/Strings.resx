@@ -252,4 +252,8 @@
   <data name="LongPhrasesSearch" xml:space="preserve"><value>Search by name or text</value></data>
   <data name="LongPhrasesEmpty" xml:space="preserve"><value>No long phrases yet. Add them in Settings → Long phrases.</value></data>
   <data name="LongPhrasesNoMatch" xml:space="preserve"><value>No phrase matches the search.</value></data>
+  <data name="MenuExcludeApp" xml:space="preserve"><value>Turn off Itmam in {0}</value></data>
+  <data name="MenuIncludeApp" xml:space="preserve"><value>Turn on Itmam in {0}</value></data>
+  <data name="ConfirmExcludeApp" xml:space="preserve"><value>Turn Itmam off in {0}? It is added to the excluded apps; Itmam stays silent there.</value></data>
+  <data name="ConfirmIncludeApp" xml:space="preserve"><value>Turn Itmam on again in {0}? It is removed from the excluded apps.</value></data>
 </root>

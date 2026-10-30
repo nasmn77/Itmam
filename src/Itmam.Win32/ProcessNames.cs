@@ -28,6 +28,36 @@ public static class ProcessNames
         }
     }
 
+    /// <summary>
+    /// The app the user is working in: the foreground window's executable name, or null while the
+    /// foreground is the taskbar, the notification area or Itmam itself (opening the tray menu).
+    /// </summary>
+    public static unsafe string? ForegroundAppName()
+    {
+        var foreground = PInvoke.GetForegroundWindow();
+        if (foreground.IsNull)
+        {
+            return null;
+        }
+
+        Span<char> buffer = stackalloc char[64];
+        int length;
+        fixed (char* chars = buffer)
+        {
+            length = PInvoke.GetClassName(foreground, chars, buffer.Length);
+        }
+
+        var className = buffer[..Math.Max(0, length)];
+        if (className is "Shell_TrayWnd" or "Shell_SecondaryTrayWnd" or "NotifyIconOverflowWindow" or "TopLevelWindowForOverflowXamlIsland")
+        {
+            return null;
+        }
+
+        uint processId;
+        PInvoke.GetWindowThreadProcessId(foreground, &processId);
+        return processId == (uint)Environment.ProcessId ? null : Of(processId);
+    }
+
     /// <summary>Executable file name (e.g. "WindowsTerminal.exe") or null if it cannot be read (e.g. protected process).</summary>
     public static string? Of(uint processId)
     {

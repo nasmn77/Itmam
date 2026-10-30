@@ -83,6 +83,12 @@ internal sealed class ItmamApp : IDisposable
     /// </summary>
     public event Action<nint, Rectangle>? LongPhrasesRequested;
 
+    /// <summary>
+    /// The app the user was last working in (executable name), for "Turn off Itmam in …" in the tray
+    /// menu; null until known. Updated on the pipeline thread.
+    /// </summary>
+    public string? LastApp { get; private set; }
+
     /// <summary>Types text into the focused app (suggestions, long phrases).</summary>
     public ITextInjector Injector { get; } = new SendInputInjector();
 
@@ -354,6 +360,11 @@ internal sealed class ItmamApp : IDisposable
         if (update.PhrasesToLearn is { } phrases)
         {
             Learning.LearnPhrases(phrases);
+        }
+
+        if (update.Input?.Input.Kind is InputEventKind.ForegroundChanged or InputEventKind.FocusChanged || (LastApp is null && update.Input is not null))
+        {
+            LastApp = ProcessNames.ForegroundAppName() ?? LastApp;
         }
 
         if (update.Input?.Input.Kind == InputEventKind.OpenLongPhrases)

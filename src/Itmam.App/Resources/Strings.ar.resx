@@ -252,4 +252,8 @@
   <data name="LongPhrasesSearch" xml:space="preserve"><value>ابحث بالاسم أو النص</value></data>
   <data name="LongPhrasesEmpty" xml:space="preserve"><value>لا عبارات طويلة بعد. أضفها من الإعدادات ← «العبارات الطويلة».</value></data>
   <data name="LongPhrasesNoMatch" xml:space="preserve"><value>لا عبارة تطابق البحث.</value></data>
+  <data name="MenuExcludeApp" xml:space="preserve"><value>إيقاف إتمام في {0}</value></data>
+  <data name="MenuIncludeApp" xml:space="preserve"><value>تشغيل إتمام في {0}</value></data>
+  <data name="ConfirmExcludeApp" xml:space="preserve"><value>إيقاف إتمام في {0}؟ يُضاف إلى التطبيقات المستثناة، ويبقى إتمام صامتًا فيه.</value></data>
+  <data name="ConfirmIncludeApp" xml:space="preserve"><value>تشغيل إتمام من جديد في {0}؟ يُحذف من التطبيقات المستثناة.</value></data>
 </root>
