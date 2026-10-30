@@ -16,7 +16,7 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 
 يعمل في المفكرة وWord والمتصفحات ومعظم البرامج، من قاموس عربي فيه أكثر من 500 ألف كلمة، ويتعلّم كلماتك أنت فيقدّم ما تستعمله أكثر.
 
-خصوصيتك أولًا: إتمام نفسه لا يتصل بالإنترنت، ولا يحفظ ما تكتبه. لا يُحفظ إلا الكلمة وعدد مرات استعمالها، والعبارات القصيرة التي تكررها، على جهازك فقط. ولا يعمل في حقول كلمات المرور ولا في التطبيقات التي تستثنيها. والشيفرة المصدرية مفتوحة للمراجعة على GitHub.
+خصوصيتك أولًا: إتمام لا يرسل شيئًا مما تكتبه، ولا يحفظ ما تكتبه. لا يُحفظ إلا الكلمة وعدد مرات استعمالها، والعبارات القصيرة التي تكررها، على جهازك فقط. ولا يعمل في حقول كلمات المرور ولا في التطبيقات التي تستثنيها. والشيفرة المصدرية مفتوحة للمراجعة على GitHub.
 
 **المزايا** (حتى 20 بندًا):
 - اقتراحات فورية أثناء الكتابة في أي برنامج
@@ -52,7 +52,7 @@ Itmam suggests Arabic words as you type on your keyboard, in any Windows app, li
 
 It works in Notepad, Word, browsers and most apps, with an Arabic dictionary of more than 500,000 words, and learns your own words so the ones you use most come first.
 
-Your privacy first: Itmam itself never connects to the internet and never saves what you type. Only each word and how many times you used it, and the short phrases you repeat, are kept, on your device. It does nothing in password fields or in apps you exclude. The source code is open for review on GitHub.
+Your privacy first: Itmam never sends or saves what you type. Only each word and how many times you used it, and the short phrases you repeat, are kept, on your device. It does nothing in password fields or in apps you exclude. The source code is open for review on GitHub.
 
 **Features** (up to 20):
 - Instant suggestions as you type, in any app
@@ -114,7 +114,8 @@ Paste into Partner Center → Submission options → Notes for certification.
 > possible with a low-level keyboard hook (`SetWindowsHookEx(WH_KEYBOARD_LL)`) in a full-trust desktop process;
 > inserting the chosen word uses `SendInput`; the caret position and the word around it are read with UI Automation.
 > - Keys are tracked only while the foreground window uses an Arabic layout.
-> - Nothing typed is logged or sent anywhere; the app has no network capability and makes no network calls.
+> - Nothing typed is logged or sent anywhere; the app uses the network only to ask Microsoft Store for updates and, when the user presses "Download" in
+>   Settings, to download one pinned dictionary file from GitHub (internetClient capability, from 1.1).
 > - Only word → use count / last use is stored, locally (`%LOCALAPPDATA%\Itmam\user.db`), plus 2–5-word sequences
 >   with their counts to learn repeated phrases (can be turned off; sequences not repeated are deleted after 30 days).
 > - It is silent in password fields (ES_PASSWORD, UI Automation IsPassword), elevated apps, excluded apps and

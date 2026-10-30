@@ -32,7 +32,10 @@ internal sealed class ItmamApp : IDisposable
         _settingsStore = new SettingsStore(Path.Combine(DataFolder, "settings.json"));
         Settings = _settingsStore.Load();
 
-        Dictionary = DictionaryFile.Load(Path.Combine(AppContext.BaseDirectory, "itmam-ar.dict"));
+        // The Wikipedia dictionary, when the user downloaded it, replaces the shipped one.
+        var wikipedia = WikipediaDictionary.TryLoad(DataFolder);
+        UsesWikipediaDictionary = wikipedia is not null;
+        Dictionary = wikipedia ?? DictionaryFile.Load(ShippedDictionaryPath);
         var blocklist = Blocklist.Load(Path.Combine(AppContext.BaseDirectory, "blocklist.txt"));
         ShippedPhrases = LoadPhrases(Path.Combine(AppContext.BaseDirectory, "phrases.txt"));
         var corrections = LoadCorrections(Path.Combine(AppContext.BaseDirectory, "corrections.txt"));
@@ -105,7 +108,30 @@ internal sealed class ItmamApp : IDisposable
 
     public bool IsEnabled => Hooks.IsEnabled;
 
-    public WordDictionary Dictionary { get; }
+    public WordDictionary Dictionary { get; private set; }
+
+    /// <summary>The downloaded Wikipedia dictionary is in use.</summary>
+    public bool UsesWikipediaDictionary { get; private set; }
+
+    private static string ShippedDictionaryPath => Path.Combine(AppContext.BaseDirectory, "itmam-ar.dict");
+
+    /// <summary>
+    /// Switches to the downloaded Wikipedia dictionary (<paramref name="wikipedia"/>), or back to the
+    /// shipped one (null). Live: the next keystroke already uses it. UI thread.
+    /// </summary>
+    public void UseDictionary(WordDictionary? wikipedia)
+    {
+        var dictionary = wikipedia ?? DictionaryFile.Load(ShippedDictionaryPath);
+        lock (Learning.SyncRoot)
+        {
+            Engine = new SuggestionEngine(dictionary, UserWords, Engine.Options);
+            Suggestions.Engine = Engine;
+            Dictionary = dictionary;
+            UsesWikipediaDictionary = wikipedia is not null;
+        }
+
+        GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, blocking: true, compacting: true); // free the old one
+    }
 
     public UserWordIndex UserWords { get; }
 
@@ -113,7 +139,7 @@ internal sealed class ItmamApp : IDisposable
 
     public SqliteUserWordStore Store { get; }
 
-    public SuggestionEngine Engine { get; }
+    public SuggestionEngine Engine { get; private set; }
 
     /// <summary>Fixed expressions shipped in data/phrases.txt (the user's own come from the settings).</summary>
     public PhraseIndex ShippedPhrases { get; }

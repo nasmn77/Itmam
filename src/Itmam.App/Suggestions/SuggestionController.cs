@@ -18,7 +18,7 @@ internal readonly record struct SuggestionShown(int Count, CaretSource Source, T
 /// </summary>
 internal sealed class SuggestionController : IDisposable
 {
-    private readonly SuggestionEngine _engine;
+    private volatile SuggestionEngine _engine;
     private readonly CaretLocator _caret;
     private readonly SuggestionPopup _popup;
     private readonly Func<bool> _isEnabled;
@@ -138,6 +138,13 @@ internal sealed class SuggestionController : IDisposable
     /// UI thread.
     /// </summary>
     public IReadOnlyDictionary<string, string> PhraseSources { get; private set; } = new Dictionary<string, string>();
+
+    /// <summary>The dictionary engine; replaced when the user switches dictionaries (read under the user words lock).</summary>
+    public SuggestionEngine Engine
+    {
+        get => _engine;
+        set => _engine = value;
+    }
 
     /// <summary>Common spelling mistakes and their corrections (data/corrections.txt).</summary>
     public Corrections Corrections { get; set; } = Corrections.Empty;

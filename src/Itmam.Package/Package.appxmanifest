@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Itmam MSIX manifest. Identity values come from Partner Center (product 9P08F7KGRJB0 → Product identity)
-  and must match it exactly. Capabilities: runFullTrust only (a Win32 desktop app); no internetClient —
-  Itmam never uses the network. The names and description are localized in Strings\<lang>\Resources.resw.
+  and must match it exactly. Capabilities: runFullTrust (a Win32 desktop app) and, from 1.1,
+  internetClient — used only when the user presses "Download" for the Wikipedia dictionary (Settings →
+  General); nothing about the user or their typing is ever sent. The names and description are localized in Strings\<lang>\Resources.resw.
 -->
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
@@ -63,6 +64,7 @@
   </Applications>
 
   <Capabilities>
+    <Capability Name="internetClient" />
     <rescap:Capability Name="runFullTrust" />
   </Capabilities>
 </Package>

@@ -68,7 +68,7 @@ Itmam has no main window and no taskbar button; it runs from an icon next to the
 
 ## Privacy
 
-- Itmam itself never connects to the internet: no statistics, no crash reports. It only asks Microsoft Store about updates at start-up, which can be turned off in Settings → "Updates".
+- Itmam sends nothing you type: no statistics, no crash reports. It goes online only to ask Microsoft Store about updates at start-up (can be turned off in Settings → "Updates"), or to download the Wikipedia dictionary when you press "Download" in "General".
 - For each word only the word, how many times it was used and when are kept, in a file on your device. No sentences.
 - To learn phrases, short sequences (2 to 5 words) are kept with their counts; one not typed twice is deleted after 30 days. This can be turned off in Settings.
 - Nothing is read or learned in password fields or excluded apps.

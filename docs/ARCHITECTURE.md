@@ -211,7 +211,7 @@
 - الحروف المكتوبة توجد في الذاكرة فقط: في القناة، وفي `WordBuffer` (ومنها ما كُتب أثناء انتظار قراءة السياق)، وعلى الشاشة.
 - النص الوحيد الذي يُقرأ من التطبيقات الأخرى هو ما لا يزيد عن 49 حرفًا قبل المؤشر داخل الحقل نفسه (لا يتجاوز بدايته، فلا يُقرأ ما قبله في صفحات الويب)، بعد انتقال المؤشر إلى نص موجود، وأبدًا من حقول كلمات المرور أو التطبيقات المستثناة؛ ولا يُحتفظ إلا بالكلمة الحالية.
 - آخر 8 كلمات متتالية (للعبارات) تبقى في الذاكرة فقط وتُنسى عند أي حركة للمؤشر. ولا يُحفظ من ترتيب الكلمات إلا تسلسلات من كلمتين إلى 5 مع عددها (العبارات المتعلَّمة، قابلة للإطفاء)، وما لم يتكرر يُحذف بعد 30 يومًا.
-- السؤال الوحيد الذي يخرج من الجهاز هو سؤال متجر Microsoft عن وجود إصدار أحدث (`StoreUpdates`، قابل للإطفاء)، ولا يحمل شيئًا عن المستخدم أو عما يكتبه.
+- لا يخرج من الجهاز إلا سؤال متجر Microsoft عن وجود إصدار أحدث (`StoreUpdates`، قابل للإطفاء)، وطلب ملف قاموس ويكيبيديا من GitHub حين يضغط المستخدم «تحميل» (`WikipediaDictionary`: ملف واحد محدد ببصمة SHA-256 وحجم مثبَّتين في الشيفرة، فيُرفض أي ملف آخر). ولا يحمل أي منهما شيئًا عن المستخدم أو عما يكتبه.
 - لا يكتب أي مسار في الشيفرة حروفًا في سجل أو ملف أو شبكة. قائمة الأحداث في نافذة التشخيص تعرض *أنواع* الأحداث وأزمنتها فقط (الحروف تظهر بصيغة `Character (letter)`).
 - تشخيص الخطافات (`HookDiagnostics`) عدّادات وأزمنة فقط.
 - الكلمات المتعلَّمة تُحفظ بصيغة «الكلمة ← العدد / آخر استعمال» فقط (انظر «التعلّم والتخزين»)، ولا تُنسخ إلى أي مكان إلا بتصدير يختاره المستخدم إلى ملف يختاره.
@@ -569,8 +569,10 @@ nothing:
 - The last 8 words in a row (for phrases) stay in memory only and are forgotten on any caret move. Word order is
   stored only as 2–5-word sequences with their counts (learned phrases, can be turned off); one not repeated is
   deleted after 30 days.
-- The only question that leaves the device is asking Microsoft Store whether a newer version exists (`StoreUpdates`,
-  can be turned off); it carries nothing about the user or what they type.
+- Only two requests leave the device: asking Microsoft Store whether a newer version exists (`StoreUpdates`, can be
+  turned off), and requesting the Wikipedia dictionary file from GitHub when the user presses "Download"
+  (`WikipediaDictionary`: one fixed file, pinned by SHA-256 and size in the code, any other file is refused). Neither
+  carries anything about the user or what they type.
 - No code path writes characters to a log, file, or the network. The diagnostics window's event list
   shows event *kinds* and latencies only (letters are shown as `Character (letter)`).
 - Hook diagnostics (`HookDiagnostics`) are counters and timings only.
