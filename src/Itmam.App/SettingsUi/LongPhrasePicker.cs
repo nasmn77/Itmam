@@ -177,7 +177,7 @@ internal sealed class LongPhrasePicker : Form
             : _list.SelectedIndex >= 0 && _list.SelectedIndex < _shown.Count ? _shown[_list.SelectedIndex].Text
             : Strings.LongPhrasesNoMatch;
 
-    // Focus back to the app, then type the text there (each line break as Shift+Enter).
+    // Focus back to the app, then paste the text there (the clipboard is restored afterwards).
     private async void InsertSelected()
     {
         if (_inserting || _list.SelectedIndex < 0 || _list.SelectedIndex >= _shown.Count)
@@ -190,7 +190,14 @@ internal sealed class LongPhrasePicker : Form
         Hide();
         PopupWindows.Activate(_target);
         await Task.Delay(150); // let the app take the focus before the keys arrive
-        _injector.Send(new TextEdit(0, text));
+
+        // Pasted (user decision): typing hundreds of characters as key presses made Word stop responding.
+        // If the clipboard is held by another app, it is typed instead.
+        if (!await ClipboardPaste.PasteAsync(text, _injector))
+        {
+            _injector.Send(new TextEdit(0, text));
+        }
+
         Close();
     }
 

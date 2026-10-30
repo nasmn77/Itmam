@@ -71,6 +71,26 @@ public sealed class SendInputInjector : ITextInjector
         return sent == array.Length;
     }
 
+    /// <summary>Ctrl+V, as one batch (a held Shift or Alt from a shortcut is released first).</summary>
+    public unsafe bool Paste()
+    {
+        var inputs = new List<INPUT>(8);
+        foreach (var held in new[] { VIRTUAL_KEY.VK_LSHIFT, VIRTUAL_KEY.VK_RSHIFT, VIRTUAL_KEY.VK_LMENU, VIRTUAL_KEY.VK_RMENU })
+        {
+            if (PInvoke.GetAsyncKeyState((int)held) < 0)
+            {
+                inputs.Add(Key(held, '\0', KEYBD_EVENT_FLAGS.KEYEVENTF_KEYUP));
+            }
+        }
+
+        inputs.Add(Key(VIRTUAL_KEY.VK_CONTROL, '\0', 0));
+        inputs.Add(Key(VIRTUAL_KEY.VK_V, '\0', 0));
+        inputs.Add(Key(VIRTUAL_KEY.VK_V, '\0', KEYBD_EVENT_FLAGS.KEYEVENTF_KEYUP));
+        inputs.Add(Key(VIRTUAL_KEY.VK_CONTROL, '\0', KEYBD_EVENT_FLAGS.KEYEVENTF_KEYUP));
+        var array = inputs.ToArray();
+        return PInvoke.SendInput(array, sizeof(INPUT)) == array.Length;
+    }
+
     private static INPUT Key(VIRTUAL_KEY virtualKey, char scan, KEYBD_EVENT_FLAGS flags)
     {
         var input = new INPUT { type = INPUT_TYPE.INPUT_KEYBOARD };

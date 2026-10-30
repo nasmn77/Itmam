@@ -73,6 +73,9 @@ public readonly record struct CaretContext(CaretContextStatus Status, string Tex
 public interface ITextInjector
 {
     bool Send(TextEdit edit);
+
+    /// <summary>Presses Ctrl+V in the focused app (long phrases are pasted from the clipboard).</summary>
+    bool Paste() => false;
 }
 
 public enum ProbeOutcome

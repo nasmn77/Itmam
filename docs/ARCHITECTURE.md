@@ -173,7 +173,7 @@
 
 ### العبارات الطويلة (من الإصدار 1.1)
 
-ردود بعدة أسطر (`LongPhrase`: اسم ونص حتى 4000 حرف) في `settings.json`. اختصار يعمل في كل البرامج (`HotkeySettings.OpenLongPhrases`، افتراضيًا Ctrl+Shift+Space، ويحتاج Ctrl أو Alt) يبتلعه الخطاف ويرسل `OpenLongPhrases`. يحفظ `ItmamApp` النافذة الأمامية ويحدد مكان مؤشرها، ثم يفتح `LongPhrasePicker` قربه: نافذة تأخذ التركيز (يربط `PopupWindows.BringToFront` إدخال الخيط الأمامي لأن Windows يرفض غير ذلك)، فيها بحث بالاسم أو النص (`LongPhrases.Filter`) وقائمة ومعاينة. عند الاختيار تُخفى، ويعود التركيز إلى النافذة السابقة، ثم يكتب `SendInputInjector` النص وكل فاصل سطر Shift+Enter (قرار المستخدم: سطر جديد دون إرسال في برامج المحادثة). لا يُتعلَّم منها شيء.
+ردود بعدة أسطر (`LongPhrase`: اسم ونص حتى 4000 حرف) في `settings.json`. اختصار يعمل في كل البرامج (`HotkeySettings.OpenLongPhrases`، افتراضيًا Ctrl+Shift+Space، ويحتاج Ctrl أو Alt) يبتلعه الخطاف ويرسل `OpenLongPhrases`. يحفظ `ItmamApp` النافذة الأمامية ويحدد مكان مؤشرها، ثم يفتح `LongPhrasePicker` قربه: نافذة تأخذ التركيز (يربط `PopupWindows.BringToFront` إدخال الخيط الأمامي لأن Windows يرفض غير ذلك)، فيها بحث بالاسم أو النص (`LongPhrases.Filter`) وقائمة ومعاينة. عند الاختيار تُخفى، ويعود التركيز إلى النافذة السابقة، ثم يلصق `ClipboardPaste` النص (قرار المستخدم، لأن كتابة مئات الأحرف ضغطةً ضغطة جمّدت Word): تُحفظ الحافظة، ويوضع النص فيها مع علامات Windows التي تستثنيه من سجل الحافظة ومزامنتها، ثم Ctrl+V، ثم تُستعاد الحافظة بعد 700 ملّي ثانية. وإن كانت الحافظة مشغولة يُكتب النص، وكل فاصل سطر Shift+Enter. لا يُتعلَّم منها شيء.
 
 ### الاختصارات النصية (من الإصدار 1.1)
 
@@ -484,8 +484,10 @@ works everywhere (`HotkeySettings.OpenLongPhrases`, default Ctrl+Shift+Space, Ct
 hook as `OpenLongPhrases`. `ItmamApp` remembers the foreground window and locates its caret, then opens
 `LongPhrasePicker` there: a window that takes the focus (`PopupWindows.BringToFront` attaches the foreground thread's
 input, as Windows refuses otherwise), with a search by name or text (`LongPhrases.Filter`), the list and a preview. On a
-choice it hides, gives the focus back to the previous window, and `SendInputInjector` types the text, each line break as
-Shift+Enter (user decision: a new line without sending in chat apps). Nothing is learned from them.
+choice it hides, gives the focus back to the previous window, and `ClipboardPaste` pastes the text (user decision: typing
+hundreds of characters as key presses froze Word): the clipboard is saved, the text is put on it with the Windows formats
+that keep it out of the clipboard history and cloud sync, Ctrl+V is sent, and the clipboard is restored after 700 ms. If
+the clipboard is busy the text is typed instead, each line break as Shift+Enter. Nothing is learned from them.
 
 ### Text shortcuts (from 1.1)
 
