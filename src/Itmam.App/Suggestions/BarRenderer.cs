@@ -47,7 +47,7 @@ internal static class BarRenderer
             {
                 FillHighlight(g, item, frame.Metrics, frame.Colors.Selection);
             }
-            else if (i == frame.Hovered || (i == 0 && frame.Selected < 0 && frame.Appearance.HighlightFirst && words.Count > 1))
+            else if (i == frame.Hovered || (i == 0 && frame.Selected < 0 && frame.Appearance.HighlightFirst))
             {
                 FillHighlight(g, item, frame.Metrics, frame.Colors.FirstHighlight);
             }
