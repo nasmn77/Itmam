@@ -151,7 +151,7 @@ internal sealed class ItmamApp : IDisposable
     /// never arrives), so pressing e.g. Ctrl+Alt reaches the settings window instead of toggling Itmam.
     /// </summary>
     public void SuspendHotkeys(bool suspend) => Hooks.Hotkeys = suspend
-        ? new HotkeySettings { AcceptFirst = default, Dismiss = default, ToggleEnabled = default, NativeNavigation = false }
+        ? new HotkeySettings { AcceptFirst = default, Dismiss = default, ToggleEnabled = default, OpenLongPhrases = default, NativeNavigation = false }
         : Settings.Hotkeys;
 
     /// <summary>Tray "Enabled" / the toggle shortcut: remembered across restarts.</summary>
