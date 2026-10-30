@@ -240,7 +240,7 @@ internal sealed class TrayApplication : ApplicationContext
         _longPhrases?.Close();
         var settings = _app.Settings;
         _longPhrases = new LongPhrasePicker(settings.LongPhrases, target, _app.Injector, SettingsPalette.For(settings.Theme),
-            settings.Language == UiLanguage.Arabic, near);
+            settings.Language == UiLanguage.Arabic, near, chars => _app.Learning.RecordUsage(1, chars));
         _longPhrases.FormClosed += (_, _) => _longPhrases = null;
         _longPhrases.Show();
     }

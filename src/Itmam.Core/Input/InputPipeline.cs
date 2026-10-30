@@ -128,6 +128,10 @@ public enum ProbeOutcome
 /// Normalized words typed in a row just before the current one (oldest first), to continue a known
 /// phrase. In memory only; empty after any boundary other than a space or any caret move.
 /// </param>
+/// <param name="Usage">
+/// For the statistics (counts only): a suggestion accepted (+1 and the characters Itmam typed instead of
+/// the user, less the key that accepted it), or an accept undone (the same, negative).
+/// </param>
 /// <param name="PhrasesToLearn">
 /// Sequences of 2–5 words typed in a row that end with <paramref name="WordToLearn"/>, final with it
 /// (and dropped with it when the word is corrected at once), for phrase learning.
@@ -145,7 +149,11 @@ public readonly record struct PipelineUpdate(
     SilenceReason Silenced = SilenceReason.None,
     string? WordToLearn = null,
     IReadOnlyList<string>? RecentWords = null,
-    IReadOnlyList<string>? PhrasesToLearn = null);
+    IReadOnlyList<string>? PhrasesToLearn = null,
+    UsageDelta? Usage = null);
+
+/// <summary>A change to the statistics: completions and characters saved (negative when undone).</summary>
+public readonly record struct UsageDelta(int Completions, int Characters);
 
 public sealed record InputPipelineOptions
 {
@@ -213,6 +221,9 @@ public sealed class InputPipeline(
 
     // The last accept, while Backspace can still undo it (memory only, until the next event).
     private UndoableAccept? _undoable;
+
+    // What the event being processed changed in the statistics (counts only).
+    private UsageDelta? _usage;
 
     // The text before the caret came from a paste: it was not typed, so it never joins the phrase chain.
     private bool _contextFromPaste;
@@ -303,9 +314,10 @@ public sealed class InputPipeline(
             {
                 _lastInputTicks = DateTime.UtcNow.Ticks;
                 _finishedPhrases = null;
+                _usage = null;
                 var result = Process(record);
                 var (wordToLearn, phrasesToLearn) = AdvancePendingWord(record.Input.Kind, result);
-                Raise(record, result, probe: null, wordToLearn, phrasesToLearn);
+                Raise(record, result, probe: null, wordToLearn, phrasesToLearn, _usage);
 
                 // Keyboard selection or a silenced window: nothing to read.
                 if (record.Input.Kind == InputEventKind.Selection || _silence != SilenceReason.None)
@@ -497,11 +509,15 @@ public sealed class InputPipeline(
             return BufferResult.None;
         }
 
+        // Statistics: the characters typed for the user, less the key that accepted the suggestion.
+        var saved = new UsageDelta(1, Math.Max(0, edit.Text.Length - 1));
+        _usage = saved;
+
         // Undo puts the typed text back; not when a space after the caret was replaced (the caret
         // could not be put back before it).
         if (edit.DeleteForward == 0)
         {
-            _undoable = new UndoableAccept(typed, edit, recentBefore);
+            _undoable = new UndoableAccept(typed, edit, recentBefore, saved);
             UndoAvailableChanged?.Invoke(true);
         }
 
@@ -542,12 +558,13 @@ public sealed class InputPipeline(
         }
 
         _recent.Restore(last.RecentBefore);
+        _usage = new UsageDelta(-last.Saved.Completions, -last.Saved.Characters);
         _finishedPhrases = null;
         _suppression = Suppression.UntilNextLetter; // the bar's choice was turned down: hidden until typing goes on
         return Tracker.Buffer.Restore(last.Typed);
     }
 
-    private sealed record UndoableAccept(string Typed, TextEdit Edit, (string[] Keys, string[] Words) RecentBefore);
+    private sealed record UndoableAccept(string Typed, TextEdit Edit, (string[] Keys, string[] Words) RecentBefore, UsageDelta Saved);
 
     private void CollectPhrases(string word)
     {
@@ -685,7 +702,7 @@ public sealed class InputPipeline(
 
     private bool HasPendingInput() => input.CanCount ? input.Count > 0 : input.TryPeek(out _);
 
-    private void Raise(InputRecord? record, BufferResult result, ProbeOutcome? probe, string? wordToLearn = null, IReadOnlyList<string>? phrasesToLearn = null)
+    private void Raise(InputRecord? record, BufferResult result, ProbeOutcome? probe, string? wordToLearn = null, IReadOnlyList<string>? phrasesToLearn = null, UsageDelta? usage = null)
     {
         var buffer = Tracker.Buffer;
         Updated?.Invoke(new PipelineUpdate(
@@ -701,6 +718,7 @@ public sealed class InputPipeline(
             _silence,
             wordToLearn,
             _recent.Snapshot,
-            phrasesToLearn));
+            phrasesToLearn,
+            usage));
     }
 }

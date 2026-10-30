@@ -44,6 +44,9 @@ public enum LearnOutcome
 
 public readonly record struct ImportResult(int Added, int Updated, int Skipped);
 
+/// <summary>Statistics: suggestions and long phrases inserted, characters typed for the user, since when.</summary>
+public readonly record struct UsageStats(long Completions, long CharactersSaved, DateTimeOffset Since);
+
 /// <summary>
 /// Learns the user's words (word → count and last use only) and, from 1.1, repeated word sequences
 /// (see LearningService.Phrases.cs), and keeps them on disk.
@@ -70,6 +73,8 @@ public sealed partial class LearningService : IDisposable
     private readonly HashSet<string> _changed = new(StringComparer.Ordinal);
     private readonly HashSet<string> _removed = new(StringComparer.Ordinal);
     private readonly ITimer _saveTimer;
+    private UsageStats _usage = new(0, 0, DateTimeOffset.UnixEpoch);
+    private bool _usageChanged;
 
     public LearningService(UserWordIndex index, IUserWordStore store, Blocklist blocklist, LearningOptions? options = null, TimeProvider? time = null)
     {
@@ -105,6 +110,44 @@ public sealed partial class LearningService : IDisposable
         }
     }
 
+    /// <summary>Statistics (user decision 1.1): numbers only, never what was typed.</summary>
+    public UsageStats Usage
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _usage;
+            }
+        }
+    }
+
+    /// <summary>A suggestion or long phrase was inserted (or an insert undone: negative numbers).</summary>
+    public void RecordUsage(int completions, int characters)
+    {
+        lock (_lock)
+        {
+            _usage = _usage with
+            {
+                Completions = Math.Max(0, _usage.Completions + completions),
+                CharactersSaved = Math.Max(0, _usage.CharactersSaved + characters),
+            };
+            _usageChanged = true;
+            _saveTimer.Change(_options.SaveDelay, Timeout.InfiniteTimeSpan);
+        }
+    }
+
+    /// <summary>Starts the statistics again from now.</summary>
+    public void ResetUsage()
+    {
+        lock (_lock)
+        {
+            _usage = new UsageStats(0, 0, _time.GetUtcNow());
+            _usageChanged = true;
+            _saveTimer.Change(_options.SaveDelay, Timeout.InfiniteTimeSpan);
+        }
+    }
+
     /// <summary>Loads the stored words into the index (call once at start-up).</summary>
     public void Load()
     {
@@ -117,6 +160,12 @@ public sealed partial class LearningService : IDisposable
             }
 
             LoadPhrases();
+            var stats = _store.LoadStats();
+            _usage = new UsageStats(
+                stats.GetValueOrDefault("completions"),
+                stats.GetValueOrDefault("characters"),
+                stats.TryGetValue("since", out var since) ? DateTimeOffset.FromUnixTimeMilliseconds(since) : _time.GetUtcNow());
+            _usageChanged = !stats.ContainsKey("since"); // remember when counting started
         }
     }
 
@@ -303,6 +352,7 @@ public sealed partial class LearningService : IDisposable
             List<StoredWord> changed;
             List<string> removed;
             (List<StoredPhrase> Changed, List<string> Removed) phrases;
+            Dictionary<string, long>? stats = null;
             lock (_lock)
             {
                 changed = _changed
@@ -314,10 +364,24 @@ public sealed partial class LearningService : IDisposable
                 _changed.Clear();
                 _removed.Clear();
                 phrases = TakePhraseChanges();
+                if (_usageChanged)
+                {
+                    stats = new Dictionary<string, long>(StringComparer.Ordinal)
+                    {
+                        ["completions"] = _usage.Completions,
+                        ["characters"] = _usage.CharactersSaved,
+                        ["since"] = _usage.Since.ToUnixTimeMilliseconds(),
+                    };
+                    _usageChanged = false;
+                }
             }
 
             _store.Save(changed, removed);
             _store.SavePhrases(phrases.Changed, phrases.Removed);
+            if (stats is not null)
+            {
+                _store.SaveStats(stats);
+            }
         }
     }
 

@@ -546,6 +546,17 @@ public sealed class InputPipelineTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task An_accept_counts_what_it_typed_and_its_undo_takes_it_back()
+    {
+        Type("احم");
+        Send(InputEvent.Accept(0, "أحمد"));         // types «أحمد » for one key: 4 saved
+        Send(InputEvent.Of(InputEventKind.UndoAccept));
+        await DrainAsync();
+
+        _updates.Select(u => u.Usage).OfType<UsageDelta>().ShouldBe([new UsageDelta(1, 4), new UsageDelta(-1, -4)]);
+    }
+
+    [Fact]
     public async Task With_nothing_to_undo_the_swallowed_backspace_is_sent_as_is()
     {
         Type("احم");

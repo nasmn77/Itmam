@@ -28,6 +28,11 @@ public interface IUserWordStore : IDisposable
     void SavePhrases(IReadOnlyCollection<StoredPhrase> changed, IReadOnlyCollection<string> removed);
 
     void ClearPhrases();
+
+    /// <summary>Named counters (statistics: numbers only).</summary>
+    IReadOnlyDictionary<string, long> LoadStats();
+
+    void SaveStats(IReadOnlyDictionary<string, long> stats);
 }
 
 /// <summary>
@@ -39,7 +44,7 @@ public interface IUserWordStore : IDisposable
 /// </summary>
 public sealed class SqliteUserWordStore : IUserWordStore
 {
-    private const int SchemaVersion = 2;
+    private const int SchemaVersion = 3;
     private readonly Lock _lock = new();
     private readonly SqliteConnection _connection;
 
@@ -207,6 +212,44 @@ public sealed class SqliteUserWordStore : IUserWordStore
         }
     }
 
+    public IReadOnlyDictionary<string, long> LoadStats()
+    {
+        lock (_lock)
+        {
+            using var command = _connection.CreateCommand();
+            command.CommandText = "SELECT name, value FROM stats";
+            using var reader = command.ExecuteReader();
+            var stats = new Dictionary<string, long>(StringComparer.Ordinal);
+            while (reader.Read())
+            {
+                stats[reader.GetString(0)] = reader.GetInt64(1);
+            }
+
+            return stats;
+        }
+    }
+
+    public void SaveStats(IReadOnlyDictionary<string, long> stats)
+    {
+        lock (_lock)
+        {
+            using var transaction = _connection.BeginTransaction();
+            using var upsert = _connection.CreateCommand();
+            upsert.Transaction = transaction;
+            upsert.CommandText = "INSERT INTO stats(name, value) VALUES($n, $v) ON CONFLICT(name) DO UPDATE SET value = excluded.value";
+            var name = upsert.Parameters.Add("$n", SqliteType.Text);
+            var value = upsert.Parameters.Add("$v", SqliteType.Integer);
+            foreach (var (key, number) in stats)
+            {
+                name.Value = key;
+                value.Value = number;
+                upsert.ExecuteNonQuery();
+            }
+
+            transaction.Commit();
+        }
+    }
+
     public void ClearPhrases()
     {
         lock (_lock)
@@ -256,6 +299,7 @@ public sealed class SqliteUserWordStore : IUserWordStore
                 "CREATE TABLE IF NOT EXISTS phrases(" +
                 "key TEXT PRIMARY KEY NOT NULL, text TEXT NOT NULL, count INTEGER NOT NULL, last_used INTEGER NOT NULL" +
                 ") WITHOUT ROWID");
+            Execute(connection, "CREATE TABLE IF NOT EXISTS stats(name TEXT PRIMARY KEY NOT NULL, value INTEGER NOT NULL) WITHOUT ROWID");
             Execute(connection, $"PRAGMA user_version = {SchemaVersion.ToString(CultureInfo.InvariantCulture)}");
             return connection;
         }

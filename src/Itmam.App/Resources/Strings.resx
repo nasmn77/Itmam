@@ -256,4 +256,9 @@
   <data name="MenuIncludeApp" xml:space="preserve"><value>Turn on Itmam in {0}</value></data>
   <data name="ConfirmExcludeApp" xml:space="preserve"><value>Turn Itmam off in {0}? It is added to the excluded apps; Itmam stays silent there.</value></data>
   <data name="ConfirmIncludeApp" xml:space="preserve"><value>Turn Itmam on again in {0}? It is removed from the excluded apps.</value></data>
+  <data name="SectionStats" xml:space="preserve"><value>Statistics</value></data>
+  <data name="StatsSummary" xml:space="preserve"><value>{0:N0} words and phrases completed, {1:N0} characters typed for you</value></data>
+  <data name="StatsSince" xml:space="preserve"><value>Since {0:d}. Only these numbers are kept, never what you type.</value></data>
+  <data name="ResetStatsButton" xml:space="preserve"><value>Reset</value></data>
+  <data name="ConfirmResetStats" xml:space="preserve"><value>Reset the statistics to zero?</value></data>
 </root>

@@ -393,6 +393,24 @@ public sealed class LearningServiceTests : IDisposable
     }
 
     [Fact]
+    public void Statistics_are_kept_on_disk_and_can_be_reset()
+    {
+        var (learning, _) = Start();
+        learning.RecordUsage(1, 4);
+        learning.RecordUsage(1, 10);
+        learning.RecordUsage(-1, -4);
+        learning.Flush();
+
+        var (reloaded, _) = Start();
+        reloaded.Usage.ShouldBe(new UsageStats(1, 10, Now));
+
+        _time.Now = Now.AddDays(3);
+        reloaded.ResetUsage();
+        reloaded.Flush();
+        Start().Learning.Usage.ShouldBe(new UsageStats(0, 0, Now.AddDays(3)));
+    }
+
+    [Fact]
     public void Clear_all_empties_memory_and_disk()
     {
         var (learning, index) = Start();

@@ -362,6 +362,11 @@ internal sealed class ItmamApp : IDisposable
             Learning.LearnPhrases(phrases);
         }
 
+        if (update.Usage is { } usage)
+        {
+            Learning.RecordUsage(usage.Completions, usage.Characters);
+        }
+
         if (update.Input?.Input.Kind is InputEventKind.ForegroundChanged or InputEventKind.FocusChanged || (LastApp is null && update.Input is not null))
         {
             LastApp = ProcessNames.ForegroundAppName() ?? LastApp;

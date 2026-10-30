@@ -327,6 +327,21 @@ internal sealed class SettingsWindow : Form
         language.SelectedIndex = settings.Language == UiLanguage.Arabic ? 0 : 1;
         language.SelectedIndexChanged += (_, _) => Update(s => s with { Language = language.SelectedIndex == 0 ? UiLanguage.Arabic : UiLanguage.English });
         AddCard(Strings.UiLanguage, null, language);
+
+        // Statistics (user decision 1.1): counts only, kept in user.db.
+        AddSection(Strings.SectionStats);
+        var usage = _app.Learning.Usage;
+        var reset = new ThemedButton { Text = Strings.ResetStatsButton };
+        reset.Click += (_, _) =>
+        {
+            if (Confirm(Strings.ConfirmResetStats, null))
+            {
+                _app.Learning.ResetUsage();
+                BeginInvoke(RebuildPage);
+            }
+        };
+        AddCard(string.Format(CultureInfo.CurrentCulture, Strings.StatsSummary, usage.Completions, usage.CharactersSaved),
+            string.Format(CultureInfo.CurrentCulture, Strings.StatsSince, usage.Since.ToLocalTime().DateTime), reset);
     }
 
     // Every change shows at once in the preview (and in the real bar).

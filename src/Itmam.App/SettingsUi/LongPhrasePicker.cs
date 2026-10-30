@@ -19,6 +19,7 @@ internal sealed class LongPhrasePicker : Form
     private readonly IReadOnlyList<LongPhrase> _all;
     private readonly nint _target;
     private readonly ITextInjector _injector;
+    private readonly Action<int>? _inserted;
     private IReadOnlyList<LongPhrase> _shown;
     private bool _inserting;
     private readonly System.Windows.Forms.Timer _keysWatch = new() { Interval = 30 };
@@ -31,8 +32,11 @@ internal sealed class LongPhrasePicker : Form
     /// <param name="palette">Settings colors (light or dark).</param>
     /// <param name="rtl">Arabic interface.</param>
     /// <param name="near">Where to open (the caret, or the mouse pointer), in screen pixels.</param>
-    public LongPhrasePicker(IReadOnlyList<LongPhrase> phrases, nint target, ITextInjector injector, SettingsPalette palette, bool rtl, Rectangle near)
+    /// <param name="inserted">Called with the length of the inserted text (statistics).</param>
+    public LongPhrasePicker(IReadOnlyList<LongPhrase> phrases, nint target, ITextInjector injector, SettingsPalette palette, bool rtl, Rectangle near,
+        Action<int>? inserted = null)
     {
+        _inserted = inserted;
         _all = phrases;
         _shown = phrases;
         _target = target;
@@ -197,6 +201,8 @@ internal sealed class LongPhrasePicker : Form
         {
             _injector.Send(new TextEdit(0, text));
         }
+
+        _inserted?.Invoke(text.Length);
 
         Close();
     }

@@ -256,4 +256,9 @@
   <data name="MenuIncludeApp" xml:space="preserve"><value>تشغيل إتمام في {0}</value></data>
   <data name="ConfirmExcludeApp" xml:space="preserve"><value>إيقاف إتمام في {0}؟ يُضاف إلى التطبيقات المستثناة، ويبقى إتمام صامتًا فيه.</value></data>
   <data name="ConfirmIncludeApp" xml:space="preserve"><value>تشغيل إتمام من جديد في {0}؟ يُحذف من التطبيقات المستثناة.</value></data>
+  <data name="SectionStats" xml:space="preserve"><value>الإحصاءات</value></data>
+  <data name="StatsSummary" xml:space="preserve"><value>أكمل {0:N0} كلمة وعبارة، وكتب عنك {1:N0} حرفًا</value></data>
+  <data name="StatsSince" xml:space="preserve"><value>منذ {0:d}. لا يُحفظ إلا هذان الرقمان، لا شيء مما تكتبه.</value></data>
+  <data name="ResetStatsButton" xml:space="preserve"><value>تصفير</value></data>
+  <data name="ConfirmResetStats" xml:space="preserve"><value>تصفير الإحصاءات؟</value></data>
 </root>
