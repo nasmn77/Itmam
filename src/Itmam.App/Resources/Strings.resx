@@ -76,7 +76,7 @@
   <data name="ResetLook" xml:space="preserve"><value>Reset to the Windows look</value></data>
   <data name="ResetLookHint" xml:space="preserve"><value>Theme, colors, opacity and text size go back to the defaults.</value></data>
   <data name="ResetButton" xml:space="preserve"><value>Reset</value></data>
-  <data name="NavShortcuts" xml:space="preserve"><value>Shortcuts</value></data>
+  <data name="NavShortcuts" xml:space="preserve"><value>Keyboard shortcuts</value></data>
   <data name="ShortcutsIntro" xml:space="preserve"><value>Click a shortcut, then press the new keys. Click elsewhere to cancel.</value></data>
   <data name="ShortcutRecording" xml:space="preserve"><value>Press the new shortcut…</value></data>
   <data name="SectionBarKeys" xml:space="preserve"><value>While the bar is shown</value></data>

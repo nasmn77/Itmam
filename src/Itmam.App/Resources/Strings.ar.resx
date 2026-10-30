@@ -76,7 +76,7 @@
   <data name="ResetLook" xml:space="preserve"><value>استعادة مظهر Windows</value></data>
   <data name="ResetLookHint" xml:space="preserve"><value>تعود السمة والألوان والعتامة وحجم النص إلى الافتراضي.</value></data>
   <data name="ResetButton" xml:space="preserve"><value>استعادة</value></data>
-  <data name="NavShortcuts" xml:space="preserve"><value>الاختصارات</value></data>
+  <data name="NavShortcuts" xml:space="preserve"><value>اختصارات المفاتيح</value></data>
   <data name="ShortcutsIntro" xml:space="preserve"><value>انقر على اختصار ثم اضغط المفاتيح الجديدة. للإلغاء انقر في مكان آخر.</value></data>
   <data name="ShortcutRecording" xml:space="preserve"><value>اضغط الاختصار الجديد…</value></data>
   <data name="SectionBarKeys" xml:space="preserve"><value>أثناء ظهور الشريط</value></data>

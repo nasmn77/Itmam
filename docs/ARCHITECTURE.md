@@ -137,7 +137,7 @@
 
 الكلمة في `AcceptSuggestion` مأخوذة من لقطة الشريط التي رآها الخطاف، فتُدرج الكلمة الظاهرة على الشاشة بالضبط. ينشر خيط الواجهة `PopupState` مع كل إظهار وإخفاء، ويقرؤه الخطاف دون قفل. النقر على كلمة في الشريط يرسل الحدث نفسه، والنقرات داخل حدود الشريط لا تُعدّ حركة مؤشر. وأثناء الإيقاف (Ctrl+Alt افتراضيًا) لا تنشر الخطافات شيئًا ولا تبتلع شيئًا، إلا اختصار التشغيل إن كان بمفتاح.
 
-الاختصارات قابلة للتغيير من صفحة «الاختصارات»، ويتحقق `HotkeyRules` (في Core) منها قبل الحفظ: يرفض ما يكتب نصًا، ومفاتيح التحرير، واختصارات Windows الشائعة، والتكرار، والتعارض مع «المفتاح + رقم». وأثناء تسجيل اختصار يعطي `ItmamApp.SuspendHotkeys` الخطافَ إعدادات فارغة، فتصل المفاتيح إلى نافذة الإعدادات بدل أن تعمل على إتمام.
+الاختصارات قابلة للتغيير من صفحة «اختصارات المفاتيح»، ويتحقق `HotkeyRules` (في Core) منها قبل الحفظ: يرفض ما يكتب نصًا، ومفاتيح التحرير، واختصارات Windows الشائعة، والتكرار، والتعارض مع «المفتاح + رقم». وأثناء تسجيل اختصار يعطي `ItmamApp.SuspendHotkeys` الخطافَ إعدادات فارغة، فتصل المفاتيح إلى نافذة الإعدادات بدل أن تعمل على إتمام.
 
 ### التعلّم والتخزين
 
@@ -418,7 +418,7 @@ read lock-free by the hook. Clicking a word on the bar posts the same event; cli
 bar's bounds are not treated as caret moves. While disabled (Ctrl+Alt by default), the hooks
 publish nothing and swallow nothing, except a key-based on/off shortcut.
 
-Shortcuts can be changed on the Shortcuts page; `HotkeyRules` (Core) checks them before saving and
+Shortcuts can be changed on the Keyboard shortcuts page; `HotkeyRules` (Core) checks them before saving and
 refuses keys that type text, editing keys, common Windows shortcuts, duplicates and clashes with
 "modifier + digit". While a shortcut is recorded, `ItmamApp.SuspendHotkeys` gives the hook an empty
 `HotkeySettings`, so the keys reach the settings window instead of acting on Itmam.
