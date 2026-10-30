@@ -114,6 +114,13 @@ internal static class Program
 
         _ = SyncStartupAsync(app);
         app.Start();
+#if DEBUG
+        // Test of the long phrases path without a key press (injected keys are ignored): --test-longphrases
+        if (args.Contains("--test-longphrases"))
+        {
+            _ = Task.Delay(3000).ContinueWith(_ => app.Hooks.Post(Core.Input.InputEvent.Of(Core.Input.InputEventKind.OpenLongPhrases)), TaskScheduler.Default);
+        }
+#endif
         Application.Run(tray);
 
         wait.Unregister(null);
