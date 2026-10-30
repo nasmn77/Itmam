@@ -35,6 +35,17 @@ internal static class PopupDemo
         Application.Run();
     }
 
+    // Caret context check (web editors): how many characters UI Automation returns before the caret of
+    // the focused element. Logs the count and status only, never the text.
+    public static void ReadContext()
+    {
+        using var worker = new Win32.UiaWorker();
+        var source = new Win32.UiaCaretContextSource(worker, _ => false);
+        var context = Task.Run(() => source.ReadBeforeCaretAsync(49, CancellationToken.None)).GetAwaiter().GetResult();
+        File.AppendAllText(Path.Combine(Path.GetTempPath(), "itmam-context.txt"),
+            FormattableString.Invariant($"{DateTime.Now:HH:mm:ss} {context.Status} {context.Text.Length} chars{Environment.NewLine}"));
+    }
+
     public static void Run(int caretX, int caretY, string[] options)
     {
         var theme = options.Contains("light") ? ThemeMode.Light : options.Contains("dark") ? ThemeMode.Dark : ThemeMode.System;

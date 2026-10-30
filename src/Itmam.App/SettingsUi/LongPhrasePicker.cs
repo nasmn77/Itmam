@@ -137,7 +137,7 @@ internal sealed class LongPhrasePicker : Form
             : _list.SelectedIndex >= 0 && _list.SelectedIndex < _shown.Count ? _shown[_list.SelectedIndex].Text
             : Strings.LongPhrasesNoMatch;
 
-    // Focus back to the app, then type the text there (each line break as Enter).
+    // Focus back to the app, then type the text there (each line break as Shift+Enter).
     private async void InsertSelected()
     {
         if (_inserting || _list.SelectedIndex < 0 || _list.SelectedIndex >= _shown.Count)

@@ -59,6 +59,16 @@ public sealed class UiaCaretContextSource(UiaWorker worker, Func<string?, bool> 
         before.MoveEndpointByRange(TextPatternRangeEndpoint.TextPatternRangeEndpoint_End, caret, TextPatternRangeEndpoint.TextPatternRangeEndpoint_End);
         before.MoveEndpointByUnit(TextPatternRangeEndpoint.TextPatternRangeEndpoint_Start, TextUnit.TextUnit_Character, -maxChars);
 
+        // Never past the start of the focused field: in web pages (Chromium) the range moves on into the
+        // text before it, e.g. the chat messages above WhatsApp Web's message box, which were then taken
+        // for the word being typed.
+        if (element.GetCurrentPattern(UIA_PATTERN_ID.UIA_TextPatternId) is IUIAutomationTextPattern field
+            && field.DocumentRange is { } document
+            && before.CompareEndpoints(TextPatternRangeEndpoint.TextPatternRangeEndpoint_Start, document, TextPatternRangeEndpoint.TextPatternRangeEndpoint_Start) < 0)
+        {
+            before.MoveEndpointByRange(TextPatternRangeEndpoint.TextPatternRangeEndpoint_Start, document, TextPatternRangeEndpoint.TextPatternRangeEndpoint_Start);
+        }
+
         return CaretContext.Of(ReadText(before, maxChars), CharAfter(caret));
     }
 

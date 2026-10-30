@@ -173,7 +173,7 @@
 
 ### العبارات الطويلة (من الإصدار 1.1)
 
-ردود بعدة أسطر (`LongPhrase`: اسم ونص حتى 4000 حرف) في `settings.json`. اختصار يعمل في كل البرامج (`HotkeySettings.OpenLongPhrases`، افتراضيًا Ctrl+Shift+Space، ويحتاج Ctrl أو Alt) يبتلعه الخطاف ويرسل `OpenLongPhrases`. يحفظ `ItmamApp` النافذة الأمامية ويحدد مكان مؤشرها، ثم يفتح `LongPhrasePicker` قربه: نافذة تأخذ التركيز (يربط `PopupWindows.BringToFront` إدخال الخيط الأمامي لأن Windows يرفض غير ذلك)، فيها بحث بالاسم أو النص (`LongPhrases.Filter`) وقائمة ومعاينة. عند الاختيار تُخفى، ويعود التركيز إلى النافذة السابقة، ثم يكتب `SendInputInjector` النص وكل فاصل سطر ضغطةَ Enter (قرار المستخدم). لا يُتعلَّم منها شيء.
+ردود بعدة أسطر (`LongPhrase`: اسم ونص حتى 4000 حرف) في `settings.json`. اختصار يعمل في كل البرامج (`HotkeySettings.OpenLongPhrases`، افتراضيًا Ctrl+Shift+Space، ويحتاج Ctrl أو Alt) يبتلعه الخطاف ويرسل `OpenLongPhrases`. يحفظ `ItmamApp` النافذة الأمامية ويحدد مكان مؤشرها، ثم يفتح `LongPhrasePicker` قربه: نافذة تأخذ التركيز (يربط `PopupWindows.BringToFront` إدخال الخيط الأمامي لأن Windows يرفض غير ذلك)، فيها بحث بالاسم أو النص (`LongPhrases.Filter`) وقائمة ومعاينة. عند الاختيار تُخفى، ويعود التركيز إلى النافذة السابقة، ثم يكتب `SendInputInjector` النص وكل فاصل سطر Shift+Enter (قرار المستخدم: سطر جديد دون إرسال في برامج المحادثة). لا يُتعلَّم منها شيء.
 
 ### الاختصارات النصية (من الإصدار 1.1)
 
@@ -209,7 +209,7 @@
 ### ضمانات الخصوصية في الشيفرة
 
 - الحروف المكتوبة توجد في الذاكرة فقط: في القناة، وفي `WordBuffer` (ومنها ما كُتب أثناء انتظار قراءة السياق)، وعلى الشاشة.
-- النص الوحيد الذي يُقرأ من التطبيقات الأخرى هو ما لا يزيد عن 49 حرفًا قبل المؤشر، بعد انتقال المؤشر إلى نص موجود، وأبدًا من حقول كلمات المرور أو التطبيقات المستثناة؛ ولا يُحتفظ إلا بالكلمة الحالية.
+- النص الوحيد الذي يُقرأ من التطبيقات الأخرى هو ما لا يزيد عن 49 حرفًا قبل المؤشر داخل الحقل نفسه (لا يتجاوز بدايته، فلا يُقرأ ما قبله في صفحات الويب)، بعد انتقال المؤشر إلى نص موجود، وأبدًا من حقول كلمات المرور أو التطبيقات المستثناة؛ ولا يُحتفظ إلا بالكلمة الحالية.
 - آخر 8 كلمات متتالية (للعبارات) تبقى في الذاكرة فقط وتُنسى عند أي حركة للمؤشر. ولا يُحفظ من ترتيب الكلمات إلا تسلسلات من كلمتين إلى 5 مع عددها (العبارات المتعلَّمة، قابلة للإطفاء)، وما لم يتكرر يُحذف بعد 30 يومًا.
 - السؤال الوحيد الذي يخرج من الجهاز هو سؤال متجر Microsoft عن وجود إصدار أحدث (`StoreUpdates`، قابل للإطفاء)، ولا يحمل شيئًا عن المستخدم أو عما يكتبه.
 - لا يكتب أي مسار في الشيفرة حروفًا في سجل أو ملف أو شبكة. قائمة الأحداث في نافذة التشخيص تعرض *أنواع* الأحداث وأزمنتها فقط (الحروف تظهر بصيغة `Character (letter)`).
@@ -485,7 +485,7 @@ hook as `OpenLongPhrases`. `ItmamApp` remembers the foreground window and locate
 `LongPhrasePicker` there: a window that takes the focus (`PopupWindows.BringToFront` attaches the foreground thread's
 input, as Windows refuses otherwise), with a search by name or text (`LongPhrases.Filter`), the list and a preview. On a
 choice it hides, gives the focus back to the previous window, and `SendInputInjector` types the text, each line break as
-Enter (user decision). Nothing is learned from them.
+Shift+Enter (user decision: a new line without sending in chat apps). Nothing is learned from them.
 
 ### Text shortcuts (from 1.1)
 
@@ -561,7 +561,8 @@ nothing:
 
 - Typed characters exist only in memory: in the channel, in `WordBuffer` (including what is typed while waiting for
   the context), and on screen.
-- The only text read from other apps is ≤ 49 characters before the caret, after the caret moved
+- The only text read from other apps is ≤ 49 characters before the caret within the focused field (never
+  past its start, so nothing before it is read in web pages), after the caret moved
   into existing text, never from password fields or excluded apps; only the current word is kept.
 - The last 8 words in a row (for phrases) stay in memory only and are forgotten on any caret move. Word order is
   stored only as 2–5-word sequences with their counts (learned phrases, can be turned off); one not repeated is

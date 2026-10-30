@@ -45,12 +45,15 @@ public sealed class SendInputInjector : ITextInjector
 
         foreach (var unit in edit.Text)
         {
-            // A line break (long phrases) is the Enter key, as the user decided; a typed U+000A is
-            // ignored or shown as a box by many apps.
+            // A line break (long phrases) is Shift+Enter (user decision): a new line in chat apps
+            // (WhatsApp, Teams), where Enter sends the message, and in Notepad, mail and Word (a line
+            // break there). A typed U+000A is ignored or shown as a box by many apps.
             if (unit == '\n')
             {
+                inputs.Add(Key(VIRTUAL_KEY.VK_SHIFT, '\0', 0));
                 inputs.Add(Key(VIRTUAL_KEY.VK_RETURN, '\0', 0));
                 inputs.Add(Key(VIRTUAL_KEY.VK_RETURN, '\0', KEYBD_EVENT_FLAGS.KEYEVENTF_KEYUP));
+                inputs.Add(Key(VIRTUAL_KEY.VK_SHIFT, '\0', KEYBD_EVENT_FLAGS.KEYEVENTF_KEYUP));
                 continue;
             }
 

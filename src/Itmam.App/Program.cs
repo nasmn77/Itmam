@@ -25,6 +25,13 @@ internal static class Program
             return;
         }
 
+        // Caret context length in the focused field (web editors), logged to %TEMP%\itmam-context.txt: --demo-context
+        if (args is ["--demo-context", ..])
+        {
+            Debugging.PopupDemo.ReadContext();
+            return;
+        }
+
         // Store screenshots: real suggestions at the foreground window's caret: --demo-caret <typed> [seconds]
         if (args is ["--demo-caret", var typed, ..])
         {

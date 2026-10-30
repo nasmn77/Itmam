@@ -8,7 +8,7 @@ public sealed record LongPhrase(string Name, string Text);
 /// <summary>
 /// Long phrases (user decision 1.1, for technical support replies): a shortcut (default
 /// Ctrl+Shift+Space) opens a list of their names, and the chosen one is typed into the app, each line
-/// break as Enter. Kept in settings.json; never learned from.
+/// break as Shift+Enter. Kept in settings.json; never learned from.
 /// </summary>
 public static class LongPhrases
 {
