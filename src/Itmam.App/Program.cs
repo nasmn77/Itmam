@@ -32,7 +32,24 @@ internal static class Program
             return;
         }
 
-        // Visual check of the settings window (no hooks installed): --demo-settings [general|appearance|shortcuts|excluded|words|phrases|textshortcuts|updates|about|exit] [en] [end]
+        // Visual check of the long phrases list with sample phrases (nothing is typed): --demo-longphrases [en]
+        if (args is ["--demo-longphrases", ..])
+        {
+            var english = args.Contains("en");
+            UiCulture.Apply(english ? UiLanguage.English : UiLanguage.Arabic);
+            Core.Suggestions.LongPhrase[] samples =
+            [
+                new("ترحيب بالعميل", "عزيزي العميل،\nشكرًا لتواصلك مع الدعم الفني.\nكيف يمكننا مساعدتك؟"),
+                new("إغلاق التذكرة", "تم حل المشكلة وإغلاق التذكرة.\nلا تتردد في التواصل معنا.\nمع التحية"),
+                new("طلب رقم الطلب", "نرجو تزويدنا برقم الطلب لنتابع حالته."),
+            ];
+            using var picker = new SettingsUi.LongPhrasePicker(samples, 0, new SendInputInjector(), SettingsUi.SettingsPalette.For(ThemeChoice.System),
+                !english, new Rectangle(Screen.PrimaryScreen!.WorkingArea.Width / 2, 200, 2, 20));
+            Application.Run(picker);
+            return;
+        }
+
+        // Visual check of the settings window (no hooks installed): --demo-settings [general|appearance|shortcuts|excluded|words|phrases|textshortcuts|longphrases|updates|about|exit] [en] [end]
         if (args is ["--demo-settings", ..])
         {
             SynchronizationContext.SetSynchronizationContext(new WindowsFormsSynchronizationContext());
@@ -50,6 +67,7 @@ internal static class Program
                 : args.Contains("updates") ? SettingsPage.Updates
                 : args.Contains("phrases") ? SettingsPage.Phrases
                 : args.Contains("textshortcuts") ? SettingsPage.TextShortcuts
+                : args.Contains("longphrases") ? SettingsPage.LongPhrases
                 : SettingsPage.General);
             if (args.Contains("end"))
             {

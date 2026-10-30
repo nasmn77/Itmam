@@ -26,6 +26,9 @@ public sealed record HotkeySettings
     /// </summary>
     public Hotkey ToggleEnabled { get; init; } = new(0, KeyModifiers.Ctrl | KeyModifiers.Alt);
 
+    /// <summary>Open the list of long phrases from anywhere (user decision 1.1: Ctrl+Shift+Space).</summary>
+    public Hotkey OpenLongPhrases { get; init; } = new(0x20, KeyModifiers.Ctrl | KeyModifiers.Shift);
+
     /// <summary>
     /// On by default (user decision, like the native Windows suggestions for English). While the
     /// bar is shown, Up moves into it, Left/Right select, Enter inserts, Esc/Down leave.
@@ -108,6 +111,12 @@ public sealed class HotkeyInterceptor(HotkeySettings settings)
         {
             Selected = -1;
             return InterceptDecision.Swallow(InputEvent.Of(InputEventKind.ToggleEnabled));
+        }
+
+        if (Settings.OpenLongPhrases.VirtualKey != 0 && Matches(Settings.OpenLongPhrases, virtualKey, modifiers))
+        {
+            Selected = -1;
+            return InterceptDecision.Swallow(InputEvent.Of(InputEventKind.OpenLongPhrases));
         }
 
         if (canUndoAccept && virtualKey == Backspace && modifiers == KeyModifiers.None)

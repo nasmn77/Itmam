@@ -45,6 +45,15 @@ public sealed class SendInputInjector : ITextInjector
 
         foreach (var unit in edit.Text)
         {
+            // A line break (long phrases) is the Enter key, as the user decided; a typed U+000A is
+            // ignored or shown as a box by many apps.
+            if (unit == '\n')
+            {
+                inputs.Add(Key(VIRTUAL_KEY.VK_RETURN, '\0', 0));
+                inputs.Add(Key(VIRTUAL_KEY.VK_RETURN, '\0', KEYBD_EVENT_FLAGS.KEYEVENTF_KEYUP));
+                continue;
+            }
+
             inputs.Add(Key(0, unit, KEYBD_EVENT_FLAGS.KEYEVENTF_UNICODE));
             inputs.Add(Key(0, unit, KEYBD_EVENT_FLAGS.KEYEVENTF_UNICODE | KEYBD_EVENT_FLAGS.KEYEVENTF_KEYUP));
         }

@@ -32,6 +32,7 @@ internal sealed class TrayApplication : ApplicationContext
     private readonly Icon _iconOn;
     private readonly Icon _iconOff;
     private SettingsWindow? _settings;
+    private LongPhrasePicker? _longPhrases;
 #if DEBUG
     private readonly ToolStripMenuItem _diagnosticsItem = new();
     private Debugging.DebugWindow? _diagnostics;
@@ -72,6 +73,7 @@ internal sealed class TrayApplication : ApplicationContext
         _wasEnabled = _app.IsEnabled;
         _pauseTimer.Tick += (_, _) => _app.EndPauseIfDue();
         _app.EnabledChanged += OnEnabledChanged;
+        _app.LongPhrasesRequested += ShowLongPhrases;
         _app.LanguageChanged += OnLanguageChanged;
         SystemEvents.SessionEnding += OnSessionEnding;
         ApplyLanguage();
@@ -181,6 +183,17 @@ internal sealed class TrayApplication : ApplicationContext
         {
             _menu.Show(Cursor.Position);
         }
+    }
+
+    // The long phrases shortcut: one list at a time, near the caret of the app the user is typing in.
+    private void ShowLongPhrases(nint target, Rectangle near)
+    {
+        _longPhrases?.Close();
+        var settings = _app.Settings;
+        _longPhrases = new LongPhrasePicker(settings.LongPhrases, target, _app.Injector, SettingsPalette.For(settings.Theme),
+            settings.Language == UiLanguage.Arabic, near);
+        _longPhrases.FormClosed += (_, _) => _longPhrases = null;
+        _longPhrases.Show();
     }
 
     /// <summary>Opens Settings (also used when a second copy of Itmam is started).</summary>

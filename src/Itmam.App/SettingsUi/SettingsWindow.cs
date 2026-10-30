@@ -23,6 +23,7 @@ internal enum SettingsPage
     Words,
     Phrases,
     TextShortcuts,
+    LongPhrases,
     Updates,
     About,
     Exit,
@@ -187,7 +188,7 @@ internal sealed class SettingsWindow : Form
         _navigation.Controls.Add(header);
 
         var top = 72;
-        foreach (var (page, title) in new[] { (SettingsPage.General, Strings.NavGeneral), (SettingsPage.Appearance, Strings.NavAppearance), (SettingsPage.Shortcuts, Strings.NavShortcuts), (SettingsPage.Excluded, Strings.NavExcluded), (SettingsPage.Words, Strings.NavWords), (SettingsPage.Phrases, Strings.NavPhrases), (SettingsPage.TextShortcuts, Strings.NavTextShortcuts), (SettingsPage.Updates, Strings.NavUpdates), (SettingsPage.About, Strings.NavAbout), (SettingsPage.Exit, Strings.NavExit) })
+        foreach (var (page, title) in new[] { (SettingsPage.General, Strings.NavGeneral), (SettingsPage.Appearance, Strings.NavAppearance), (SettingsPage.Shortcuts, Strings.NavShortcuts), (SettingsPage.Excluded, Strings.NavExcluded), (SettingsPage.Words, Strings.NavWords), (SettingsPage.Phrases, Strings.NavPhrases), (SettingsPage.TextShortcuts, Strings.NavTextShortcuts), (SettingsPage.LongPhrases, Strings.NavLongPhrases), (SettingsPage.Updates, Strings.NavUpdates), (SettingsPage.About, Strings.NavAbout), (SettingsPage.Exit, Strings.NavExit) })
         {
             var item = new NavItem { Text = title, Left = 8, Top = top, Width = _navigation.Width - 16, Height = 40, Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
             item.Click += (_, _) => SelectPage(page);
@@ -250,6 +251,9 @@ internal sealed class SettingsWindow : Form
                 break;
             case SettingsPage.TextShortcuts:
                 BuildTextShortcutsPage();
+                break;
+            case SettingsPage.LongPhrases:
+                BuildLongPhrasesPage();
                 break;
             case SettingsPage.Updates:
                 BuildUpdatesPage();
@@ -494,6 +498,7 @@ internal sealed class SettingsWindow : Form
 
         AddSection(Strings.SectionEverywhere);
         AddHotkeyCard(HotkeyAction.ToggleEnabled, Strings.ShortcutToggle, Strings.ShortcutToggleHint);
+        AddHotkeyCard(HotkeyAction.OpenLongPhrases, Strings.ShortcutLongPhrases, Strings.ShortcutLongPhrasesHint);
 
         var reset = new ThemedButton { Text = Strings.ResetButton };
         reset.Click += (_, _) =>
@@ -1217,6 +1222,69 @@ internal sealed class SettingsWindow : Form
             list.RemoveAll(t => t.Key == edited.Key || t.Key == existing?.Key);
             list.Insert(index < 0 ? list.Count : Math.Min(index, list.Count), edited);
             return s with { TextShortcuts = list };
+        });
+        BeginInvoke(RebuildPage);
+    }
+
+    // User decision (1.1): long phrases (support replies of several lines) are chosen by name from a list
+    // opened with a shortcut anywhere (LongPhrasePicker). Kept in settings.json.
+    private void BuildLongPhrasesPage()
+    {
+        var phrases = _app.Settings.LongPhrases;
+        var shortcut = "\u202A" + HotkeyNames.Format(_app.Settings.Hotkeys.OpenLongPhrases) + "\u202C";
+        AddTitle(Strings.NavLongPhrases);
+        AddText(string.Format(CultureInfo.CurrentCulture, Strings.LongPhrasesIntro, shortcut), secondary: true);
+
+        var add = new ThemedButton { Text = Strings.AddWordButton };
+        add.Click += (_, _) => EditLongPhrase(null);
+        AddCard(Strings.AddLongPhrase, Strings.AddLongPhraseHint, add);
+        AddImportExportCard(
+            Strings.LongPhrasesFileName,
+            writer => UserListFiles.WriteLongPhrases(writer, _app.Settings.LongPhrases),
+            reader => UserListFiles.ReadLongPhrases(reader, _app.Settings.LongPhrases),
+            (s, merged) => s with { LongPhrases = merged });
+
+        AddSection(string.Format(CultureInfo.CurrentCulture, Strings.SectionLongPhrases, phrases.Count));
+        foreach (var phrase in phrases)
+        {
+            var change = new ThemedButton { Text = Strings.EditWordButton };
+            change.Click += (_, _) => EditLongPhrase(phrase);
+            var remove = new ThemedButton { Text = Strings.DeleteButton };
+            remove.Click += (_, _) =>
+            {
+                if (Confirm(Strings.ConfirmDeleteLongPhrase, phrase.Name, leftToRight: false))
+                {
+                    Update(s => s with { LongPhrases = [.. s.LongPhrases.Where(p => p.Name != phrase.Name)] });
+                    BeginInvoke(RebuildPage); // after this click is handled
+                }
+            };
+            AddCard(phrase.Name, LongPhrases.Preview(phrase.Text), new ButtonRow(change, remove));
+        }
+    }
+
+    // Add (existing = null) or edit a long phrase; a name already used is replaced after a confirmation.
+    private void EditLongPhrase(LongPhrase? existing)
+    {
+        if (LongPhraseDialog.Ask(this, existing is null ? Strings.AddLongPhrase : Strings.EditLongPhrase, existing, _palette, _mirrored) is not { } edited
+            || edited == existing)
+        {
+            return;
+        }
+
+        if (_app.Settings.LongPhrases.Any(p => p.Name == edited.Name && p.Name != existing?.Name)
+            && !Confirm(Strings.ConfirmReplaceLongPhrase, edited.Name, leftToRight: false))
+        {
+            return;
+        }
+
+        Update(s =>
+        {
+            // An edited phrase keeps its place; a new one goes last.
+            var list = s.LongPhrases.ToList();
+            var index = existing is null ? -1 : list.FindIndex(p => p.Name == existing.Name);
+            list.RemoveAll(p => p.Name == edited.Name || p.Name == existing?.Name);
+            list.Insert(index < 0 ? list.Count : Math.Min(index, list.Count), edited);
+            return s with { LongPhrases = list };
         });
         BeginInvoke(RebuildPage);
     }

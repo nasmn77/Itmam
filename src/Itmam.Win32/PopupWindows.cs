@@ -31,6 +31,37 @@ public static class PopupWindows
 
     public static void Hide(nint window) => PInvoke.ShowWindow(new HWND(window), SHOW_WINDOW_CMD.SW_HIDE);
 
+    /// <summary>The window the user is typing in (to give the focus back after the long phrases list).</summary>
+    public static nint Foreground() => PInvoke.GetForegroundWindow();
+
+    /// <summary>Gives the focus back to <paramref name="window"/>; allowed while our own window is in front.</summary>
+    public static bool Activate(nint window) => PInvoke.SetForegroundWindow(new HWND(window));
+
+    /// <summary>
+    /// Brings our <paramref name="window"/> to the front from a global shortcut. Windows refuses
+    /// SetForegroundWindow to a background process (the hook does not count as its input), so the
+    /// input of the foreground thread is attached to ours for the call.
+    /// </summary>
+    public static unsafe void BringToFront(nint window)
+    {
+        var foreground = PInvoke.GetForegroundWindow();
+        var foregroundThread = PInvoke.GetWindowThreadProcessId(foreground, null);
+        var ownThread = PInvoke.GetCurrentThreadId();
+        var attached = foregroundThread != 0 && foregroundThread != ownThread && PInvoke.AttachThreadInput(foregroundThread, ownThread, true);
+        try
+        {
+            PInvoke.BringWindowToTop(new HWND(window));
+            PInvoke.SetForegroundWindow(new HWND(window));
+        }
+        finally
+        {
+            if (attached)
+            {
+                PInvoke.AttachThreadInput(foregroundThread, ownThread, false);
+            }
+        }
+    }
+
     /// <summary>
     /// Windows 11 look: rounded corners, a 1 px border in <paramref name="border"/>, and the DWM
     /// shadow (enabled by extending the frame 1 px into the client area). No-op before Windows 11.

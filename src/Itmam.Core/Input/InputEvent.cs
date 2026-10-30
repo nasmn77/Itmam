@@ -56,6 +56,9 @@ public enum InputEventKind
     /// type back what had been typed.
     /// </summary>
     UndoAccept,
+
+    /// <summary>The long phrases shortcut: the list of their names opens (the focus moves to it).</summary>
+    OpenLongPhrases,
 }
 
 /// <param name="Kind">What happened.</param>

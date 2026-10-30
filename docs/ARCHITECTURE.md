@@ -171,6 +171,10 @@
 
 بعد إدراج اقتراح يحفظ `InputPipeline` في الذاكرة ما كُتب قبله وما أُدرج (`UndoableAccept`) ويرفع `PopupState.CanUndoAccept`. في الخطاف، Backspace بلا معدِّلات والعلم مرفوع يُبتلع ويصبح `UndoAccept`، وأي مفتاح آخر (غير المعدِّلات) أو نقرة يُنزل العلم، وكذلك الحدث التالي في المسار. يحذف المسار ما أُدرج ويكتب ما كان قد حُذف دفعة واحدة، ويعيد الكلمة والكلمات المتتالية كما كانت، ولا يتعلّم الكلمة المقبولة ولا تسلسلاتها. وإن لم يبقَ ما يُتراجع عنه يرسل Backspace عاديًا، فلا تضيع الضغطة. لا تراجع حين استُبدلت مسافة بعد المؤشر (`DeleteForward`).
 
+### العبارات الطويلة (من الإصدار 1.1)
+
+ردود بعدة أسطر (`LongPhrase`: اسم ونص حتى 4000 حرف) في `settings.json`. اختصار يعمل في كل البرامج (`HotkeySettings.OpenLongPhrases`، افتراضيًا Ctrl+Shift+Space، ويحتاج Ctrl أو Alt) يبتلعه الخطاف ويرسل `OpenLongPhrases`. يحفظ `ItmamApp` النافذة الأمامية ويحدد مكان مؤشرها، ثم يفتح `LongPhrasePicker` قربه: نافذة تأخذ التركيز (يربط `PopupWindows.BringToFront` إدخال الخيط الأمامي لأن Windows يرفض غير ذلك)، فيها بحث بالاسم أو النص (`LongPhrases.Filter`) وقائمة ومعاينة. عند الاختيار تُخفى، ويعود التركيز إلى النافذة السابقة، ثم يكتب `SendInputInjector` النص وكل فاصل سطر ضغطةَ Enter (قرار المستخدم). لا يُتعلَّم منها شيء.
+
 ### الاختصارات النصية (من الإصدار 1.1)
 
 `TextShortcuts` (في Core) يحمل اختصارات المستخدم من `settings.json` (مثل «ع1» ← «السلام عليكم ورحمة الله وبركاته»). الاختصار حرف عربي ثم حروف عربية أو أرقام؛ ولذلك يُبقي `WordBuffer` الأرقام التي تأتي بعد حرف داخل الكلمة (الرقم في أول الكلمة ما زال حدًّا)، ولا تُتعلَّم كلمة فيها رقم. يضع `SuggestionController` عبارة الاختصار المكتوب بالضبط أولًا في الشريط، مهما كان الحد الأدنى للحروف، ويضعها Tab مكان الاختصار بالطريقة نفسها التي تُقبل بها الاقتراحات. المطابقة تتجاهل التشكيل والهمزات، والأرقام الهندية تساوي الأرقام العربية الغربية.
@@ -472,6 +476,16 @@ swallowed as `UndoAccept`; any other non-modifier key or a click lowers it, and 
 pipeline deletes what was inserted and types back what had been deleted in one batch, restores the word and the words in
 a row, and learns neither the accepted word nor its sequences. If there is nothing left to undo it sends a plain
 Backspace, so the key press is never lost. No undo when a space after the caret was replaced (`DeleteForward`).
+
+### Long phrases (from 1.1)
+
+Replies of several lines (`LongPhrase`: a name and a text of up to 4,000 characters) in `settings.json`. A shortcut that
+works everywhere (`HotkeySettings.OpenLongPhrases`, default Ctrl+Shift+Space, Ctrl or Alt required) is swallowed by the
+hook as `OpenLongPhrases`. `ItmamApp` remembers the foreground window and locates its caret, then opens
+`LongPhrasePicker` there: a window that takes the focus (`PopupWindows.BringToFront` attaches the foreground thread's
+input, as Windows refuses otherwise), with a search by name or text (`LongPhrases.Filter`), the list and a preview. On a
+choice it hides, gives the focus back to the previous window, and `SendInputInjector` types the text, each line break as
+Enter (user decision). Nothing is learned from them.
 
 ### Text shortcuts (from 1.1)
 

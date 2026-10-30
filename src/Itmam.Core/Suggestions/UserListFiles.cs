@@ -95,6 +95,63 @@ public static class UserListFiles
         return new ListImport<TextShortcut>(merged, added, skipped);
     }
 
+    public static void WriteLongPhrases(TextWriter writer, IEnumerable<LongPhrase> phrases)
+    {
+        writer.WriteLine("# Itmam (إتمام) — long phrases: name<TAB>text, line breaks as \\n");
+        foreach (var phrase in phrases)
+        {
+            writer.WriteLine($"{phrase.Name}\t{Escape(phrase.Text)}");
+        }
+    }
+
+    /// <summary>Imports long phrases; an existing name keeps its text.</summary>
+    public static ListImport<LongPhrase> ReadLongPhrases(TextReader reader, IReadOnlyList<LongPhrase> existing)
+    {
+        var merged = existing.ToList();
+        var names = existing.Select(p => p.Name).ToHashSet(StringComparer.Ordinal);
+        int added = 0, skipped = 0;
+        foreach (var line in Lines(reader))
+        {
+            var parts = line.Split('\t', 2);
+            if (parts.Length == 2
+                && LongPhrases.CleanName(parts[0]) is { } name
+                && LongPhrases.CleanText(Unescape(parts[1])) is { } text
+                && names.Add(name))
+            {
+                merged.Add(new LongPhrase(name, text));
+                added++;
+            }
+            else
+            {
+                skipped++;
+            }
+        }
+
+        return new ListImport<LongPhrase>(merged, added, skipped);
+    }
+
+    // A text of several lines on one line of the file: \n for a line break, \\ for a backslash.
+    private static string Escape(string text) =>
+        text.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("\n", "\\n", StringComparison.Ordinal);
+
+    private static string Unescape(string text)
+    {
+        var result = new System.Text.StringBuilder(text.Length);
+        for (var i = 0; i < text.Length; i++)
+        {
+            if (text[i] == '\\' && i + 1 < text.Length && text[i + 1] is 'n' or '\\')
+            {
+                result.Append(text[++i] == 'n' ? '\n' : '\\');
+            }
+            else
+            {
+                result.Append(text[i]);
+            }
+        }
+
+        return result.ToString();
+    }
+
     // Non-empty lines that are not comments.
     private static IEnumerable<string> Lines(TextReader reader)
     {

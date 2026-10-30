@@ -91,7 +91,7 @@
   <data name="NativeNavigation" xml:space="preserve"><value>الاختيار بالأسهم</value></data>
   <data name="NativeNavigationHint" xml:space="preserve"><value>↑ للدخول إلى الشريط، ← → للاختيار، Enter للإدراج، Esc أو ↓ للخروج. Ctrl+Delete ينسى الكلمة المتعلَّمة المحددة.</value></data>
   <data name="ResetShortcuts" xml:space="preserve"><value>الاختصارات الافتراضية</value></data>
-  <data name="ResetShortcutsHint" xml:space="preserve"><value>Tab للإدراج، وEsc للإخفاء، و‪Ctrl+Alt‬ (ضغطًا ثم إفلاتًا) للتشغيل والإيقاف، والاختيار بالأسهم.</value></data>
+  <data name="ResetShortcutsHint" xml:space="preserve"><value>Tab للإدراج، وEsc للإخفاء، و‪Ctrl+Alt‬ (ضغطًا ثم إفلاتًا) للتشغيل والإيقاف، والاختيار بالأسهم، و‪Ctrl+Shift+Space‬ لقائمة العبارات الطويلة.</value></data>
   <data name="HotkeyProblemDuplicate" xml:space="preserve"><value>{0} مستخدم لاختصار آخر في إتمام.</value></data>
   <data name="HotkeyProblemTypesText" xml:space="preserve"><value>{0} يكتب نصًا: أضف Ctrl أو Alt.</value></data>
   <data name="HotkeyProblemEditingKey" xml:space="preserve"><value>{0} لازم لتحرير النص: اختر مفتاحًا آخر.</value></data>
@@ -233,4 +233,23 @@
   <data name="RestoreButton" xml:space="preserve"><value>استعادة</value></data>
   <data name="BarMenuBlock" xml:space="preserve"><value>حظر</value></data>
   <data name="ImportExportPhrasesHint" xml:space="preserve"><value>ملف نصي فيه «عباراتي» والعبارات المتعلَّمة، لنسخها احتياطيًا أو نقلها إلى جهاز آخر. الاستيراد يضيف إلى ما عندك.</value></data>
+  <data name="NavLongPhrases" xml:space="preserve"><value>العبارات الطويلة</value></data>
+  <data name="LongPhrasesIntro" xml:space="preserve"><value>ردود من عدة أسطر، مثل ردود الدعم الفني. اضغط {0} في أي برنامج فتُفتح قائمة بأسمائها، واختر منها فتُكتب حيث كنت تكتب.</value></data>
+  <data name="AddLongPhrase" xml:space="preserve"><value>إضافة عبارة طويلة</value></data>
+  <data name="AddLongPhraseHint" xml:space="preserve"><value>اسم تجدها به في القائمة، ونصها (حتى 4000 حرف، بعدة أسطر).</value></data>
+  <data name="EditLongPhrase" xml:space="preserve"><value>تعديل عبارة طويلة</value></data>
+  <data name="SectionLongPhrases" xml:space="preserve"><value>عباراتي الطويلة ({0})</value></data>
+  <data name="LongPhraseNamePrompt" xml:space="preserve"><value>الاسم (يظهر في القائمة):</value></data>
+  <data name="LongPhraseTextPrompt" xml:space="preserve"><value>النص (Enter لسطر جديد، وCtrl+Enter للحفظ):</value></data>
+  <data name="NotALongPhraseName" xml:space="preserve"><value>اكتب اسمًا لا يزيد على 60 حرفًا.</value></data>
+  <data name="NotALongPhraseText" xml:space="preserve"><value>اكتب النص (4000 حرف على الأكثر).</value></data>
+  <data name="ConfirmDeleteLongPhrase" xml:space="preserve"><value>حذف العبارة الطويلة «{0}»؟</value></data>
+  <data name="ConfirmReplaceLongPhrase" xml:space="preserve"><value>توجد عبارة طويلة باسم «{0}». استبدالها؟</value></data>
+  <data name="LongPhrasesFileName" xml:space="preserve"><value>العبارات الطويلة - إتمام.txt</value></data>
+  <data name="ShortcutLongPhrases" xml:space="preserve"><value>فتح قائمة العبارات الطويلة</value></data>
+  <data name="ShortcutLongPhrasesHint" xml:space="preserve"><value>يعمل في كل البرامج ما دام إتمام يعمل.</value></data>
+  <data name="LongPhrasesTitle" xml:space="preserve"><value>العبارات الطويلة</value></data>
+  <data name="LongPhrasesSearch" xml:space="preserve"><value>ابحث بالاسم أو النص</value></data>
+  <data name="LongPhrasesEmpty" xml:space="preserve"><value>لا عبارات طويلة بعد. أضفها من الإعدادات ← «العبارات الطويلة».</value></data>
+  <data name="LongPhrasesNoMatch" xml:space="preserve"><value>لا عبارة تطابق البحث.</value></data>
 </root>

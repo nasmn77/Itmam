@@ -6,6 +6,7 @@ public enum HotkeyAction
     AcceptFirst,
     Dismiss,
     ToggleEnabled,
+    OpenLongPhrases,
 }
 
 /// <summary>Why a shortcut cannot be used.</summary>
@@ -70,7 +71,8 @@ public static class HotkeyRules
         var mods = candidate.Modifiers;
         var withCommand = (mods & (KeyModifiers.Ctrl | KeyModifiers.Alt | KeyModifiers.Win)) != 0;
 
-        if (action == HotkeyAction.ToggleEnabled && (mods & (KeyModifiers.Ctrl | KeyModifiers.Alt)) == 0)
+        // Shortcuts that work everywhere need Ctrl or Alt, so they never collide with typing.
+        if (action is HotkeyAction.ToggleEnabled or HotkeyAction.OpenLongPhrases && (mods & (KeyModifiers.Ctrl | KeyModifiers.Alt)) == 0)
         {
             return HotkeyProblem.NeedsModifier;
         }
@@ -137,6 +139,7 @@ public static class HotkeyRules
     {
         HotkeyAction.AcceptFirst => settings.AcceptFirst,
         HotkeyAction.Dismiss => settings.Dismiss,
+        HotkeyAction.OpenLongPhrases => settings.OpenLongPhrases,
         _ => settings.ToggleEnabled,
     };
 
@@ -144,6 +147,7 @@ public static class HotkeyRules
     {
         HotkeyAction.AcceptFirst => settings with { AcceptFirst = hotkey },
         HotkeyAction.Dismiss => settings with { Dismiss = hotkey },
+        HotkeyAction.OpenLongPhrases => settings with { OpenLongPhrases = hotkey },
         _ => settings with { ToggleEnabled = hotkey },
     };
 
@@ -152,6 +156,7 @@ public static class HotkeyRules
         (HotkeyAction.AcceptFirst, settings.AcceptFirst),
         (HotkeyAction.Dismiss, settings.Dismiss),
         (HotkeyAction.ToggleEnabled, settings.ToggleEnabled),
+        (HotkeyAction.OpenLongPhrases, settings.OpenLongPhrases),
     ];
 
     // Letters, digits, space, OEM punctuation, numpad digits/operators (Shift alone still types), and

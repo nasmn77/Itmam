@@ -58,6 +58,9 @@ public sealed record AppSettings
     /// </summary>
     public IReadOnlyList<Suggestions.TextShortcut> TextShortcuts { get; init; } = [];
 
+    /// <summary>Long phrases (support replies), chosen by name from a list (user decision 1.1).</summary>
+    public IReadOnlyList<Suggestions.LongPhrase> LongPhrases { get; init; } = [];
+
     public UiLanguage Language { get; init; } = UiLanguage.Arabic;
 
     /// <summary>Suggestions shown (1–5).</summary>
@@ -120,6 +123,13 @@ public sealed record AppSettings
                 : null)
             .OfType<Suggestions.TextShortcut>()
             .DistinctBy(s => s.Key)],
+        LongPhrases = [.. (LongPhrases ?? [])
+            .Where(p => p is not null)
+            .Select(p => Suggestions.LongPhrases.CleanName(p.Name ?? "") is { } name && Suggestions.LongPhrases.CleanText(p.Text ?? "") is { } text
+                ? new Suggestions.LongPhrase(name, text)
+                : null)
+            .OfType<Suggestions.LongPhrase>()
+            .DistinctBy(p => p.Name)],
     };
 
     private static IReadOnlyList<string> ExcludedAppsDefaults() => [.. Input.ExcludedApps.Defaults];

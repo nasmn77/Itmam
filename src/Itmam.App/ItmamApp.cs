@@ -20,6 +20,7 @@ internal sealed class ItmamApp : IDisposable
     private readonly SettingsStore _settingsStore;
     private readonly SynchronizationContext _ui;
     private readonly CancellationTokenSource _stop = new();
+    private readonly CaretLocator _caret;
     private Task? _running;
     private int _shutDown;
 
@@ -52,14 +53,15 @@ internal sealed class ItmamApp : IDisposable
             Hooks.Events,
             new UiaCaretContextSource(UiAutomation, ExcludedApps.IsExcluded),
             new InputPipelineOptions(),
-            new SendInputInjector(),
+            Injector,
             new ForegroundGuard(ExcludedApps));
 
         Popup = new SuggestionPopup(popupState);
         _ = Popup.Handle; // create the (hidden) window now so the first suggestion is not delayed
         Popup.SuggestionClicked += (index, word) => Hooks.Post(InputEvent.Accept(index, word));
         Popup.SuggestionMenuRequested += ShowSuggestionMenu;
-        Suggestions = new SuggestionController(Engine, new CaretLocator(UiAutomation), Popup, () => Hooks.IsEnabled, Learning.SyncRoot);
+        _caret = new CaretLocator(UiAutomation);
+        Suggestions = new SuggestionController(Engine, _caret, Popup, () => Hooks.IsEnabled, Learning.SyncRoot);
 
         // Learning first, so a just-forgotten word is gone before the bar is recomputed. Same thread as the engine.
         Pipeline.UndoAvailableChanged += popupState.SetUndoAccept;
@@ -74,6 +76,15 @@ internal sealed class ItmamApp : IDisposable
         GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, blocking: true, compacting: true);
         GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
     }
+
+    /// <summary>
+    /// The long phrases shortcut was pressed: (the window the user was typing in, where its caret is).
+    /// Raised on the UI thread.
+    /// </summary>
+    public event Action<nint, Rectangle>? LongPhrasesRequested;
+
+    /// <summary>Types text into the focused app (suggestions, long phrases).</summary>
+    public ITextInjector Injector { get; } = new SendInputInjector();
 
     /// <summary>Enabled/disabled changed (tray, the toggle shortcut, pause). Raised on the UI thread.</summary>
     public event Action? EnabledChanged;
@@ -260,6 +271,22 @@ internal sealed class ItmamApp : IDisposable
         Popup.ShowActions(index, actions);
     }
 
+    // Finds the caret of the app the shortcut was pressed in, then opens the list there (UI thread).
+    private async Task OpenLongPhrasesAsync(nint target)
+    {
+        Rectangle near;
+        try
+        {
+            near = (await _caret.LocateAsync(rightToLeft: true, CancellationToken.None).ConfigureAwait(false)).Bounds;
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or System.Runtime.InteropServices.COMException or TimeoutException)
+        {
+            near = new Rectangle(Cursor.Position, Size.Empty);
+        }
+
+        _ui.Post(_ => LongPhrasesRequested?.Invoke(target, near), null);
+    }
+
     // A missing or unreadable list only turns the shipped phrases off; the user's own still work.
     private static PhraseIndex LoadPhrases(string path)
     {
@@ -327,6 +354,11 @@ internal sealed class ItmamApp : IDisposable
         if (update.PhrasesToLearn is { } phrases)
         {
             Learning.LearnPhrases(phrases);
+        }
+
+        if (update.Input?.Input.Kind == InputEventKind.OpenLongPhrases)
+        {
+            _ = OpenLongPhrasesAsync(PopupWindows.Foreground());
         }
 
         // Right-click / Ctrl+Delete: forget the learned word or phrase (learned again by using it).

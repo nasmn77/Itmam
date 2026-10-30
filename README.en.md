@@ -16,6 +16,7 @@ Website: https://nasmn77.github.io/Itmam/en/ · Repository: https://github.com/n
 - **A bar that looks like Windows 11's own**, following light or dark mode, with the colors, size and opacity you choose.
 - **Completes common phrases:** «بسم الله الرحمن الرحيم», «السلام عليكم ورحمة الله وبركاته», «جزاك الله خيرا» and about 250 others, whole with Tab or word by word, plus "My phrases" you add yourself.
 - **Text shortcuts:** type «ع1» and the bar offers «السلام عليكم ورحمة الله وبركاته»; Tab puts it in place, with the shortcuts you choose.
+- **Long phrases of several lines** (such as technical support replies): press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Space</kbd> in any program and choose by name from the list.
 - **Learns your phrases:** words you type in a row twice are then suggested as a whole phrase (can be turned off).
 - **Completes a word from the middle:** go back into a word with a click or Backspace and it continues from the caret.
 - **Silent where it should be:** password fields, excluded apps (such as terminals and remote desktop) and full-screen games.
@@ -30,6 +31,7 @@ Website: https://nasmn77.github.io/Itmam/en/ · Repository: https://github.com/n
 | <kbd>↑</kbd>, then <kbd>←</kbd> <kbd>→</kbd>, then <kbd>Enter</kbd> | Choose with the arrow keys, then insert |
 | <kbd>Esc</kbd> | Hide the suggestions until the next word |
 | <kbd>Ctrl</kbd>+<kbd>Alt</kbd> (press and release) | Turn Itmam off or on from anywhere |
+| <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Space</kbd> | The "Long phrases" list: choose by name and it is typed where you write |
 | <kbd>Backspace</kbd> right after inserting | Undo: puts back what you had typed |
 | Right-click a suggestion | Actions over the suggestion: "Delete" a learned word or a phrase, "Block" a word, "Add to My phrases" |
 | <kbd>Ctrl</kbd>+<kbd>Delete</kbd> while choosing with the arrows | Forget a learned word |
@@ -47,6 +49,7 @@ Click the Itmam icon next to the clock (right or left button) and choose "Settin
 - **My words:** add, edit, block and delete words, import and export, delete all.
 - **Phrases:** turn phrase suggestions and phrase learning on or off, "My phrases" (with import and export), and the learned phrases (delete, move to "My phrases", delete all).
 - **Text shortcuts:** add a shortcut («ع1») and its text, edit, delete, import and export.
+- **Long phrases:** add a phrase with its name and text (up to 4,000 characters, several lines), edit, delete, import and export.
 - **Updates:** the version, and checking for an update through Microsoft Store.
 
 ## The icon next to the clock

@@ -100,3 +100,6 @@ GetCurrentPackageFullName
 DestroyIcon
 AllowSetForegroundWindow
 SetWindowTheme
+SetForegroundWindow
+AttachThreadInput
+BringWindowToTop
