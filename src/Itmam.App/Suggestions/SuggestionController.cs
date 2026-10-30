@@ -139,6 +139,9 @@ internal sealed class SuggestionController : IDisposable
     /// </summary>
     public IReadOnlyDictionary<string, string> PhraseSources { get; private set; } = new Dictionary<string, string>();
 
+    /// <summary>Common spelling mistakes and their corrections (data/corrections.txt).</summary>
+    public Corrections Corrections { get; set; } = Corrections.Empty;
+
     /// <summary>The user's text shortcuts («ع1» → its text).</summary>
     public TextShortcuts Shortcuts { get; set; } = TextShortcuts.Empty;
 
@@ -149,6 +152,12 @@ internal sealed class SuggestionController : IDisposable
     {
         var max = _engine.Options.MaxSuggestions;
         IReadOnlyList<string> phrases = Phrases.Suggest(update.RecentWords ?? [], update.Word, max, sources);
+        // A known mistake typed exactly: its corrections first (after the user's own shortcut).
+        if (Corrections.Find(update.Word) is { Count: > 0 } fixes)
+        {
+            phrases = [.. fixes.Concat(phrases).Distinct().Take(max)];
+        }
+
         if (Shortcuts.Find(update.Word) is { } shortcut)
         {
             phrases = [shortcut, .. phrases.Where(p => p != shortcut).Take(max - 1)];

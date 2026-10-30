@@ -35,6 +35,7 @@ internal sealed class ItmamApp : IDisposable
         Dictionary = DictionaryFile.Load(Path.Combine(AppContext.BaseDirectory, "itmam-ar.dict"));
         var blocklist = Blocklist.Load(Path.Combine(AppContext.BaseDirectory, "blocklist.txt"));
         ShippedPhrases = LoadPhrases(Path.Combine(AppContext.BaseDirectory, "phrases.txt"));
+        var corrections = LoadCorrections(Path.Combine(AppContext.BaseDirectory, "corrections.txt"));
 
         // Learned words: %LOCALAPPDATA%\Itmam\user.db (MSIX redirects it into the package's private folder).
         Store = new SqliteUserWordStore(Path.Combine(DataFolder, "user.db"));
@@ -61,7 +62,7 @@ internal sealed class ItmamApp : IDisposable
         Popup.SuggestionClicked += (index, word) => Hooks.Post(InputEvent.Accept(index, word));
         Popup.SuggestionMenuRequested += ShowSuggestionMenu;
         _caret = new CaretLocator(UiAutomation);
-        Suggestions = new SuggestionController(Engine, _caret, Popup, () => Hooks.IsEnabled, Learning.SyncRoot);
+        Suggestions = new SuggestionController(Engine, _caret, Popup, () => Hooks.IsEnabled, Learning.SyncRoot) { Corrections = corrections };
 
         // Learning first, so a just-forgotten word is gone before the bar is recomputed. Same thread as the engine.
         Pipeline.UndoAvailableChanged += popupState.SetUndoAccept;
@@ -291,6 +292,20 @@ internal sealed class ItmamApp : IDisposable
         }
 
         _ui.Post(_ => LongPhrasesRequested?.Invoke(target, near), null);
+    }
+
+    // A missing or unreadable list only turns the corrections off.
+    private static Corrections LoadCorrections(string path)
+    {
+        try
+        {
+            using var reader = File.OpenText(path);
+            return Corrections.Read(reader);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return Corrections.Empty;
+        }
     }
 
     // A missing or unreadable list only turns the shipped phrases off; the user's own still work.

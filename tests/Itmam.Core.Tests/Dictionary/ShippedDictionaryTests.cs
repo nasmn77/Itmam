@@ -161,4 +161,13 @@ public class ShippedDictionaryTests(ITestOutputHelper output)
         output.WriteLine($"{prefix}: {string.Join(" | ", words)}");
         words.ShouldContain(expected);
     }
+
+    [Theory]
+    [InlineData("مدرسه", "مدرسة")]
+    [InlineData("الى", "إلى")]
+    [InlineData("انا", "أنا")]
+    [InlineData("اذا", "إذا")]
+    [InlineData("مكتبه", "مكتبة")]
+    public void A_common_misspelling_gets_the_right_spelling_first(string typed, string expected) =>
+        new SuggestionEngine(Shipped.Value, new UserWordIndex()).Suggest(typed)[0].Word.ShouldBe(expected);
 }

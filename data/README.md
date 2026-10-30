@@ -59,6 +59,10 @@ dotnet run --project tools/DictionaryBuilder -c Release -- `
 
 عبارات عربية شائعة يكملها إتمام كاملة أو كلمة بعد كلمة (التحية، والذكر، والدعاء، والمناسبات، والرسائل الرسمية). جُمعت يدويًا لإتمام وتصدر برخصة MIT كالشيفرة. عبارة في كل سطر، كلمتان على الأقل، دون تشكيل؛ والترتيب مهم، فالأشهر أولًا داخل كل فئة. المساهمات مرحَّب بها.
 
+### الأخطاء الشائعة (`corrections.txt`)
+
+أخطاء إملائية شائعة لا يصلحها القاموس وحده (حروف زائدة أو ناقصة، أو كلمات مدموجة) مع صوابها، مثل «لاكن = لكن» و«انشاءالله = إن شاء الله». حين تُكتب الكلمة الخاطئة بالضبط يظهر صوابها أولًا في الشريط، ولا يُستبدل شيء إلا بـ Tab. جُمعت يدويًا لإتمام وتصدر برخصة MIT. أما مواضع الهمزة والتاء المربوطة والألف المقصورة في آخر الكلمة فلا تحتاج بنودًا، لأن القاموس يقدّم الصواب أصلًا.
+
 ### قائمة الحظر
 
 `blocklist.txt` يضم الكلمات التي لا تُقترح أبدًا (كلمة في كل سطر، والسطر الذي يبدأ بـ `#` تعليق). المساهمات مرحَّب بها؛ أعد بناء القاموس بعد تعديلها. ويستطيع المستخدمون أيضًا حظر الكلمات بأنفسهم.
@@ -129,6 +133,13 @@ Current build: **522,510 words** (spellings), 1.66 MB; the blocklist removed 108
 ### Common phrases (`phrases.txt`)
 
 Common Arabic phrases Itmam completes whole or word by word (greetings, remembrance, prayers, occasions, formal letters). Compiled by hand for Itmam and released under the MIT license like the code. One phrase per line, at least two words, without tashkeel; order matters, the more common phrase first within each category. Contributions are welcome.
+
+### Common mistakes (`corrections.txt`)
+
+Common spelling mistakes the dictionary cannot fix by itself (letters added or missing, words written together) with
+their corrections, such as «لاكن = لكن» and «انشاءالله = إن شاء الله». When a mistake is typed exactly its correction
+comes first in the bar; nothing is replaced without Tab. Compiled by hand for Itmam and released under the MIT license.
+Hamza seats and ة/ه, ى/ي at the end need no entry: the dictionary already puts the right spelling first.
 
 ### Blocklist
 

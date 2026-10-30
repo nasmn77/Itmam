@@ -17,6 +17,7 @@ Website: https://nasmn77.github.io/Itmam/en/ · Repository: https://github.com/n
 - **Completes common phrases:** «بسم الله الرحمن الرحيم», «السلام عليكم ورحمة الله وبركاته», «جزاك الله خيرا» and about 250 others, whole with Tab or word by word, plus "My phrases" you add yourself.
 - **Text shortcuts:** type «ع1» and the bar offers «السلام عليكم ورحمة الله وبركاته»; Tab puts it in place, with the shortcuts you choose.
 - **Long phrases of several lines** (such as technical support replies): press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Space</kbd> in any program and choose by name from the list.
+- **Fixes common mistakes:** «لاكن» → «لكن», «انشاءالله» → «إن شاء الله», «مدرسه» → «مدرسة», with Tab.
 - **Learns your phrases:** words you type in a row twice are then suggested as a whole phrase (can be turned off).
 - **Completes a word from the middle:** go back into a word with a click or Backspace and it continues from the caret.
 - **Silent where it should be:** password fields, excluded apps (such as terminals and remote desktop) and full-screen games.
