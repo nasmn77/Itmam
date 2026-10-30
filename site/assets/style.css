@@ -23,8 +23,9 @@
   --mono: "Cascadia Mono", Consolas, "Courier New", monospace;
 }
 
+/* Dark: the system's choice unless the visitor picked light with the theme button, or picked dark. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --paper: #12100d;
     --paper-2: #1a1713;
     --ink: #f1eadc;
@@ -35,6 +36,18 @@
     --card: #1c1915;
     --shadow: 0 0 0 1px rgba(255, 255, 255, .04), 0 28px 60px -30px rgba(0, 0, 0, .9);
   }
+}
+
+:root[data-theme="dark"] {
+  --paper: #12100d;
+  --paper-2: #1a1713;
+  --ink: #f1eadc;
+  --ink-soft: #b3aa9b;
+  --rule: #34302a;
+  --teal: #2dd4bf;
+  --teal-ink: #5eead4;
+  --card: #1c1915;
+  --shadow: 0 0 0 1px rgba(255, 255, 255, .04), 0 28px 60px -30px rgba(0, 0, 0, .9);
 }
 
 * { box-sizing: border-box; }
@@ -65,7 +78,8 @@ body::before {
   mix-blend-mode: multiply;
 }
 
-@media (prefers-color-scheme: dark) { body::before { opacity: .25; mix-blend-mode: screen; } }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) body::before { opacity: .25; mix-blend-mode: screen; } }
+:root[data-theme="dark"] body::before { opacity: .25; mix-blend-mode: screen; }
 
 a { color: var(--teal-ink); text-underline-offset: .2em; text-decoration-thickness: 1px; }
 a:hover { text-decoration-thickness: 2px; }
@@ -91,6 +105,29 @@ a:hover { text-decoration-thickness: 2px; }
 .top nav { display: flex; gap: 22px; align-items: center; font-size: 15px; }
 .top nav a { color: var(--ink-soft); text-decoration: none; }
 .top nav a:hover { color: var(--ink); }
+.theme-toggle {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.theme-toggle:hover { background: var(--paper-2); }
+.theme-toggle:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.theme-toggle svg { width: 18px; height: 18px; }
+.theme-toggle .moon { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-toggle .moon { display: block; }
+  :root:not([data-theme="light"]) .theme-toggle .sun { display: none; }
+}
+:root[data-theme="dark"] .theme-toggle .moon { display: block; }
+:root[data-theme="dark"] .theme-toggle .sun { display: none; }
+
 .top nav .lang {
   border: 1px solid var(--rule);
   border-radius: 999px;
