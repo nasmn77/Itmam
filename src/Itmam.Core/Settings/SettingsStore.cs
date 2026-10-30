@@ -20,6 +20,22 @@ public sealed class SettingsStore(string path)
 
     private readonly Lock _lock = new();
 
+    /// <summary>Writes settings as JSON (the full backup uses the same format as settings.json).</summary>
+    public static void Write(Stream stream, AppSettings settings) => JsonSerializer.Serialize(stream, settings, Options);
+
+    /// <summary>Reads settings written by <see cref="Write"/>; null when the JSON cannot be read.</summary>
+    public static AppSettings? Read(Stream stream)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<AppSettings>(stream, Options)?.Normalized();
+        }
+        catch (Exception ex) when (ex is JsonException or NotSupportedException)
+        {
+            return null;
+        }
+    }
+
     public string Path { get; } = path;
 
     /// <summary>Set when the file could not be read at the last <see cref="Load"/>: where it was kept.</summary>

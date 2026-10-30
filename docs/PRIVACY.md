@@ -42,6 +42,7 @@
 
 - **الحذف:** من الإعدادات ← «كلماتي»: حذف كلمة، أو «حذف كل كلماتي»، أو إطفاء «تعلّم الكلمات الجديدة». ومن «عباراتي»: حذف عبارة متعلَّمة، أو «حذف العبارات المتعلَّمة» مع كل ما عُدّ، أو إيقاف تعلّمها.
 - **التصدير:** لا تُنسخ كلماتك إلى أي مكان إلا إذا اخترت «تصدير…» بنفسك، فتُكتب في الملف الذي تختاره أنت.
+- **النسخة الاحتياطية الشاملة:** لا تُنشأ إلا إذا اخترت «نسخ احتياطي…» في الإعدادات ← «عام»، فتُكتب في الملف الذي تختاره أنت ولا تُرسل إلى أي مكان. وفيها كلماتك وعباراتك واختصاراتك وعباراتك الطويلة وإعداداتك وإحصاءاتك، فاحفظها حيث تحفظ ملفاتك الخاصة.
 - **إلغاء التثبيت:** يحذف التطبيق وملفاته من جهازك.
 
 ### التواصل
@@ -92,6 +93,7 @@
 
 - **Delete:** Settings → "My words": delete a word, "Delete all my words", or turn off "Learn new words". Settings → "My phrases": delete a learned phrase, "Delete learned phrases" (with everything counted so far), or stop learning them.
 - **Export:** your words are copied nowhere unless you choose "Export…" yourself; they are then written to the file you pick.
+- **Full backup:** created only when you choose "Back up…" in Settings → "General", written to the file you pick and sent nowhere. It holds your words, phrases, shortcuts, long phrases, settings and statistics, so keep it where you keep private files.
 - **Uninstall:** removes the app and its files from your device.
 
 ### Contact

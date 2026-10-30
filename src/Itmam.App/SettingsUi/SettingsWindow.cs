@@ -328,6 +328,14 @@ internal sealed class SettingsWindow : Form
         language.SelectedIndexChanged += (_, _) => Update(s => s with { Language = language.SelectedIndex == 0 ? UiLanguage.Arabic : UiLanguage.English });
         AddCard(Strings.UiLanguage, null, language);
 
+        // Full backup (user decision 1.1): one file to move everything to another PC.
+        AddSection(Strings.SectionBackup);
+        var backup = new ThemedButton { Text = Strings.BackupButton };
+        backup.Click += (_, _) => SaveFullBackup();
+        var restore = new ThemedButton { Text = Strings.RestoreBackupButton };
+        restore.Click += (_, _) => RestoreFullBackup();
+        AddCard(Strings.FullBackup, Strings.FullBackupHint, new ButtonRow(backup, restore));
+
         // Statistics (user decision 1.1): counts only, kept in user.db.
         AddSection(Strings.SectionStats);
         var usage = _app.Learning.Usage;
@@ -1028,6 +1036,74 @@ internal sealed class SettingsWindow : Form
         };
 
         AddCard(Strings.ImportExport, hint ?? Strings.ImportExportListHint, new ButtonRow(import, export));
+    }
+
+    private void SaveFullBackup()
+    {
+        using var dialog = new SaveFileDialog
+        {
+            Filter = Strings.BackupFileFilter,
+            FileName = string.Format(CultureInfo.CurrentCulture, Strings.BackupFileName, DateTime.Now),
+        };
+        if (dialog.ShowDialog(this) != DialogResult.OK)
+        {
+            return;
+        }
+
+        try
+        {
+            _app.Learning.Flush();
+            using (var file = File.Create(dialog.FileName))
+            {
+                FullBackup.Write(file, _app.Settings, _app.Learning);
+            }
+
+            ShowInfo(Strings.BackupDone);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            ShowInfo(Strings.FileError);
+        }
+    }
+
+    // Replaces everything with the backup's content, after a confirmation (user decision). Start with
+    // Windows and on/off stay as they are on this PC.
+    private void RestoreFullBackup()
+    {
+        using var dialog = new OpenFileDialog { Filter = Strings.BackupFileFilter };
+        if (dialog.ShowDialog(this) != DialogResult.OK)
+        {
+            return;
+        }
+
+        BackupContent? content;
+        try
+        {
+            using var file = File.OpenRead(dialog.FileName);
+            content = FullBackup.Read(file);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            ShowInfo(Strings.FileError);
+            return;
+        }
+
+        if (content is null)
+        {
+            ShowInfo(Strings.NotABackup);
+            return;
+        }
+
+        if (!Confirm(Strings.ConfirmRestoreBackup, null))
+        {
+            return;
+        }
+
+        FullBackup.RestoreLearning(content, _app.Learning);
+        var current = _app.Settings;
+        _app.UpdateSettings(content.Settings with { StartWithWindows = current.StartWithWindows, Enabled = current.Enabled });
+        ShowInfo(Strings.RestoreDone);
+        BeginInvoke(RebuildPage);
     }
 
     private void ShowInfo(string text)

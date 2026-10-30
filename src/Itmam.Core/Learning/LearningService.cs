@@ -137,6 +137,17 @@ public sealed partial class LearningService : IDisposable
         }
     }
 
+    /// <summary>The statistics from a full backup.</summary>
+    public void RestoreUsage(UsageStats usage)
+    {
+        lock (_lock)
+        {
+            _usage = usage;
+            _usageChanged = true;
+            _saveTimer.Change(_options.SaveDelay, Timeout.InfiniteTimeSpan);
+        }
+    }
+
     /// <summary>Starts the statistics again from now.</summary>
     public void ResetUsage()
     {
@@ -318,7 +329,7 @@ public sealed partial class LearningService : IDisposable
 
                 var blocked = line[0] == '!';
                 var parts = (blocked ? line[1..] : line).Split(['\t', ' '], 2, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                var count = 1;
+                var count = blocked ? 0 : 1; // a blocked word was not used, only blocked
                 if (parts.Length == 0
                     || UserWordIndex.Clean(parts[0]) is not { } clean
                     || (parts.Length == 2 && (!int.TryParse(parts[1], NumberStyles.None, CultureInfo.InvariantCulture, out count) || count < 1)))

@@ -261,4 +261,15 @@
   <data name="StatsSince" xml:space="preserve"><value>منذ {0:d}. لا يُحفظ إلا هذان الرقمان، لا شيء مما تكتبه.</value></data>
   <data name="ResetStatsButton" xml:space="preserve"><value>تصفير</value></data>
   <data name="ConfirmResetStats" xml:space="preserve"><value>تصفير الإحصاءات؟</value></data>
+  <data name="SectionBackup" xml:space="preserve"><value>النسخ الاحتياطي</value></data>
+  <data name="FullBackup" xml:space="preserve"><value>نسخة احتياطية شاملة</value></data>
+  <data name="FullBackupHint" xml:space="preserve"><value>ملف واحد فيه كلماتك، وعباراتك، والاختصارات النصية، والعبارات الطويلة، والإعدادات، والإحصاءات، لنقل إتمام إلى جهاز آخر. الاستعادة تستبدل كل ما هنا.</value></data>
+  <data name="BackupButton" xml:space="preserve"><value>نسخ احتياطي…</value></data>
+  <data name="RestoreBackupButton" xml:space="preserve"><value>استعادة…</value></data>
+  <data name="BackupFileFilter" xml:space="preserve"><value>نسخة إتمام الاحتياطية (*.itmam)|*.itmam</value></data>
+  <data name="BackupFileName" xml:space="preserve"><value>نسخة إتمام {0:yyyy-MM-dd}.itmam</value></data>
+  <data name="BackupDone" xml:space="preserve"><value>حُفظت النسخة الاحتياطية.</value></data>
+  <data name="NotABackup" xml:space="preserve"><value>هذا الملف ليس نسخة احتياطية لإتمام.</value></data>
+  <data name="ConfirmRestoreBackup" xml:space="preserve"><value>استبدال كل كلماتك وعباراتك واختصاراتك وعباراتك الطويلة وإعداداتك على هذا الجهاز بما في النسخة؟ لا يمكن التراجع عن ذلك.</value></data>
+  <data name="RestoreDone" xml:space="preserve"><value>استُعيدت النسخة الاحتياطية.</value></data>
 </root>

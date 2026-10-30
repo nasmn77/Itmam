@@ -261,4 +261,15 @@
   <data name="StatsSince" xml:space="preserve"><value>Since {0:d}. Only these numbers are kept, never what you type.</value></data>
   <data name="ResetStatsButton" xml:space="preserve"><value>Reset</value></data>
   <data name="ConfirmResetStats" xml:space="preserve"><value>Reset the statistics to zero?</value></data>
+  <data name="SectionBackup" xml:space="preserve"><value>Backup</value></data>
+  <data name="FullBackup" xml:space="preserve"><value>Full backup</value></data>
+  <data name="FullBackupHint" xml:space="preserve"><value>One file with your words, phrases, text shortcuts, long phrases, settings and statistics, to move Itmam to another PC. Restoring replaces everything here.</value></data>
+  <data name="BackupButton" xml:space="preserve"><value>Back up…</value></data>
+  <data name="RestoreBackupButton" xml:space="preserve"><value>Restore…</value></data>
+  <data name="BackupFileFilter" xml:space="preserve"><value>Itmam backup (*.itmam)|*.itmam</value></data>
+  <data name="BackupFileName" xml:space="preserve"><value>Itmam backup {0:yyyy-MM-dd}.itmam</value></data>
+  <data name="BackupDone" xml:space="preserve"><value>The backup was saved.</value></data>
+  <data name="NotABackup" xml:space="preserve"><value>This file is not an Itmam backup.</value></data>
+  <data name="ConfirmRestoreBackup" xml:space="preserve"><value>Replace all your words, phrases, shortcuts, long phrases and settings on this PC with the backup? This cannot be undone.</value></data>
+  <data name="RestoreDone" xml:space="preserve"><value>The backup was restored.</value></data>
 </root>
