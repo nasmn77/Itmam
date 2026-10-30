@@ -509,7 +509,7 @@ internal sealed class SettingsWindow : Form
         AddCard(Strings.ResetShortcuts, Strings.ResetShortcutsHint, reset);
     }
 
-    private void AddHotkeyCard(HotkeyAction action, string title, string? hint)
+    private void AddHotkeyCard(HotkeyAction action, string title, string? hint, Action? changed = null)
     {
         var box = new HotkeyBox { Hotkey = HotkeyRules.Get(_app.Settings.Hotkeys, action), RecordingText = Strings.ShortcutRecording };
         var card = AddCard(title, hint, box);
@@ -522,6 +522,7 @@ internal sealed class SettingsWindow : Form
                 Update(s => s with { Hotkeys = HotkeyRules.With(s.Hotkeys, action, hotkey) });
                 box.Hotkey = hotkey;
                 card.SetDescription(hint);
+                changed?.Invoke();
             }
             else
             {
@@ -1234,6 +1235,9 @@ internal sealed class SettingsWindow : Form
         var shortcut = "\u202A" + HotkeyNames.Format(_app.Settings.Hotkeys.OpenLongPhrases) + "\u202C";
         AddTitle(Strings.NavLongPhrases);
         AddText(string.Format(CultureInfo.CurrentCulture, Strings.LongPhrasesIntro, shortcut), secondary: true);
+
+        // The same shortcut as on the Shortcuts page, here too (user decision); the intro names it.
+        AddHotkeyCard(HotkeyAction.OpenLongPhrases, Strings.ShortcutLongPhrases, Strings.ShortcutLongPhrasesHint, () => BeginInvoke(RebuildPage));
 
         var add = new ThemedButton { Text = Strings.AddWordButton };
         add.Click += (_, _) => EditLongPhrase(null);
