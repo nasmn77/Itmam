@@ -44,6 +44,10 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 
 **كلمات البحث** (7 على الأكثر): اتمام · اكمال الكلمات · اقتراح الكلمات · لوحة المفاتيح العربية · الكتابة بالعربي · التنبؤ بالنص · الكتابة التنبؤية
 
+**ما الجديد في 1.1.1:**
+
+- رابط موقع إتمام في صفحة «حول».
+
 **ما الجديد في 1.1** (حقل «What's new in this version»):
 
 - قاموس أكبر بنحو 880 ألف كلمة، يضم القاموس الأساسي ومفردات ويكيبيديا العربية للكتابة الرسمية (والأساسي متاح من الإعدادات ← «عام»).
@@ -99,6 +103,10 @@ Your privacy first: Itmam itself never connects to the internet and never saves 
 - Arabic and English interface; open source (MIT)
 
 **Search terms** (7 max): Arabic keyboard · Arabic word prediction · Arabic autocomplete · predictive text · word suggestions · Arabic typing · اتمام
+
+**What's new in 1.1.1:**
+
+- A link to the Itmam website on the About page.
 
 **What's new in 1.1** ("What's new in this version" field):
 

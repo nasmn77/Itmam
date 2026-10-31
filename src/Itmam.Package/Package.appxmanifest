@@ -14,7 +14,7 @@
   <Identity
     Name="NasserAlmadi.563063310BE3D"
     Publisher="CN=9260B530-9E02-440E-8E99-B74323B1CE93"
-    Version="1.1.0.0" />
+    Version="1.1.1.0" />
 
   <Properties>
     <DisplayName>ms-resource:AppName</DisplayName>
