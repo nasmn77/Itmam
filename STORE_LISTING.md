@@ -18,7 +18,7 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 
 ويوفّر عليك الكتابة المتكررة: يكمل العبارات المعروفة، ويحوّل اختصاراتك إلى نصوص كاملة، ويدرج ردودًا طويلة من عدة أسطر، مثل ردود الدعم الفني، بضغطة اختصار.
 
-خصوصيتك أولًا: إتمام نفسه لا يتصل بالإنترنت، ولا يحفظ ما تكتبه. لا يُحفظ إلا الكلمة وعدد مرات استعمالها، والعبارات القصيرة التي تكررها، على جهازك فقط. ولا يعمل في حقول كلمات المرور ولا في التطبيقات التي تستثنيها. والشيفرة المصدرية مفتوحة للمراجعة على GitHub.
+خصوصيتك أولًا. لا يرسل إتمام أي بيانات: لا إحصاءات ولا تقارير أعطال. الاتصال الوحيد سؤال متجر Microsoft عن التحديثات، ويمكن إيقافه. ولا يحفظ نصوصك: يحفظ الكلمات والعبارات القصيرة التي تكررها مع عدد مرات استعمالها فقط، على جهازك. ولا يعمل في حقول كلمات المرور ولا في التطبيقات التي تستثنيها. والشيفرة المصدرية مفتوحة للمراجعة على GitHub.
 
 **المزايا** (حتى 20 بندًا):
 - اقتراحات فورية أثناء الكتابة في أي برنامج
@@ -79,7 +79,7 @@ It works in Notepad, Word, browsers and most apps, with an Arabic dictionary of 
 
 It also saves you repeated typing: it completes well-known phrases, turns your shortcuts into full text, and inserts long replies of several lines, such as support answers, with one shortcut.
 
-Your privacy first: Itmam itself never connects to the internet and never saves what you type. Only each word and how many times you used it, and the short phrases you repeat, are kept, on your device. It does nothing in password fields or in apps you exclude. The source code is open for review on GitHub.
+Your privacy first. Itmam sends no data: no statistics, no crash reports. Its only connection is asking Microsoft Store about updates, and it can be turned off. Your text is not saved: only the words and short phrases you repeat, with how many times you used them, on your PC. It does nothing in password fields or in apps you exclude. The source code is open for review on GitHub.
 
 **Features** (up to 20):
 - Instant suggestions as you type, in any app

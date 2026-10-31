@@ -4,7 +4,7 @@
 
 **Itmam** suggests Arabic words as you type on your physical keyboard, in any Windows app, like the suggestions on a phone: a small bar above the caret shows the closest words to what you started typing, and one key inserts the one you want.
 
-It works fully offline, learns your own words, and never saves what you type.
+It sends no data, learns your own words, and never saves your text.
 
 Website: https://nasmn77.github.io/Itmam/en/ · Repository: https://github.com/nasmn77/Itmam · User guide (PDF): https://nasmn77.github.io/Itmam/assets/guide/itmam-guide-en.pdf
 
@@ -68,7 +68,7 @@ Itmam has no main window and no taskbar button; it runs from an icon next to the
 
 ## Privacy
 
-- Itmam itself never connects to the internet: no statistics, no crash reports. It only asks Microsoft Store about updates at start-up, which can be turned off in Settings → "Updates".
+- Itmam sends no data: no statistics, no crash reports. Its only connection is asking Microsoft Store about updates, and it can be turned off in Settings → "Updates".
 - For each word only the word, how many times it was used and when are kept, in a file on your device. No sentences.
 - To learn phrases, short sequences (2 to 5 words) are kept with their counts; one not typed twice is deleted after 30 days. This can be turned off in Settings.
 - Nothing is read or learned in password fields or excluded apps.

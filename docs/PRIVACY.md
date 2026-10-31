@@ -8,7 +8,7 @@
 
 **تاريخ السريان:** الإصدار 1.1 (29 أكتوبر 2026)
 
-**إتمام نفسه لا يتصل بالإنترنت.** لا يرسل أي بيانات إلى أي جهة، ولا يجمع إحصاءات استخدام، ولا يرفع تقارير الأعطال. كل ما يفعله بما تكتبه يبقى على جهازك. الاستثناء الوحيد سؤال متجر Microsoft عن التحديثات (انظر «التحقق من التحديثات» أدناه).
+**لا يرسل إتمام أي بيانات.** لا يجمع إحصاءات استخدام، ولا يرفع تقارير الأعطال، وكل ما يفعله بما تكتبه يبقى على جهازك. والاتصال الوحيد سؤال متجر Microsoft عن التحديثات، ويمكن إيقافه (انظر «التحقق من التحديثات» أدناه).
 
 ### ما الذي يقرؤه التطبيق
 
@@ -19,7 +19,7 @@
 
 ### ما الذي لا يفعله
 
-- لا يحفظ ما تكتبه، ولا يكتب أي حرف تكتبه في أي سجل. ولا يُحفظ من ترتيب الكلمات إلا التسلسلات القصيرة الموصوفة في «العبارات المتعلَّمة» أدناه، ويمكنك إيقاف ذلك.
+- لا يحفظ نصوصك، ولا يكتب أي حرف تكتبه في أي سجل. ولا يُحفظ من ترتيب الكلمات إلا التسلسلات القصيرة الموصوفة في «العبارات المتعلَّمة» أدناه، ويمكنك إيقاف ذلك.
 - لا يعمل إطلاقًا ولا يقرأ أي نص في: حقول كلمات المرور، والتطبيقات المستثناة، والتطبيقات التي تعمل بصلاحيات المسؤول، والألعاب والعروض بملء الشاشة.
 - لا يشارك أي بيانات مع أي طرف، ولا يعرض إعلانات.
 
@@ -59,7 +59,7 @@
 
 **Effective date:** version 1.1 (October 29, 2026)
 
-**Itmam itself never connects to the internet.** It sends no data to anyone, collects no usage statistics and does not upload crash reports. Everything it does with what you type stays on your device. The only exception is asking Microsoft Store about updates (see "Update check" below).
+**Itmam sends no data.** It collects no usage statistics, uploads no crash reports, and everything it does with what you type stays on your device. Its only connection is asking Microsoft Store about updates, and it can be turned off (see "Update check" below).
 
 ### What the app reads
 
@@ -70,7 +70,7 @@
 
 ### What it does not do
 
-- It does not save what you type and never writes any typed character to a log. Word order is kept only in the short sequences described under "Learned phrases" below, and you can turn that off.
+- It does not save your text and never writes any typed character to a log. Word order is kept only in the short sequences described under "Learned phrases" below, and you can turn that off.
 - It does nothing and reads no text in password fields, excluded apps, apps running as administrator, or full-screen games and presentations.
 - It shares no data with anyone and shows no ads.
 

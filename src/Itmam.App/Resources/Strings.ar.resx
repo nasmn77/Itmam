@@ -35,7 +35,7 @@
   <data name="AboutDictionary" xml:space="preserve"><value>القاموس: {0:N0} كلمة</value></data>
   <data name="AboutLearned" xml:space="preserve"><value>كلماتك: {0:N0}</value></data>
   <data name="AboutSources" xml:space="preserve"><value>المصادر</value></data>
-  <data name="AboutPrivacy" xml:space="preserve"><value>إتمام يعمل دون اتصال: لا يغادر جهازك شيء مما تكتبه.</value></data>
+  <data name="AboutPrivacy" xml:space="preserve"><value>لا يغادر جهازك شيء مما تكتبه. الاتصال الوحيد سؤال متجر Microsoft عن التحديثات، ويمكن إيقافه.</value></data>
   <data name="AboutPrivacyLink" xml:space="preserve"><value>سياسة الخصوصية</value></data>
   <data name="LanguageArabic" xml:space="preserve"><value>العربية</value></data>
   <data name="LanguageEnglish" xml:space="preserve"><value>English</value></data>
