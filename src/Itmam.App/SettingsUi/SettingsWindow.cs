@@ -279,6 +279,17 @@ internal sealed class SettingsWindow : Form
         var settings = _app.Settings;
         AddTitle(Strings.NavGeneral);
 
+        // User guide (user decision 1.1.1): a PDF shipped in the package, in the interface language.
+        var guide = new ThemedButton { Text = Strings.OpenButton };
+        guide.Click += (_, _) =>
+        {
+            if (!UserGuide.Open(_app.Settings.Language))
+            {
+                ShowInfo(Strings.GuideUnavailable);
+            }
+        };
+        AddCard(Strings.UserGuide, Strings.UserGuideHint, guide);
+
         AddSection(Strings.SectionStartup);
         var startup = new ToggleSwitch();
         AddCard(Strings.StartWithWindows, Strings.StartWithWindowsHint, startup);

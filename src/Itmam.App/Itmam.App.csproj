@@ -34,6 +34,8 @@
     <None Include="..\..\data\blocklist.txt" Link="blocklist.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\data\phrases.txt" Link="phrases.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\data\corrections.txt" Link="corrections.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\docs\guide\itmam-guide-ar.pdf" Link="guide\itmam-guide-ar.pdf" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\docs\guide\itmam-guide-en.pdf" Link="guide\itmam-guide-en.pdf" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

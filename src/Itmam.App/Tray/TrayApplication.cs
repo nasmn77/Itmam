@@ -29,6 +29,7 @@ internal sealed class TrayApplication : ApplicationContext
     private readonly ToolStripMenuItem _excludeApp = new();
     private readonly ToolStripMenuItem _settingsItem = new();
     private readonly ToolStripMenuItem _aboutItem = new();
+    private readonly ToolStripMenuItem _guideItem = new();
     private readonly ToolStripMenuItem _exitItem = new();
     private readonly System.Windows.Forms.Timer _pauseTimer = new() { Interval = 15_000 };
     private readonly Icon _iconOn;
@@ -60,9 +61,10 @@ internal sealed class TrayApplication : ApplicationContext
         _settingsItem.Font = new Font(_menu.Font, FontStyle.Bold);
         _settingsItem.Click += (_, _) => ShowSettings(SettingsPage.General);
         _aboutItem.Click += (_, _) => ShowSettings(SettingsPage.About);
+        _guideItem.Click += (_, _) => OpenGuide();
         _exitItem.Click += (_, _) => ConfirmAndExit();
 
-        _menu.Items.AddRange([_enabled, _pause, _excludeApp, new ToolStripSeparator(), _settingsItem, _aboutItem]);
+        _menu.Items.AddRange([_enabled, _pause, _excludeApp, new ToolStripSeparator(), _settingsItem, _guideItem, _aboutItem]);
 #if DEBUG
         _diagnosticsItem.Click += (_, _) => ShowDiagnostics();
         _menu.Items.Add(_diagnosticsItem);
@@ -136,6 +138,14 @@ internal sealed class TrayApplication : ApplicationContext
             }
         };
         delay.Start();
+    }
+
+    private void OpenGuide()
+    {
+        if (!UserGuide.Open(_app.Settings.Language))
+        {
+            ShowNotification(Strings.UserGuide, Strings.GuideUnavailable, null);
+        }
     }
 
     private void ShowNotification(string title, string text, Action? onClick)
@@ -284,6 +294,7 @@ internal sealed class TrayApplication : ApplicationContext
         _menu.RightToLeft = _app.Settings.Language == UiLanguage.Arabic ? RightToLeft.Yes : RightToLeft.No;
         _settingsItem.Text = Strings.MenuSettings;
         _aboutItem.Text = Strings.MenuAbout;
+        _guideItem.Text = Strings.MenuGuide;
         _exitItem.Text = Strings.MenuExit;
 #if DEBUG
         _diagnosticsItem.Text = Strings.MenuDiagnostics;

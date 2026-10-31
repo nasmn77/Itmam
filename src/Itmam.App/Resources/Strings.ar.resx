@@ -278,4 +278,8 @@
   <data name="DictionaryChoiceHint" xml:space="preserve"><value>«الأساسي»: أكثر من 500 ألف كلمة من لغة الاستعمال اليومي. «ويكيبيديا»: نحو 880 ألف كلمة، يضم القاموس الأساسي كاملًا ويضيف إليه مفردات ويكيبيديا العربية، فيحسّن الاقتراحات في الكتابة الرسمية والمصطلحات، ويستهلك ذاكرة أكثر قليلًا.</value></data>
   <data name="DictionaryBasic" xml:space="preserve"><value>الأساسي</value></data>
   <data name="DictionaryWikipedia" xml:space="preserve"><value>ويكيبيديا</value></data>
+  <data name="MenuGuide" xml:space="preserve"><value>دليل الاستخدام</value></data>
+  <data name="UserGuide" xml:space="preserve"><value>دليل الاستخدام</value></data>
+  <data name="UserGuideHint" xml:space="preserve"><value>شرح كامل لإتمام بالصور: الكتابة مع الاقتراحات، والعبارات والاختصارات، وكل صفحة من الإعدادات (ملف PDF على جهازك).</value></data>
+  <data name="GuideUnavailable" xml:space="preserve"><value>تعذّر فتح دليل الاستخدام. تحتاج برنامجًا يفتح ملفات PDF، مثل Microsoft Edge.</value></data>
 </root>
