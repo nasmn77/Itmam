@@ -44,6 +44,11 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 
 **كلمات البحث** (7 على الأكثر): اتمام · اكمال الكلمات · اقتراح الكلمات · لوحة المفاتيح العربية · الكتابة بالعربي · التنبؤ بالنص · الكتابة التنبؤية
 
+**ما الجديد في 1.1.2:**
+
+- توضيح عبارات الخصوصية في صفحة «حول» ودليل الاستخدام: لا يرسل إتمام أي بيانات، والاتصال الوحيد سؤال المتجر عن التحديثات.
+- دليل الاستخدام: قسم البلاغات عن المشكلات.
+
 **ما الجديد في 1.1.1:**
 
 - دليل استخدام كامل بالصور (PDF) بالعربية والإنجليزية: من الإعدادات ← «عام»، أو من قائمة الأيقونة.
@@ -104,6 +109,11 @@ Your privacy first. Itmam sends no data: no statistics, no crash reports. Its on
 - Arabic and English interface; open source (MIT)
 
 **Search terms** (7 max): Arabic keyboard · Arabic word prediction · Arabic autocomplete · predictive text · word suggestions · Arabic typing · اتمام
+
+**What's new in 1.1.2:**
+
+- Clearer privacy wording on the About page and in the user guide: Itmam sends no data; its only connection is the Store update check.
+- User guide: where to report problems.
 
 **What's new in 1.1.1:**
 
