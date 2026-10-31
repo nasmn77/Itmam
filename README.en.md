@@ -6,11 +6,11 @@
 
 It works fully offline, learns your own words, and never saves what you type.
 
-Website: https://nasmn77.github.io/Itmam/en/ · Repository: https://github.com/nasmn77/Itmam
+Website: https://nasmn77.github.io/Itmam/en/ · Repository: https://github.com/nasmn77/Itmam · User guide (PDF): https://nasmn77.github.io/Itmam/assets/guide/itmam-guide-en.pdf
 
 ## Features
 
-- **Instant suggestions** in Notepad, Word, browsers and most apps, from an Arabic dictionary of more than 500,000 words.
+- **Instant suggestions** in Notepad, Word, browsers and most apps, from an Arabic dictionary of about 880,000 words (or the lighter basic one, more than 500,000).
 - **Learns your words:** a word you use twice becomes a suggestion, and the words you use most come first.
 - **Understands Arabic writing:** «احمد» finds «أحمد», «ان» suggests «أن», «إن» and «أنا», and the article «ال» and attached prepositions and conjunctions are handled.
 - **A bar that looks like Windows 11's own**, following light or dark mode, with the colors, size and opacity you choose.
