@@ -49,6 +49,7 @@
   <data name="SectionOpenSource" xml:space="preserve"><value>Open source</value></data>
   <data name="AboutOpenSource" xml:space="preserve"><value>Itmam is free and open source under the MIT license.</value></data>
   <data name="AboutSourceCode" xml:space="preserve"><value>Source code on GitHub</value></data>
+  <data name="AboutWebsite" xml:space="preserve"><value>Itmam website</value></data>
   <data name="NavAppearance" xml:space="preserve"><value>Appearance</value></data>
   <data name="SectionTheme" xml:space="preserve"><value>Theme</value></data>
   <data name="ThemeLabel" xml:space="preserve"><value>Theme of the bar and this window</value></data>

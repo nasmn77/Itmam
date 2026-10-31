@@ -38,6 +38,8 @@ internal sealed class SettingsWindow : Form
 {
     private const string RepositoryUrl = "https://github.com/nasmn77/Itmam";
     // The website's policy, the same one registered in Partner Center; English for the English interface.
+    private const string WebsiteUrl = "https://nasmn77.github.io/Itmam/";
+    private const string WebsiteUrlEnglish = "https://nasmn77.github.io/Itmam/en/";
     private const string PrivacyUrl = "https://nasmn77.github.io/Itmam/privacy.html";
     private const string PrivacyUrlEnglish = "https://nasmn77.github.io/Itmam/en/privacy.html";
     private const string DeveloperEmail = "nasmn77@gmail.com";
@@ -1463,6 +1465,7 @@ internal sealed class SettingsWindow : Form
         AddText(Strings.AboutTagline, secondary: false);
         AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutDictionary, _app.Dictionary.Count), secondary: false);
         AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutLearned, _app.UserWords.Count), secondary: false);
+        AddLink(Strings.AboutWebsite, _app.Settings.Language == UiLanguage.Arabic ? WebsiteUrl : WebsiteUrlEnglish);
 
         AddSection(Strings.SectionDeveloper);
         AddText(Strings.DeveloperName, secondary: false);

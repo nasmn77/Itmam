@@ -49,6 +49,7 @@
   <data name="SectionOpenSource" xml:space="preserve"><value>مفتوح المصدر</value></data>
   <data name="AboutOpenSource" xml:space="preserve"><value>إتمام برنامج مجاني ومفتوح المصدر برخصة MIT.</value></data>
   <data name="AboutSourceCode" xml:space="preserve"><value>الشيفرة المصدرية على GitHub</value></data>
+  <data name="AboutWebsite" xml:space="preserve"><value>موقع إتمام</value></data>
   <data name="NavAppearance" xml:space="preserve"><value>المظهر</value></data>
   <data name="SectionTheme" xml:space="preserve"><value>السمة</value></data>
   <data name="ThemeLabel" xml:space="preserve"><value>سمة الشريط وهذه النافذة</value></data>
