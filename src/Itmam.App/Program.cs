@@ -44,12 +44,21 @@ internal static class Program
         {
             var english = args.Contains("en");
             UiCulture.Apply(english ? UiLanguage.English : UiLanguage.Arabic);
-            Core.Suggestions.LongPhrase[] samples =
-            [
-                new("ترحيب بالعميل", "عزيزي العميل،\nشكرًا لتواصلك مع الدعم الفني.\nكيف يمكننا مساعدتك؟"),
-                new("إغلاق التذكرة", "تم حل المشكلة وإغلاق التذكرة.\nلا تتردد في التواصل معنا.\nمع التحية"),
-                new("طلب رقم الطلب", "نرجو تزويدنا برقم الطلب لنتابع حالته."),
-            ];
+            Core.Suggestions.LongPhrase[] samples = english
+                ?
+                [
+                    new("Welcome", "Dear customer,\nThank you for contacting technical support.\nHow can we help you?"),
+                    new("Password reset", "To reset your password:\n1. Open the sign-in page and choose \"Forgot password\".\n2. Enter your email address.\n3. Follow the link we send you."),
+                    new("Ask for the order number", "Could you send us your order number so we can check its status?"),
+                    new("Close the ticket", "The issue is solved and the ticket is closed.\nDo not hesitate to contact us again.\nBest regards"),
+                ]
+                :
+                [
+                    new("ترحيب بالعميل", "عزيزي العميل،\nشكرًا لتواصلك مع الدعم الفني.\nكيف يمكننا مساعدتك؟"),
+                    new("استعادة كلمة المرور", "لاستعادة كلمة المرور:\n١. افتح صفحة الدخول واختر «نسيت كلمة المرور».\n٢. اكتب بريدك الإلكتروني.\n٣. اتبع الرابط الذي يصلك."),
+                    new("طلب رقم الطلب", "نرجو تزويدنا برقم الطلب لنتابع حالته."),
+                    new("إغلاق التذكرة", "تم حل المشكلة وإغلاق التذكرة.\nلا تتردد في التواصل معنا.\nمع التحية"),
+                ];
             using var picker = new SettingsUi.LongPhrasePicker(samples, 0, new SendInputInjector(), SettingsUi.SettingsPalette.For(ThemeChoice.System),
                 !english, new Rectangle(Screen.PrimaryScreen!.WorkingArea.Width / 2, 200, 2, 20));
             Application.Run(picker);

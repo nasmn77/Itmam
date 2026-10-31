@@ -29,6 +29,10 @@ internal sealed class ItmamApp : IDisposable
     {
         _ui = ui;
         DataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Itmam");
+#if DEBUG
+        // Screenshots with sample data, never the developer's own words and phrases (Debug builds only).
+        DataFolder = Environment.GetEnvironmentVariable("ITMAM_DEMO_DATA") is { Length: > 0 } demo ? demo : DataFolder;
+#endif
         _settingsStore = new SettingsStore(Path.Combine(DataFolder, "settings.json"));
         Settings = _settingsStore.Load();
 
