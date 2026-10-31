@@ -1,0 +1,39 @@
+name: بلاغ عن مشكلة · Bug report
+description: شيء لا يعمل كما يجب في إتمام · Something in Itmam does not work as it should
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        شكرًا لبلاغك. **لا تلصق نصوصًا خاصة** (رسائل، كلمات مرور، بيانات عملاء): صف المشكلة بكلمات عامة.
+        Thank you. **Do not paste private text** (messages, passwords, customer data): describe the problem in general words.
+  - type: textarea
+    id: what
+    attributes:
+      label: ما المشكلة؟ · What happened?
+      description: ماذا فعلت، وماذا حدث، وماذا كنت تتوقع؟ · What you did, what happened, what you expected.
+    validations:
+      required: true
+  - type: input
+    id: app
+    attributes:
+      label: في أي برنامج؟ · In which app?
+      placeholder: Word، Chrome، WhatsApp Web، المفكرة…
+  - type: input
+    id: version
+    attributes:
+      label: إصدار إتمام · Itmam version
+      description: من الإعدادات ← «حول» · Settings → About
+      placeholder: 1.1.1
+  - type: dropdown
+    id: windows
+    attributes:
+      label: Windows
+      options:
+        - Windows 11
+        - Windows 10
+  - type: textarea
+    id: more
+    attributes:
+      label: صورة أو تفاصيل أخرى · Screenshot or other details
+      description: يمكنك سحب صورة إلى هنا · You can drag an image here.

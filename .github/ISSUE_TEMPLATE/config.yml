@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: دليل الاستخدام · User guide
+    url: https://nasmn77.github.io/Itmam/assets/guide/itmam-guide-ar.pdf
+    about: قبل البلاغ، قد تجد الحل في فصل «حل المشكلات» · The troubleshooting chapter may already have the answer.
+  - name: البريد · Email
+    url: mailto:nasmn77@gmail.com
+    about: لما لا تريد نشره علنًا · For anything you would rather not post publicly.
