@@ -14,7 +14,11 @@
 |---|---|---|---|
 | `frequencywords` | [FrequencyWords](https://github.com/hermitdave/FrequencyWords) من Hermit Dave: عدد مرات ورود الكلمات في مدوّنة ترجمات OpenSubtitles لعام 2018 ([OPUS](https://opus.nlpl.eu/OpenSubtitles/corpus/version/OpenSubtitles))، الملف `content/2018/ar/ar_full.txt`. عربية المحادثة والاستعمال اليومي. | المحتوى: [CC-BY-SA-4.0](https://creativecommons.org/licenses/by-sa/4.0/) (الشيفرة: MIT) | الـ commit ‏`525f9b560de45753a5ea01069454e72e9aa541c6`، وبصمة SHA-256 ‏`EBB36AEAE78E609ADC552B32EC91FF2490E1170F8B244D22EEF9952D2096D610` |
 
-مخطَّط لاحقًا: تكرار الكلمات في ويكيبيديا العربية (CC-BY-SA-4.0) لمفردات الفصحى، بعد اكتمال النسخة الأولى.
+القاموس الاختياري `itmam-ar-wikipedia.dict` (لا يُضمَّن في التطبيق، بل يُحمَّل حين يطلبه المستخدم) يضيف المصدر:
+
+| الاسم | المصدر | الرخصة | التثبيت |
+|---|---|---|---|
+| `wikipedia` | نصوص مقالات [ويكيبيديا العربية](https://dumps.wikimedia.org/arwiki/) من ملف النسخ `arwiki-latest-pages-articles.xml.bz2` (نسخة 2026-10-01)، عُدّت كلماتها بالأداة `tools/DictionaryBuilder/wiki-counts.py`. مفردات الفصحى والمصطلحات. | [CC-BY-SA-4.0](https://creativecommons.org/licenses/by-sa/4.0/) | الملف الناتج مثبَّت ببصمة SHA-256 وحجم في `src/Itmam.App/WikipediaDictionary.cs` |
 
 **ملف القاموس `itmam-ar.dict` عمل مشتق من هذه المصادر، ويُوزَّع برخصة CC-BY-SA-4.0** مستقلًا عن الشيفرة المرخّصة بـ MIT. انظر `THIRD_PARTY_NOTICES.md`.
 
@@ -31,6 +35,14 @@ dotnet run --project tools/DictionaryBuilder -c Release -- `
     --drop-bare-alef-variants `
     --blocklist data/blocklist.txt `
     --output data/itmam-ar.dict
+# 3. Optional Wikipedia dictionary (published as a GitHub release asset, not shipped).
+python -I tools/DictionaryBuilder/wiki-counts.py <arwiki-...-pages-articles.xml.bz2> <wikipedia-ar.txt> --min-count 3
+dotnet run --project tools/DictionaryBuilder -c Release -- `
+    --source frequencywords=data/raw/frequencywords-ar_full.txt --min-count frequencywords=3 `
+    --source wikipedia=<wikipedia-ar.txt> --min-count wikipedia=5 `
+    --drop-bare-alef-variants `
+    --blocklist data/blocklist.txt `
+    --output itmam-ar-wikipedia.dict
 ```
 
 الخطوة الأولى تنزّل المصادر المثبَّتة إلى `data/raw/` (مستبعد من git)، وهي الخطوة الوحيدة التي تتصل بالشبكة. والثانية تبني القاموس دون اتصال.
@@ -84,7 +96,11 @@ and frequency comes from a real corpus listed below. Nothing here is invented.
 |---|---|---|---|
 | `frequencywords` | [FrequencyWords](https://github.com/hermitdave/FrequencyWords) by Hermit Dave: word counts from the OpenSubtitles 2018 corpus ([OPUS](https://opus.nlpl.eu/OpenSubtitles/corpus/version/OpenSubtitles)), file `content/2018/ar/ar_full.txt`. Conversational / everyday Arabic. | Content: [CC-BY-SA-4.0](https://creativecommons.org/licenses/by-sa/4.0/) (code: MIT) | commit `525f9b560de45753a5ea01069454e72e9aa541c6`, SHA-256 `EBB36AEAE78E609ADC552B32EC91FF2490E1170F8B244D22EEF9952D2096D610` |
 
-Planned: Arabic Wikipedia word counts (CC-BY-SA-4.0) for formal vocabulary, added after the MVP.
+The optional dictionary `itmam-ar-wikipedia.dict` (not shipped; downloaded when the user asks for it) adds:
+
+| Name | Source | License | Pinned |
+|---|---|---|---|
+| `wikipedia` | The article text of [Arabic Wikipedia](https://dumps.wikimedia.org/arwiki/) from the dump `arwiki-latest-pages-articles.xml.bz2` (dated 2026-10-01), counted with `tools/DictionaryBuilder/wiki-counts.py`. Formal vocabulary and terms. | [CC-BY-SA-4.0](https://creativecommons.org/licenses/by-sa/4.0/) | the built file is pinned by SHA-256 and size in `src/Itmam.App/WikipediaDictionary.cs` |
 
 **The dictionary file `itmam-ar.dict` is a derived work of these sources and is distributed under
 CC-BY-SA-4.0**, separately from the MIT-licensed code. See `THIRD_PARTY_NOTICES.md`.
@@ -102,6 +118,14 @@ dotnet run --project tools/DictionaryBuilder -c Release -- `
     --drop-bare-alef-variants `
     --blocklist data/blocklist.txt `
     --output data/itmam-ar.dict
+# 3. Optional Wikipedia dictionary (published as a GitHub release asset, not shipped).
+python -I tools/DictionaryBuilder/wiki-counts.py <arwiki-...-pages-articles.xml.bz2> <wikipedia-ar.txt> --min-count 3
+dotnet run --project tools/DictionaryBuilder -c Release -- `
+    --source frequencywords=data/raw/frequencywords-ar_full.txt --min-count frequencywords=3 `
+    --source wikipedia=<wikipedia-ar.txt> --min-count wikipedia=5 `
+    --drop-bare-alef-variants `
+    --blocklist data/blocklist.txt `
+    --output itmam-ar-wikipedia.dict
 ```
 
 Options: `--source <name>=<path>` (repeatable; the name must be a known source with attribution),

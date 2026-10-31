@@ -19,10 +19,10 @@ internal static class WikipediaDictionary
     public const string Url = "https://github.com/nasmn77/Itmam/releases/download/dictionary-wikipedia-1/itmam-ar-wikipedia.dict";
 
     /// <summary>Expected SHA-256 of the file (hex); empty until the dictionary is published.</summary>
-    public const string Sha256 = "";
+    public const string Sha256 = "F27DDA554804A260DA08F51DC785F4D11A8D38EDBDAE6E91F06461C0B9E73FD2";
 
     /// <summary>Expected size in bytes (shown before downloading).</summary>
-    public const long Size = 0;
+    public const long Size = 2_968_954;
 
     private const string FileName = "itmam-ar-wikipedia.dict";
 

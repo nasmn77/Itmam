@@ -20,6 +20,10 @@ var knownSources = new Dictionary<string, DictionarySource>(StringComparer.Ordin
         "FrequencyWords (OpenSubtitles 2018) by Hermit Dave",
         "CC-BY-SA-4.0",
         "https://github.com/hermitdave/FrequencyWords"),
+    ["wikipedia"] = new(
+        "Arabic Wikipedia articles by Wikipedia contributors",
+        "CC-BY-SA-4.0",
+        "https://dumps.wikimedia.org/arwiki/"),
 };
 
 try
