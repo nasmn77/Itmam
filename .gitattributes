@@ -18,6 +18,7 @@
 # Binary files
 *.png  binary
 *.ico  binary
+*.pdf  binary
 *.jpg  binary
 *.bin  binary
 *.dat  binary
