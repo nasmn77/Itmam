@@ -46,6 +46,7 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 
 **ما الجديد في 1.1.1:**
 
+- دليل استخدام كامل بالصور (PDF) بالعربية والإنجليزية: من الإعدادات ← «عام»، أو من قائمة الأيقونة.
 - رابط موقع إتمام في صفحة «حول».
 
 **ما الجديد في 1.1** (حقل «What's new in this version»):
@@ -106,6 +107,7 @@ Your privacy first: Itmam itself never connects to the internet and never saves 
 
 **What's new in 1.1.1:**
 
+- A complete illustrated user guide (PDF) in Arabic and English: Settings → General, or the tray menu.
 - A link to the Itmam website on the About page.
 
 **What's new in 1.1** ("What's new in this version" field):
