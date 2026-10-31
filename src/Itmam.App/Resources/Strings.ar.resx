@@ -273,12 +273,8 @@
   <data name="ConfirmRestoreBackup" xml:space="preserve"><value>استبدال كل كلماتك وعباراتك واختصاراتك وعباراتك الطويلة وإعداداتك على هذا الجهاز بما في النسخة؟ لا يمكن التراجع عن ذلك.</value></data>
   <data name="RestoreDone" xml:space="preserve"><value>استُعيدت النسخة الاحتياطية.</value></data>
   <data name="SectionDictionary" xml:space="preserve"><value>القاموس</value></data>
-  <data name="WikipediaDictionary" xml:space="preserve"><value>قاموس ويكيبيديا العربية</value></data>
-  <data name="WikipediaHint" xml:space="preserve"><value>قاموس أكبر يجمع القاموس المضمّن ونصوص ويكيبيديا العربية، فيحسّن الاقتراحات في الكتابة الرسمية والمصطلحات. حجمه {0:N1} ميغابايت، ويُحمَّل مرة واحدة من GitHub حين تضغط «تحميل»، ولا يُرسل شيء عنك.</value></data>
-  <data name="WikipediaInstalled" xml:space="preserve"><value>محمَّل ومستعمل. «حذف» يعيد القاموس المضمّن.</value></data>
-  <data name="WikipediaNotYet" xml:space="preserve"><value>سيتوفر في تحديث قريب.</value></data>
-  <data name="DownloadButton" xml:space="preserve"><value>تحميل</value></data>
-  <data name="Downloading" xml:space="preserve"><value>جارٍ التحميل… {0:P0}</value></data>
-  <data name="DownloadFailed" xml:space="preserve"><value>تعذّر التحميل. تحقق من الاتصال بالإنترنت وحاول مرة أخرى.</value></data>
-  <data name="ConfirmDeleteWikipedia" xml:space="preserve"><value>حذف قاموس ويكيبيديا والعودة إلى القاموس المضمّن؟</value></data>
+  <data name="DictionaryChoice" xml:space="preserve"><value>القاموس المستعمل</value></data>
+  <data name="DictionaryChoiceHint" xml:space="preserve"><value>«الأساسي»: أكثر من 500 ألف كلمة من لغة الاستعمال اليومي. «ويكيبيديا»: نحو 880 ألف كلمة تضيف إليه مفردات ويكيبيديا العربية، فيحسّن الاقتراحات في الكتابة الرسمية والمصطلحات، ويستهلك ذاكرة أكثر قليلًا.</value></data>
+  <data name="DictionaryBasic" xml:space="preserve"><value>الأساسي</value></data>
+  <data name="DictionaryWikipedia" xml:space="preserve"><value>ويكيبيديا</value></data>
 </root>

@@ -328,46 +328,12 @@ internal sealed class SettingsWindow : Form
         language.SelectedIndexChanged += (_, _) => Update(s => s with { Language = language.SelectedIndex == 0 ? UiLanguage.Arabic : UiLanguage.English });
         AddCard(Strings.UiLanguage, null, language);
 
-        // The Wikipedia dictionary (user decision 1.1): downloaded only when the user asks for it.
+        // Two shipped dictionaries (user decision 1.1): the basic one, or the larger Wikipedia one.
         AddSection(Strings.SectionDictionary);
-        var wikipedia = new ThemedButton
-        {
-            Text = _app.UsesWikipediaDictionary ? Strings.DeleteButton : Strings.DownloadButton,
-            Enabled = _app.UsesWikipediaDictionary || WikipediaDictionary.IsPublished,
-        };
-        var wikipediaCard = AddCard(Strings.WikipediaDictionary, WikipediaHint(), wikipedia);
-        wikipedia.Click += async (_, _) =>
-        {
-            if (_app.UsesWikipediaDictionary)
-            {
-                if (Confirm(Strings.ConfirmDeleteWikipedia, null))
-                {
-                    _app.UseDictionary(null);
-                    WikipediaDictionary.Delete(_app.DataFolder);
-                    BeginInvoke(RebuildPage);
-                }
-
-                return;
-            }
-
-            wikipedia.Enabled = false;
-            wikipedia.Invalidate();
-            var progress = new Progress<double>(p => wikipediaCard.SetDescription(string.Format(CultureInfo.CurrentCulture, Strings.Downloading, p)));
-            var dictionary = await WikipediaDictionary.DownloadAsync(_app.DataFolder, progress, CancellationToken.None);
-            if (dictionary is null)
-            {
-                wikipediaCard.SetDescription(Strings.DownloadFailed);
-                wikipedia.Enabled = true;
-                wikipedia.Invalidate();
-                return;
-            }
-
-            _app.UseDictionary(dictionary);
-            if (!IsDisposed)
-            {
-                BeginInvoke(RebuildPage);
-            }
-        };
+        var dictionary = new SegmentedChoice { Options = [Strings.DictionaryBasic, Strings.DictionaryWikipedia] };
+        dictionary.SelectedIndex = settings.UseWikipediaDictionary ? 1 : 0;
+        dictionary.SelectedIndexChanged += (_, _) => Update(s => s with { UseWikipediaDictionary = dictionary.SelectedIndex == 1 });
+        AddCard(Strings.DictionaryChoice, Strings.DictionaryChoiceHint, dictionary);
 
         // Full backup (user decision 1.1): one file to move everything to another PC.
         AddSection(Strings.SectionBackup);
@@ -1078,11 +1044,6 @@ internal sealed class SettingsWindow : Form
 
         AddCard(Strings.ImportExport, hint ?? Strings.ImportExportListHint, new ButtonRow(import, export));
     }
-
-    private string WikipediaHint() =>
-        _app.UsesWikipediaDictionary ? Strings.WikipediaInstalled
-        : WikipediaDictionary.IsPublished ? string.Format(CultureInfo.CurrentCulture, Strings.WikipediaHint, WikipediaDictionary.Size / 1048576.0)
-        : Strings.WikipediaNotYet;
 
     private void SaveFullBackup()
     {

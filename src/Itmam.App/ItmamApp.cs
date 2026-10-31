@@ -32,10 +32,9 @@ internal sealed class ItmamApp : IDisposable
         _settingsStore = new SettingsStore(Path.Combine(DataFolder, "settings.json"));
         Settings = _settingsStore.Load();
 
-        // The Wikipedia dictionary, when the user downloaded it, replaces the shipped one.
-        var wikipedia = WikipediaDictionary.TryLoad(DataFolder);
-        UsesWikipediaDictionary = wikipedia is not null;
-        Dictionary = wikipedia ?? DictionaryFile.Load(ShippedDictionaryPath);
+        // Two dictionaries are shipped; the setting chooses one (user decision 1.1).
+        UsesWikipediaDictionary = Settings.UseWikipediaDictionary;
+        Dictionary = DictionaryFile.Load(DictionaryPath(UsesWikipediaDictionary));
         var blocklist = Blocklist.Load(Path.Combine(AppContext.BaseDirectory, "blocklist.txt"));
         ShippedPhrases = LoadPhrases(Path.Combine(AppContext.BaseDirectory, "phrases.txt"));
         var corrections = LoadCorrections(Path.Combine(AppContext.BaseDirectory, "corrections.txt"));
@@ -110,24 +109,25 @@ internal sealed class ItmamApp : IDisposable
 
     public WordDictionary Dictionary { get; private set; }
 
-    /// <summary>The downloaded Wikipedia dictionary is in use.</summary>
+    /// <summary>The Wikipedia dictionary is in use (else the basic one).</summary>
     public bool UsesWikipediaDictionary { get; private set; }
 
-    private static string ShippedDictionaryPath => Path.Combine(AppContext.BaseDirectory, "itmam-ar.dict");
+    private static string DictionaryPath(bool wikipedia) =>
+        Path.Combine(AppContext.BaseDirectory, wikipedia ? "itmam-ar-wikipedia.dict" : "itmam-ar.dict");
 
     /// <summary>
-    /// Switches to the downloaded Wikipedia dictionary (<paramref name="wikipedia"/>), or back to the
-    /// shipped one (null). Live: the next keystroke already uses it. UI thread.
+    /// Switches between the basic and the Wikipedia dictionary. Live: the next keystroke already uses
+    /// it. UI thread.
     /// </summary>
-    public void UseDictionary(WordDictionary? wikipedia)
+    private void UseDictionary(bool wikipedia)
     {
-        var dictionary = wikipedia ?? DictionaryFile.Load(ShippedDictionaryPath);
+        var dictionary = DictionaryFile.Load(DictionaryPath(wikipedia));
         lock (Learning.SyncRoot)
         {
             Engine = new SuggestionEngine(dictionary, UserWords, Engine.Options);
             Suggestions.Engine = Engine;
             Dictionary = dictionary;
-            UsesWikipediaDictionary = wikipedia is not null;
+            UsesWikipediaDictionary = wikipedia;
         }
 
         GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, blocking: true, compacting: true); // free the old one
@@ -351,6 +351,11 @@ internal sealed class ItmamApp : IDisposable
     private void Apply(AppSettings settings)
     {
         Hooks.Hotkeys = settings.Hotkeys;
+        if (settings.UseWikipediaDictionary != UsesWikipediaDictionary)
+        {
+            UseDictionary(settings.UseWikipediaDictionary);
+        }
+
         if (PausedUntil is null && Hooks.IsEnabled != settings.Enabled)
         {
             Hooks.IsEnabled = settings.Enabled;

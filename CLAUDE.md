@@ -106,6 +106,10 @@ Tests run on Microsoft.Testing.Platform (opted in via `global.json` → `test.ru
 ## Decisions made
 - User words: embedded SQLite at `%LOCALAPPDATA%\Itmam\user.db`.
 - Dictionary sources: **FrequencyWords `ar_full` first (Phase 1)**; Arabic Wikipedia counts added later once everything works. CC-BY-SA on the derived dictionary file is accepted. Verify each license and tell the user **before** downloading.
+  - **Wikipedia dictionary (user decisions 2026-10-31, 1.1):** both dictionaries are SHIPPED (no download button, no
+    internetClient): `data/itmam-ar.dict` (basic, default) and `data/itmam-ar-wikipedia.dict` (FrequencyWords + Arabic
+    Wikipedia dump 2026-10-01, `wiki-counts.py`, `--min-count wikipedia=5`, 878,574 spellings, 2.97 MB, ~35 MB in memory,
+    load ~430 ms); setting `UseWikipediaDictionary`, Settings → General, switched live.
   - FrequencyWords (github.com/hermitdave/FrequencyWords, `content/2018/ar/ar_full.txt`, ~42 MB): README states
     "MIT License for code, CC-by-sa-4.0 for content"; data derived from OpenSubtitles 2018 (OPUS). Approved; pinned commit +
     SHA-256 in `tools/DictionaryBuilder/download-sources.ps1`. Built with `--min-count 3 --drop-bare-alef-variants`
@@ -138,9 +142,7 @@ Tests run on Microsoft.Testing.Platform (opted in via `global.json` → `test.ru
 - No network access at runtime: no `internetClient` capability, no telemetry, no crash upload. **Exception (user decision,
   2026-10-29, from 1.1):** `StoreUpdates` asks Microsoft Store through `StoreContext` whether a newer package exists
   (12 s after start-up, setting "CheckForUpdates", default on); the Store service does the network work, nothing else is
-  sent. **Second exception (user decision, 2026-10-30, 1.1):** the optional Wikipedia dictionary is downloaded from
-  a GitHub release ONLY when the user presses "Download" (Settings → General; `WikipediaDictionary`, pinned SHA-256 +
-  size, internetClient capability). Documented in the privacy policy (docs/PRIVACY.md, site/) — keep it in sync.
+  sent. Documented in the privacy policy (docs/PRIVACY.md, site/) — keep it in sync.
 - Never log typed characters. Debug logs (Debug builds only) contain event types and timings only.
 - Learn only word → count/last-used. Never sentences. Never learn in password fields or excluded apps.
   **Exception (user decision, 2026-10-29, from 1.1):** 2–5-word sequences → count/last-used (learned phrases, setting

@@ -30,6 +30,7 @@
 
   <ItemGroup>
     <None Include="..\..\data\itmam-ar.dict" Link="itmam-ar.dict" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\data\itmam-ar-wikipedia.dict" Link="itmam-ar-wikipedia.dict" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\data\blocklist.txt" Link="blocklist.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\data\phrases.txt" Link="phrases.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\data\corrections.txt" Link="corrections.txt" CopyToOutputDirectory="PreserveNewest" />

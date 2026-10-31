@@ -17,6 +17,8 @@ internal static class TestDictionaries
 
     public static string ShippedDictionaryPath => Path.Combine(RepositoryRoot, "data", "itmam-ar.dict");
 
+    public static string WikipediaDictionaryPath => Path.Combine(RepositoryRoot, "data", "itmam-ar-wikipedia.dict");
+
     public static string ShippedBlocklistPath => Path.Combine(RepositoryRoot, "data", "blocklist.txt");
 
     public static string ShippedPhrasesPath => Path.Combine(RepositoryRoot, "data", "phrases.txt");

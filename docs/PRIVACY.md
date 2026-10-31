@@ -8,7 +8,7 @@
 
 **تاريخ السريان:** الإصدار 1.1 (29 أكتوبر 2026)
 
-**إتمام نفسه لا يتصل بالإنترنت.** لا يرسل أي بيانات إلى أي جهة، ولا يجمع إحصاءات استخدام، ولا يرفع تقارير الأعطال. كل ما يفعله بما تكتبه يبقى على جهازك. ولا يتصل بالإنترنت إلا في حالتين: سؤال متجر Microsoft عن التحديثات، وتحميل قاموس ويكيبيديا حين تضغط أنت «تحميل» (انظر أدناه).
+**إتمام نفسه لا يتصل بالإنترنت.** لا يرسل أي بيانات إلى أي جهة، ولا يجمع إحصاءات استخدام، ولا يرفع تقارير الأعطال. كل ما يفعله بما تكتبه يبقى على جهازك. الاستثناء الوحيد سؤال متجر Microsoft عن التحديثات (انظر «التحقق من التحديثات» أدناه).
 
 ### ما الذي يقرؤه التطبيق
 
@@ -26,14 +26,8 @@
 ### التحقق من التحديثات
 
 - بعد بدء التشغيل بثوانٍ، يسأل إتمام **متجر Microsoft** عبر Windows: هل يوجد إصدار أحدث من إتمام؟ وإن وُجد يظهر إشعار، والنقر عليه يفتح صفحة إتمام في المتجر.
-- خدمة المتجر في Windows هي التي تتصل، كما تفعل لتحديث كل تطبيقاتك. ولا يُرسَل في هذا السؤال أي شيء عنك أو عما تكتبه.
+- خدمة المتجر في Windows هي التي تتصل، كما تفعل لتحديث كل تطبيقاتك. إتمام نفسه لا يملك صلاحية الاتصال بالإنترنت، ولا يُرسَل في هذا السؤال أي شيء عنك أو عما تكتبه.
 - يمكنك إطفاؤه من الإعدادات ← «التحديثات» ← «البحث عن التحديثات عند بدء إتمام». ويبقى المتجر يحدّث التطبيق بطريقته المعتادة.
-
-### قاموس ويكيبيديا (اختياري)
-
-- في الإعدادات ← «عام» زر «تحميل» لقاموس أكبر مبني من ويكيبيديا العربية. لا يُحمَّل إلا إذا ضغطته أنت.
-- عندها يطلب إتمام ملفًا واحدًا محددًا من GitHub (إصدارات مستودع إتمام)، ولا يُرسل شيئًا عنك أو عما تكتبه. ويتحقق من بصمة الملف (SHA-256) فيرفض أي ملف آخر.
-- يُحفظ الملف على جهازك، و«حذف» يزيله ويعيد القاموس المضمّن.
 
 ### ما الذي يُحفظ على جهازك
 
@@ -65,7 +59,7 @@
 
 **Effective date:** version 1.1 (October 29, 2026)
 
-**Itmam itself never connects to the internet.** It sends no data to anyone, collects no usage statistics and does not upload crash reports. Everything it does with what you type stays on your device. It goes online in two cases only: asking Microsoft Store about updates, and downloading the Wikipedia dictionary when you press "Download" (see below).
+**Itmam itself never connects to the internet.** It sends no data to anyone, collects no usage statistics and does not upload crash reports. Everything it does with what you type stays on your device. The only exception is asking Microsoft Store about updates (see "Update check" below).
 
 ### What the app reads
 
@@ -83,14 +77,8 @@
 ### Update check
 
 - A few seconds after it starts, Itmam asks **Microsoft Store** through Windows whether a newer version of Itmam exists. If so, a notification appears; clicking it opens Itmam's page in the Store.
-- The Store service in Windows does the network work, as it does to update all your apps. Nothing about you or what you type is sent with this question.
+- The Store service in Windows does the network work, as it does to update all your apps. Itmam itself has no permission to connect to the internet, and nothing about you or what you type is sent with this question.
 - You can turn it off in Settings → "Updates" → "Check for updates when Itmam starts". The Store keeps updating the app in its usual way.
-
-### Wikipedia dictionary (optional)
-
-- Settings → "General" has a "Download" button for a larger dictionary built from Arabic Wikipedia. It is downloaded only if you press it.
-- Itmam then requests one fixed file from GitHub (the releases of Itmam's repository) and sends nothing about you or what you type. It checks the file's fingerprint (SHA-256) and refuses any other file.
-- The file is kept on your device; "Delete" removes it and goes back to the built-in dictionary.
 
 ### What is stored on your device
 

@@ -15,7 +15,7 @@
 | `Itmam.Core` | المنطق الخالص: التطبيع، والقاموس، والترتيب، ومخزن الكلمة، وتصنيف المفاتيح، والتعلّم، والإعدادات | لا شيء (`net10.0`) |
 | `Itmam.Win32` | الخطافات، واكتشاف لغة لوحة المفاتيح، وموضع المؤشر، والإدراج، والحمايات | نعم، عبر CsWin32 |
 | `Itmam.App` | تطبيق WinForms: أيقونة قرب الساعة، وشريط الاقتراحات، ونافذة الإعدادات | WinForms |
-| `tools/DictionaryBuilder` | بناء `data/itmam-ar.dict` دون اتصال | لا شيء |
+| `tools/DictionaryBuilder` | بناء `data/itmam-ar.dict` و`data/itmam-ar-wikipedia.dict` دون اتصال | لا شيء |
 | `tools/IconGenerator` | توليد أيقونة التطبيق `src/Itmam.App/Assets/Itmam.ico` | لا شيء |
 
 ### مسار الإدخال
@@ -211,7 +211,7 @@
 - الحروف المكتوبة توجد في الذاكرة فقط: في القناة، وفي `WordBuffer` (ومنها ما كُتب أثناء انتظار قراءة السياق)، وعلى الشاشة.
 - النص الوحيد الذي يُقرأ من التطبيقات الأخرى هو ما لا يزيد عن 49 حرفًا قبل المؤشر داخل الحقل نفسه (لا يتجاوز بدايته، فلا يُقرأ ما قبله في صفحات الويب)، بعد انتقال المؤشر إلى نص موجود، وأبدًا من حقول كلمات المرور أو التطبيقات المستثناة؛ ولا يُحتفظ إلا بالكلمة الحالية.
 - آخر 8 كلمات متتالية (للعبارات) تبقى في الذاكرة فقط وتُنسى عند أي حركة للمؤشر. ولا يُحفظ من ترتيب الكلمات إلا تسلسلات من كلمتين إلى 5 مع عددها (العبارات المتعلَّمة، قابلة للإطفاء)، وما لم يتكرر يُحذف بعد 30 يومًا.
-- لا يخرج من الجهاز إلا سؤال متجر Microsoft عن وجود إصدار أحدث (`StoreUpdates`، قابل للإطفاء)، وطلب ملف قاموس ويكيبيديا من GitHub حين يضغط المستخدم «تحميل» (`WikipediaDictionary`: ملف واحد محدد ببصمة SHA-256 وحجم مثبَّتين في الشيفرة، فيُرفض أي ملف آخر). ولا يحمل أي منهما شيئًا عن المستخدم أو عما يكتبه.
+- السؤال الوحيد الذي يخرج من الجهاز هو سؤال متجر Microsoft عن وجود إصدار أحدث (`StoreUpdates`، قابل للإطفاء)، ولا يحمل شيئًا عن المستخدم أو عما يكتبه.
 - لا يكتب أي مسار في الشيفرة حروفًا في سجل أو ملف أو شبكة. قائمة الأحداث في نافذة التشخيص تعرض *أنواع* الأحداث وأزمنتها فقط (الحروف تظهر بصيغة `Character (letter)`).
 - تشخيص الخطافات (`HookDiagnostics`) عدّادات وأزمنة فقط.
 - الكلمات المتعلَّمة تُحفظ بصيغة «الكلمة ← العدد / آخر استعمال» فقط (انظر «التعلّم والتخزين»)، ولا تُنسخ إلى أي مكان إلا بتصدير يختاره المستخدم إلى ملف يختاره.
@@ -230,7 +230,7 @@ app can be audited for privacy. It is updated at the end of each phase.
 | `Itmam.Core` | Pure logic: normalization, dictionary, ranking, word buffer, key classification, learning, settings | none (`net10.0`) |
 | `Itmam.Win32` | Hooks, keyboard layout detection, caret location, text injection, guards | yes, via CsWin32 |
 | `Itmam.App` | WinForms app: tray icon, suggestion bar, settings window | WinForms |
-| `tools/DictionaryBuilder` | Offline build of `data/itmam-ar.dict` | none |
+| `tools/DictionaryBuilder` | Offline build of `data/itmam-ar.dict` and `data/itmam-ar-wikipedia.dict` | none |
 | `tools/IconGenerator` | Generates the app icon `src/Itmam.App/Assets/Itmam.ico` | none |
 
 ### Input path
@@ -569,10 +569,8 @@ nothing:
 - The last 8 words in a row (for phrases) stay in memory only and are forgotten on any caret move. Word order is
   stored only as 2–5-word sequences with their counts (learned phrases, can be turned off); one not repeated is
   deleted after 30 days.
-- Only two requests leave the device: asking Microsoft Store whether a newer version exists (`StoreUpdates`, can be
-  turned off), and requesting the Wikipedia dictionary file from GitHub when the user presses "Download"
-  (`WikipediaDictionary`: one fixed file, pinned by SHA-256 and size in the code, any other file is refused). Neither
-  carries anything about the user or what they type.
+- The only question that leaves the device is asking Microsoft Store whether a newer version exists (`StoreUpdates`,
+  can be turned off); it carries nothing about the user or what they type.
 - No code path writes characters to a log, file, or the network. The diagnostics window's event list
   shows event *kinds* and latencies only (letters are shown as `Character (letter)`).
 - Hook diagnostics (`HookDiagnostics`) are counters and timings only.

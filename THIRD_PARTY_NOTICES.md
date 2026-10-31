@@ -19,13 +19,13 @@
 
 ملف القاموس `data/itmam-ar.dict` مُعدَّل عن هذه المادة، ولذلك رخصته **CC-BY-SA-4.0**. ولا يتأثر بذلك برنامج إتمام نفسه، فيبقى برخصة MIT.
 
-#### ويكيبيديا العربية (القاموس الاختياري `itmam-ar-wikipedia.dict`)
+#### ويكيبيديا العربية (القاموس الثاني `data/itmam-ar-wikipedia.dict`)
 
 - المصدر: نصوص مقالات ويكيبيديا العربية من ملف النسخ العام (https://dumps.wikimedia.org/arwiki/)، من تأليف محرري ويكيبيديا.
 - الرخصة: المشاع الإبداعي، نسب المصنف – الترخيص بالمثل 4.0 الدولية (CC-BY-SA-4.0).
 - التعديلات: عُدّت الكلمات العربية في نص المقالات بعد حذف القوالب والمراجع والجداول والوسوم والتشكيل (الأداة `tools/DictionaryBuilder/wiki-counts.py`)، ثم دُمجت مع تكرارات FrequencyWords بالأداة نفسها التي تبني القاموس المضمّن.
 
-لا يُضمَّن هذا القاموس في التطبيق، بل يُحمَّل من إصدارات مستودع إتمام على GitHub حين يطلبه المستخدم، ورخصته **CC-BY-SA-4.0**.
+يُضمَّن هذا القاموس في التطبيق بجانب الأساسي، ويختار المستخدم أحدهما من الإعدادات ← «عام». وهو مُعدَّل عن هذه المادة وعن FrequencyWords، ولذلك رخصته **CC-BY-SA-4.0**.
 
 #### مصادر قائمة الحظر (`data/blocklist.txt`)
 
@@ -74,7 +74,7 @@ with the following third-party components and data, each under its own license.
 The dictionary file `data/itmam-ar.dict` is an adaptation of this material and is therefore
 licensed under **CC-BY-SA-4.0**. The Itmam program code is not affected and remains MIT.
 
-#### Arabic Wikipedia (optional dictionary `itmam-ar-wikipedia.dict`)
+#### Arabic Wikipedia (second dictionary `data/itmam-ar-wikipedia.dict`)
 
 - Source: the text of Arabic Wikipedia articles from the public dumps (https://dumps.wikimedia.org/arwiki/), by
   Wikipedia contributors.
@@ -83,8 +83,8 @@ licensed under **CC-BY-SA-4.0**. The Itmam program code is not affected and rema
   tashkeel (`tools/DictionaryBuilder/wiki-counts.py`), then merged with the FrequencyWords counts by the same tool that
   builds the shipped dictionary.
 
-This dictionary is not shipped in the app: it is downloaded from the releases of Itmam's GitHub repository when the
-user asks for it, and is licensed under **CC-BY-SA-4.0**.
+This dictionary ships with the app next to the basic one; the user chooses one in Settings → General. It is
+adapted from this material and FrequencyWords, so it is licensed under **CC-BY-SA-4.0**.
 
 #### Blocklist sources (`data/blocklist.txt`)
 

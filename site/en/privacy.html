@@ -29,7 +29,7 @@
   <h1 class="reveal">Privacy policy</h1>
   <p class="effective reveal d1">Effective date: version 1.1 (October 29, 2026)</p>
 
-  <p class="promise reveal d2"><strong>Itmam itself never connects to the internet.</strong> It sends no data to anyone, collects no usage statistics and does not upload crash reports. Everything it does with what you type stays on your device. It goes online in two cases only: asking Microsoft Store about updates, and downloading the Wikipedia dictionary when you press "Download" (see below).</p>
+  <p class="promise reveal d2"><strong>Itmam itself never connects to the internet.</strong> It sends no data to anyone, collects no usage statistics and does not upload crash reports. Everything it does with what you type stays on your device. The only exception is asking Microsoft Store about updates (see "Update check" below).</p>
 
   <h2>What the app reads</h2>
   <ul>
@@ -49,15 +49,8 @@
   <h2>Update check</h2>
   <ul>
     <li>A few seconds after it starts, Itmam asks <strong>Microsoft Store</strong> through Windows whether a newer version of Itmam exists. If so, a notification appears; clicking it opens Itmam's page in the Store.</li>
-    <li>The Store service in Windows does the network work, as it does to update all your apps. Nothing about you or what you type is sent with this question.</li>
+    <li>The Store service in Windows does the network work, as it does to update all your apps. Itmam itself has no permission to connect to the internet, and nothing about you or what you type is sent with this question.</li>
     <li>You can turn it off in Settings → "Updates" → "Check for updates when Itmam starts". The Store keeps updating the app in its usual way.</li>
-  </ul>
-
-  <h2>Wikipedia dictionary (optional)</h2>
-  <ul>
-    <li>Settings → "General" has a "Download" button for a larger dictionary built from Arabic Wikipedia. It is downloaded only if you press it.</li>
-    <li>Itmam then requests one fixed file from GitHub (the releases of Itmam's repository) and sends nothing about you or what you type. It checks the file's fingerprint (SHA-256) and refuses any other file.</li>
-    <li>The file is kept on your device; "Delete" removes it and goes back to the built-in dictionary.</li>
   </ul>
 
   <h2>What is stored on your device</h2>
