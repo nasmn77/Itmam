@@ -274,7 +274,7 @@
   <data name="RestoreDone" xml:space="preserve"><value>The backup was restored.</value></data>
   <data name="SectionDictionary" xml:space="preserve"><value>Dictionary</value></data>
   <data name="DictionaryChoice" xml:space="preserve"><value>Dictionary</value></data>
-  <data name="DictionaryChoiceHint" xml:space="preserve"><value>"Basic": more than 500,000 words of everyday Arabic. "Wikipedia": about 880,000 words, adding the vocabulary of Arabic Wikipedia for better suggestions in formal writing and terms; uses a little more memory.</value></data>
+  <data name="DictionaryChoiceHint" xml:space="preserve"><value>"Basic": more than 500,000 words of everyday Arabic. "Wikipedia": about 880,000 words: the whole basic dictionary plus the vocabulary of Arabic Wikipedia, for better suggestions in formal writing and terms; uses a little more memory.</value></data>
   <data name="DictionaryBasic" xml:space="preserve"><value>Basic</value></data>
   <data name="DictionaryWikipedia" xml:space="preserve"><value>Wikipedia</value></data>
 </root>

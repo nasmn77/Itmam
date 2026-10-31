@@ -274,7 +274,7 @@
   <data name="RestoreDone" xml:space="preserve"><value>استُعيدت النسخة الاحتياطية.</value></data>
   <data name="SectionDictionary" xml:space="preserve"><value>القاموس</value></data>
   <data name="DictionaryChoice" xml:space="preserve"><value>القاموس المستعمل</value></data>
-  <data name="DictionaryChoiceHint" xml:space="preserve"><value>«الأساسي»: أكثر من 500 ألف كلمة من لغة الاستعمال اليومي. «ويكيبيديا»: نحو 880 ألف كلمة تضيف إليه مفردات ويكيبيديا العربية، فيحسّن الاقتراحات في الكتابة الرسمية والمصطلحات، ويستهلك ذاكرة أكثر قليلًا.</value></data>
+  <data name="DictionaryChoiceHint" xml:space="preserve"><value>«الأساسي»: أكثر من 500 ألف كلمة من لغة الاستعمال اليومي. «ويكيبيديا»: نحو 880 ألف كلمة، يضم القاموس الأساسي كاملًا ويضيف إليه مفردات ويكيبيديا العربية، فيحسّن الاقتراحات في الكتابة الرسمية والمصطلحات، ويستهلك ذاكرة أكثر قليلًا.</value></data>
   <data name="DictionaryBasic" xml:space="preserve"><value>الأساسي</value></data>
   <data name="DictionaryWikipedia" xml:space="preserve"><value>ويكيبيديا</value></data>
 </root>
