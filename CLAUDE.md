@@ -107,7 +107,7 @@ Tests run on Microsoft.Testing.Platform (opted in via `global.json` → `test.ru
 - User words: embedded SQLite at `%LOCALAPPDATA%\Itmam\user.db`.
 - Dictionary sources: **FrequencyWords `ar_full` first (Phase 1)**; Arabic Wikipedia counts added later once everything works. CC-BY-SA on the derived dictionary file is accepted. Verify each license and tell the user **before** downloading.
   - **Wikipedia dictionary (user decisions 2026-10-31, 1.1):** both dictionaries are SHIPPED (no download button, no
-    internetClient): `data/itmam-ar.dict` (basic, default) and `data/itmam-ar-wikipedia.dict` (FrequencyWords + Arabic
+    internetClient): `data/itmam-ar.dict` (basic) and `data/itmam-ar-wikipedia.dict` (DEFAULT, user decision 2026-10-31) (FrequencyWords + Arabic
     Wikipedia dump 2026-10-01, `wiki-counts.py`, `--min-count wikipedia=5`, `--weight frequencywords=2` (everyday words keep their rank), 881,541 spellings, 2.98 MB, ~36 MB in memory,
     load ~350 ms); setting `UseWikipediaDictionary`, Settings → General, switched live.
   - FrequencyWords (github.com/hermitdave/FrequencyWords, `content/2018/ar/ar_full.txt`, ~42 MB): README states

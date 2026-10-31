@@ -36,9 +36,9 @@ public sealed record AppSettings
 
     /// <summary>
     /// Use the larger Wikipedia dictionary (data/itmam-ar-wikipedia.dict) instead of the basic one. Both are
-    /// shipped (user decision 1.1); the basic one stays the default because it needs less memory.
+    /// shipped and the Wikipedia one, which contains the basic one, is the default (user decisions 1.1).
     /// </summary>
-    public bool UseWikipediaDictionary { get; init; }
+    public bool UseWikipediaDictionary { get; init; } = true;
 
     /// <summary>Show a notification when Itmam is turned off, paused or resumed.</summary>
     public bool NotifyOnToggle { get; init; } = true;
