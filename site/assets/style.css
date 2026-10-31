@@ -361,6 +361,85 @@ kbd {
 }
 .shots figcaption { font-size: 14px; color: var(--ink-soft); margin-top: 12px; }
 
+/* long phrases: one row per step, picture beside the text, alternating sides */
+.lp-steps {
+  list-style: none;
+  margin: 0 0 64px;
+  padding: 0;
+  display: grid;
+  gap: 48px;
+}
+.lp-step {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+  gap: 44px;
+  align-items: center;
+}
+.lp-step .lp-visual { order: 2; }
+.lp-step:nth-child(even) .lp-visual { order: 0; }
+.lp-step .num {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--teal);
+  font: 700 16px/1 var(--mono);
+  color: var(--teal-ink);
+}
+.lp-step h3 { font-size: 24px; margin: 14px 0 10px; }
+.lp-step p { margin: 0; color: var(--ink-soft); }
+.lp-visual {
+  display: grid;
+  place-items: center;
+  padding: 26px;
+  border-radius: 16px;
+  border: 1px solid var(--rule);
+  background: var(--paper-2);
+  box-shadow: var(--shadow);
+}
+.lp-visual img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 18px 40px -22px rgba(0, 0, 0, .6);
+}
+.lp-chat {
+  justify-items: stretch;
+  align-content: center;
+  gap: 14px;
+  min-height: 280px;
+}
+.lp-chat .msg {
+  max-width: 75%;
+  padding: 11px 16px;
+  border-radius: 16px;
+  line-height: 1.7;
+}
+.lp-chat .them {
+  justify-self: start;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-start-start-radius: 4px;
+}
+.lp-chat .me {
+  justify-self: end;
+  background: var(--teal);
+  color: var(--paper);
+  border-start-end-radius: 4px;
+}
+.lp-subhead { font-size: 24px; margin: 0 0 18px; }
+.lp-benefits {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px 40px;
+}
+.lp-benefits li { color: var(--ink-soft); padding-inline-start: 16px; border-inline-start: 2px solid var(--teal); }
+.lp-benefits b { display: block; color: var(--ink); margin-bottom: 4px; }
+
 /* shortcuts table */
 .keys { width: 100%; border-collapse: collapse; }
 .keys td { padding: 14px 4px; border-bottom: 1px solid var(--rule); vertical-align: top; }
@@ -409,6 +488,9 @@ footer a { color: var(--ink-soft); }
   .hero { grid-template-columns: 1fr; gap: 44px; padding-block: 28px 64px; }
   .features { grid-template-columns: 1fr; }
   .shots { grid-template-columns: 1fr; }
+  .lp-step, .lp-benefits { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+  .lp-step .lp-visual, .lp-step:nth-child(even) .lp-visual { order: 0; }
+  .lp-visual { padding: 14px; }
   .privacy-band { grid-template-columns: 1fr; }
   .seal { width: 140px; height: 140px; }
   .top nav a:not(.lang) { display: none; }
