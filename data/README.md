@@ -39,7 +39,7 @@ dotnet run --project tools/DictionaryBuilder -c Release -- `
 # 3. The Wikipedia dictionary (from a downloaded dump; also offline).
 python -I tools/DictionaryBuilder/wiki-counts.py <arwiki-...-pages-articles.xml.bz2> <wikipedia-ar.txt> --min-count 3
 dotnet run --project tools/DictionaryBuilder -c Release -- `
-    --source frequencywords=data/raw/frequencywords-ar_full.txt --min-count frequencywords=3 `
+    --source frequencywords=data/raw/frequencywords-ar_full.txt --min-count frequencywords=3 --weight frequencywords=2 `
     --source wikipedia=<wikipedia-ar.txt> --min-count wikipedia=5 `
     --drop-bare-alef-variants `
     --blocklist data/blocklist.txt `
@@ -123,7 +123,7 @@ dotnet run --project tools/DictionaryBuilder -c Release -- `
 # 3. The Wikipedia dictionary (from a downloaded dump; also offline).
 python -I tools/DictionaryBuilder/wiki-counts.py <arwiki-...-pages-articles.xml.bz2> <wikipedia-ar.txt> --min-count 3
 dotnet run --project tools/DictionaryBuilder -c Release -- `
-    --source frequencywords=data/raw/frequencywords-ar_full.txt --min-count frequencywords=3 `
+    --source frequencywords=data/raw/frequencywords-ar_full.txt --min-count frequencywords=3 --weight frequencywords=2 `
     --source wikipedia=<wikipedia-ar.txt> --min-count wikipedia=5 `
     --drop-bare-alef-variants `
     --blocklist data/blocklist.txt `
