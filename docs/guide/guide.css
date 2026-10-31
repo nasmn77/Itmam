@@ -1,0 +1,124 @@
+/* Itmam user guide, printed to PDF by tools/Build-Guide.ps1 (Microsoft Edge, headless). The same
+   "paper and ink" look as the website; logical properties so one sheet serves Arabic (RTL) and English. */
+
+@page { size: A4; margin: 16mm 15mm 18mm; }
+
+:root {
+  --paper: #ffffff;
+  --paper-2: #f3ece0;
+  --ink: #1d1a16;
+  --ink-soft: #5b544a;
+  --rule: #ddd3c1;
+  --teal: #0e7490;
+  --teal-ink: #0b5a70;
+  --font: Arial, "Segoe UI", Tahoma, sans-serif; /* user decision: Arial throughout */
+}
+
+* { box-sizing: border-box; }
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 11pt/1.75 var(--font); }
+
+h1, h2 { font-family: var(--font); font-weight: 700; line-height: 1.25; }
+h2 { font-size: 20pt; margin: 0 0 4mm; color: var(--ink); }
+h3 { font-size: 13pt; margin: 7mm 0 2mm; color: var(--teal-ink); }
+p { margin: 0 0 3mm; }
+ul, ol { margin: 0 0 3mm; padding-inline-start: 6mm; }
+li { margin-bottom: 1.2mm; }
+li::marker { color: var(--teal); }
+a { color: var(--teal-ink); }
+b { color: var(--ink); }
+
+kbd {
+  font: 600 9pt "Cascadia Mono", Consolas, monospace;
+  padding: .2mm 1.6mm;
+  border: 1px solid var(--rule);
+  border-block-end-width: 2px;
+  border-radius: 1.2mm;
+  background: #fff;
+  white-space: nowrap;
+}
+
+/* each chapter starts on a new page */
+section { break-before: page; }
+section.flow { break-before: auto; margin-top: 8mm; }
+
+/* cover */
+.cover {
+  height: 255mm;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6mm;
+  break-before: auto;
+}
+.cover img { width: 30mm; height: 30mm; border-radius: 7mm; }
+.cover h1 { font-size: 36pt; margin: 0; }
+.cover .tag { font-size: 15pt; color: var(--ink-soft); max-width: 140mm; }
+.cover .meta { margin-top: 10mm; font-size: 10pt; color: var(--ink-soft); border-top: 1px solid var(--rule); padding-top: 4mm; }
+
+/* table of contents */
+.toc ol { columns: 2; column-gap: 12mm; font-size: 12pt; }
+.toc li { break-inside: avoid; }
+
+.lede { color: var(--ink-soft); font-size: 12pt; }
+
+/* screenshots */
+figure { margin: 4mm 0 5mm; break-inside: avoid; text-align: center; }
+figure img {
+  max-width: 100%;
+  max-height: 165mm;
+  border-radius: 2.5mm;
+  box-shadow: 0 2mm 6mm rgba(40, 30, 10, .18);
+}
+figure.small img { max-height: 95mm; }
+figcaption { font-size: 9pt; color: var(--ink-soft); margin-top: 2mm; }
+
+/* a note box */
+.note {
+  background: var(--paper-2);
+  border-inline-start: 1.2mm solid var(--teal);
+  border-radius: 1.5mm;
+  padding: 3mm 4mm;
+  margin: 4mm 0;
+  break-inside: avoid;
+}
+.note p:last-child { margin: 0; }
+
+/* the suggestion bar over a line of text */
+.typing {
+  margin: 6mm auto 7mm;
+  width: 120mm;
+  padding: 16mm 8mm 8mm;
+  border: 1px solid var(--rule);
+  border-radius: 2.5mm;
+  background: #fff;
+  position: relative;
+  break-inside: avoid;
+}
+.typing .text { font-size: 18pt; }
+.typing .caret { display: inline-block; width: .5mm; height: 7mm; background: var(--ink); vertical-align: middle; }
+.typing img { position: absolute; inset-block-start: 4mm; height: 9mm; }
+[dir="rtl"] .typing img { right: 60mm; }
+[dir="ltr"] .typing img { left: 8mm; }
+
+/* the tray menu, drawn */
+.menu {
+  width: 72mm;
+  margin: 5mm auto;
+  background: #2b2b2b;
+  color: #fff;
+  border-radius: 2mm;
+  padding: 1.5mm 0;
+  font-size: 10pt;
+  box-shadow: 0 2mm 6mm rgba(0, 0, 0, .3);
+  break-inside: avoid;
+}
+.menu div { padding: 1.4mm 5mm; }
+.menu .sep { height: 0; padding: 0; margin: 1.2mm 0; border-top: 1px solid #555; }
+.menu .bold { font-weight: 700; }
+
+/* key table */
+table { width: 100%; border-collapse: collapse; margin: 3mm 0 5mm; break-inside: avoid; }
+td, th { padding: 2mm 1.5mm; border-bottom: 1px solid var(--rule); vertical-align: top; text-align: start; }
+th { color: var(--ink-soft); font-weight: 600; font-size: 10pt; }
+td:first-child { width: 40%; }

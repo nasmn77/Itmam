@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<title>Itmam user guide</title>
+<link rel="stylesheet" href="guide.css">
+</head>
+<body>
+
+<div class="cover">
+  <img src="../../site/assets/icon.svg" alt="">
+  <h1>Itmam user guide</h1>
+  <p class="tag">Arabic word suggestions as you type on your keyboard, in any Windows app.</p>
+  <p class="meta">Version 1.1.1 · https://nasmn77.github.io/Itmam/en/<br>The pictures in this guide are from the app itself, with sample data.</p>
+</div>
+
+<section class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li>What Itmam is</li>
+    <li>Before you start</li>
+    <li>Typing with suggestions</li>
+    <li>Your call from the bar: right-click</li>
+    <li>Phrases</li>
+    <li>Text shortcuts</li>
+    <li>Long phrases</li>
+    <li>The tray menu</li>
+    <li>Settings: General</li>
+    <li>Appearance</li>
+    <li>Keyboard shortcuts</li>
+    <li>Excluded apps</li>
+    <li>My words</li>
+    <li>My phrases and text shortcuts</li>
+    <li>Long phrases in Settings</li>
+    <li>Updates and About</li>
+    <li>Privacy</li>
+    <li>Troubleshooting</li>
+    <li>Shortcut summary</li>
+  </ol>
+</section>
+
+<section>
+  <h2>1. What Itmam is</h2>
+  <p class="lede">Itmam suggests Arabic words while you type on your keyboard, the way a phone does: a small bar appears above the caret with the closest words to what you started typing, and one key inserts the one you want.</p>
+  <ul>
+    <li><b>In every app:</b> Notepad, Word, browsers, email and most apps, with no setup.</li>
+    <li><b>A large dictionary:</b> about 880,000 words from everyday Arabic and Arabic Wikipedia.</li>
+    <li><b>Learns from you:</b> the words you use become suggestions, and the ones you use most come first.</li>
+    <li><b>Saves repeated typing:</b> completes well-known phrases, turns your shortcuts into full text, and inserts long replies of several lines.</li>
+    <li><b>Private:</b> it never connects to the internet and sends nothing you type.</li>
+  </ul>
+
+  <section class="flow">
+    <h2>2. Before you start</h2>
+    <h3>An Arabic keyboard layout</h3>
+    <p>Itmam works only while you type with an Arabic layout. To add one: Windows Settings → Time &amp; language → Language &amp; region → Add a language → Arabic. Switch layouts with <kbd>Alt</kbd> + <kbd>Shift</kbd> or <kbd>Win</kbd> + <kbd>Space</kbd>. With an English layout Itmam does nothing.</p>
+    <h3>Where is Itmam?</h3>
+    <p>Itmam opens no window: it runs in the notification area next to the clock, and its icon is a bar with the letter <bdi dir="rtl">«ت»</bdi>. When it starts, an "Itmam is running" notification appears. If you cannot see the icon, click the ^ arrow next to the clock.</p>
+    <p>Click the icon with either mouse button to open its menu (chapter 8).</p>
+    <h3>Start with Windows</h3>
+    <p>Itmam can start automatically with Windows: Settings → General → "Start with Windows".</p>
+  </section>
+</section>
+
+<section>
+  <h2>3. Typing with suggestions</h2>
+  <p class="lede">Type the first two letters of a word, and the bar appears above the caret.</p>
+  <div class="typing" dir="rtl">
+    <img src="img/bar-dark.png" alt="The suggestion bar: مرحبا، مرحلة، مرحى">
+    <span class="text">أهلًا و مرح</span><span class="caret"></span>
+  </div>
+  <h3>Choosing a suggestion</h3>
+  <ul>
+    <li><kbd>Tab</kbd> inserts the first suggestion, the one highlighted in the selection color.</li>
+    <li><kbd>Ctrl</kbd> + <kbd>2</kbd> or <kbd>3</kbd>… inserts a suggestion by its number. Numbers can be shown on the bar (Appearance).</li>
+    <li>With the arrow keys: <kbd>↑</kbd> moves into the bar, <kbd>←</kbd> <kbd>→</kbd> choose, <kbd>Enter</kbd> inserts, <kbd>Esc</kbd> or <kbd>↓</kbd> leaves.</li>
+    <li>Or click the suggestion.</li>
+    <li><kbd>Esc</kbd> hides the bar until you start the next word.</li>
+  </ul>
+  <p>After inserting, Itmam adds a space (can be turned off in General), but not when a space or punctuation already follows the caret.</p>
+  <h3>Picked the wrong one?</h3>
+  <p>Press <kbd>Backspace</kbd> right after inserting, and what you typed comes back.</p>
+  <h3>It understands how you type</h3>
+  <ul>
+    <li><b>Without hamza:</b> <bdi dir="rtl">«احمد»</bdi> finds <bdi dir="rtl">«أحمد»</bdi>, and <bdi dir="rtl">«ان»</bdi> offers <bdi dir="rtl">«أن»</bdi>, <bdi dir="rtl">«إن»</bdi> and <bdi dir="rtl">«أنا»</bdi>.</li>
+    <li><b>With attached letters:</b> the article and attached conjunctions and prepositions: <bdi dir="rtl">«والمد»</bdi> finds <bdi dir="rtl">«والمدرسة»</bdi>.</li>
+    <li><b>Common mistakes:</b> <bdi dir="rtl">«لاكن»</bdi> offers <bdi dir="rtl">«لكن»</bdi> first, and <bdi dir="rtl">«انشاءالله»</bdi> offers <bdi dir="rtl">«إن شاء الله»</bdi>. Nothing is replaced automatically: you choose.</li>
+    <li><b>From the middle of a word:</b> go back into a word with a click or <kbd>Backspace</kbd>, and Itmam completes it from the caret.</li>
+  </ul>
+  <div class="note"><p>No suggestions appear while text is selected, in password fields, in excluded apps, or in full-screen games.</p></div>
+</section>
+
+<section>
+  <h2>4. Your call from the bar: right-click</h2>
+  <p class="lede">Right-click any suggestion, and buttons appear above it:</p>
+  <ul>
+    <li><b>Delete:</b> for a word Itmam learned from you: it is forgotten (and learned again if you use it). For a phrase: removed from your phrases, or hidden if it is built in.</li>
+    <li><b>Block:</b> for a word you never want: it is never suggested, even if it is in the dictionary. Unblock it in "My words".</li>
+    <li><b>Add to My phrases:</b> for a phrase, to keep it.</li>
+  </ul>
+  <p>From the keyboard: while choosing with the arrows, <kbd>Ctrl</kbd> + <kbd>Delete</kbd> forgets the selected learned word.</p>
+
+  <section class="flow">
+    <h2>5. Phrases</h2>
+    <p>Itmam knows about 250 common phrases: greetings, remembrance, prayers, occasions and formal letters. Type the start of one and it offers the rest:</p>
+    <ul>
+      <li>After <bdi dir="rtl">«بسم »</bdi> it offers <bdi dir="rtl">«الله الرحمن الرحيم»</bdi>, and <kbd>Tab</kbd> inserts it whole. Or keep going word by word.</li>
+      <li><b>Your own:</b> your signature or your organization's name, added in "My phrases", are suggested first.</li>
+      <li><b>Learned phrases:</b> words you type in a row twice (2 to 5 words) are learned as a phrase. Sequences not repeated are deleted after 30 days. This can be turned off.</li>
+    </ul>
+  </section>
+
+  <section class="flow">
+    <h2>6. Text shortcuts</h2>
+    <p>A short code you type: the bar offers its text first, and <kbd>Tab</kbd> puts it in place of the code. For example, type <bdi dir="rtl">«ع1»</bdi> and it offers <bdi dir="rtl">«السلام عليكم ورحمة الله وبركاته»</bdi>.</p>
+    <p>A code starts with an Arabic letter and may be followed by digits. Add yours in Settings → "Text shortcuts". A code is never replaced automatically: <bdi dir="rtl">«ع1»</bdi> stays as it is unless you press <kbd>Tab</kbd>.</p>
+  </section>
+</section>
+
+<section>
+  <h2>7. Long phrases</h2>
+  <p class="lede">Replies of several lines you write often, such as support answers: the greeting, asking for the order number, the password reset steps, closing the ticket.</p>
+  <ol>
+    <li>Save each reply once in Settings → "Long phrases" → "Add": a name you know it by, and a text of up to 4,000 characters over several lines.</li>
+    <li>In any app, press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Space</kbd>: a list of your replies opens.</li>
+    <li>Type part of a name or of the text to filter it, and move with the arrow keys while you preview the reply.</li>
+    <li>Press <kbd>Enter</kbd>: the reply is pasted at the caret with its lines as you wrote them. <kbd>Esc</kbd> closes the list.</li>
+  </ol>
+  <figure class="small"><img src="img/en-picker.png" alt="The long phrases list"><figcaption>The long phrases list, with search and a preview of the selected reply.</figcaption></figure>
+  <div class="note"><p>The reply is inserted through the clipboard; Itmam then puts back what was on your clipboard, and the reply stays out of clipboard history.</p></div>
+  <h3>For support teams</h3>
+  <p>Export the approved replies to a text file and import it on your colleagues' PCs, so everyone sends the same wording. Importing adds to what each person has and removes nothing.</p>
+</section>
+
+<section>
+  <h2>8. The tray menu</h2>
+  <p class="lede">Click Itmam's icon next to the clock with either mouse button:</p>
+  <div class="menu">
+    <div>Turn off Itmam</div>
+    <div>Pause for 1 hour</div>
+    <div>Turn off Itmam in Notepad.exe</div>
+    <div class="sep"></div>
+    <div class="bold">Settings</div>
+    <div>User guide</div>
+    <div>About</div>
+    <div class="sep"></div>
+    <div>Exit</div>
+  </div>
+  <ul>
+    <li><b>Turn off / Turn on Itmam:</b> stops and restores the suggestions, remembered after a restart. The same from the keyboard: press <kbd>Ctrl</kbd> + <kbd>Alt</kbd> and release them.</li>
+    <li><b>Pause for 1 hour:</b> Itmam comes back by itself after an hour, or choose "Resume now".</li>
+    <li><b>Turn off Itmam in …:</b> named after the last app you typed in; it is added to the excluded apps after a confirmation.</li>
+    <li><b>Settings</b>, <b>User guide</b> and <b>About</b>.</li>
+    <li><b>Exit:</b> closes Itmam completely until you start it from the Start menu or sign in again.</li>
+  </ul>
+  <p>Small notifications appear when Itmam is turned off or on (can be turned off), and when an update is available in the Store.</p>
+</section>
+
+<section>
+  <h2>9. Settings: General</h2>
+  <p class="lede">Open Settings from the tray menu. The pages are listed on the left, and every change applies at once.</p>
+  <figure><img src="img/en-general.png" alt="The General page, top"></figure>
+  <ul>
+    <li><b>User guide:</b> opens this guide.</li>
+    <li><b>Start with Windows</b>, and <b>Notify when Itmam is turned off or on</b>.</li>
+    <li><b>Suggestions:</b> how many the bar shows (1 to 5), letters before they appear, and a space after accepting.</li>
+    <li><b>Learning:</b> learn new words or not, and how many uses before a new word is suggested.</li>
+    <li><b>Language:</b> the interface language, Arabic or English.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>General: dictionary, backup, statistics</h2>
+  <figure><img src="img/en-general-end.png" alt="The General page, bottom"></figure>
+  <ul>
+    <li><b>Dictionary:</b> "Wikipedia" (the default), about 880,000 words: the basic dictionary plus the vocabulary of Arabic Wikipedia for formal writing and terms. "Basic": more than 500,000 words, using less memory.</li>
+    <li><b>Full backup:</b> one file (.itmam) with your words, phrases, text shortcuts, long phrases, settings and statistics, to move Itmam to another PC. "Restore" replaces everything on this PC with the file's content, after a confirmation.</li>
+    <li><b>Statistics:</b> how many words and phrases Itmam completed and how many characters it typed for you. Only these two numbers are kept.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>10. Appearance</h2>
+  <figure><img src="img/en-appearance.png" alt="The Appearance page"></figure>
+  <ul>
+    <li><b>Theme:</b> System, Light or Dark, for the bar and the settings window.</li>
+    <li><b>Colors:</b> bar, selection and text. "Automatic" picks the most readable color, and a warning appears if the text gets hard to read.</li>
+    <li><b>Bar:</b> opacity, text size, highlighting the first suggestion, and showing suggestion numbers.</li>
+    <li>A live preview at the top; "Reset to the Windows look" resets everything.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>11. Keyboard shortcuts</h2>
+  <figure><img src="img/en-shortcuts.png" alt="The Keyboard shortcuts page"></figure>
+  <p>Click a shortcut, then press the new keys; click elsewhere to cancel. Itmam refuses shortcuts that type text or clash with common Windows shortcuts, and says why.</p>
+  <ul>
+    <li><b>While the bar is shown:</b> insert the first suggestion (<kbd>Tab</kbd>), insert by number (<kbd>Ctrl</kbd> or <kbd>Alt</kbd> with the number), hide (<kbd>Esc</kbd>), and choosing with the arrow keys.</li>
+    <li><b>Everywhere:</b> turn Itmam on or off (<kbd>Ctrl</kbd> + <kbd>Alt</kbd>), and open the long phrases list (<kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Space</kbd>).</li>
+  </ul>
+</section>
+
+<section>
+  <h2>12. Excluded apps</h2>
+  <figure><img src="img/en-excluded.png" alt="The Excluded apps page"></figure>
+  <p>Itmam stays completely silent in these apps: no suggestions, no learning, nothing read.</p>
+  <ul>
+    <li><b>Add an app:</b> from the open apps, or "Browse…" for its program file.</li>
+    <li>The default list holds remote desktop, virtual machines, terminals and game launchers.</li>
+    <li>Quickest: "Turn off Itmam in …" from the tray menu while you are in the app.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>13. My words</h2>
+  <figure><img src="img/en-words.png" alt="The My words page"></figure>
+  <p>The words Itmam learned from you. Only the word, how many times you used it and when are kept, on this PC only.</p>
+  <ul>
+    <li><b>Learn new words:</b> when off, nothing new is learned, and your words are still suggested.</li>
+    <li><b>Add:</b> a word suggested at once. <b>Block:</b> a word never suggested, even if it is in the dictionary.</li>
+    <li>The list sorts by most used, recent or A–Z, with search. Click a word to edit, block or delete it.</li>
+    <li><b>Import and export:</b> a text file with one word per line. "Delete all my words" cannot be undone.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>14. My phrases and text shortcuts</h2>
+  <figure><img src="img/en-phrases.png" alt="The My phrases page"></figure>
+  <ul>
+    <li><b>Suggest common phrases</b> and <b>Learn phrases from my typing</b>: each can be turned off.</li>
+    <li><b>Phrases you added:</b> add, edit and delete, import and export.</li>
+    <li><b>Learned phrases:</b> all of them, to move to your phrases or delete.</li>
+    <li><b>Deleted built-in phrases:</b> the ones you hid from the bar, restorable here.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Text shortcuts</h2>
+  <figure><img src="img/en-textshortcuts.png" alt="The Text shortcuts page"></figure>
+  <ul>
+    <li><b>Add a shortcut:</b> the code (such as <bdi dir="rtl">«ع1»</bdi>) and the text it puts in.</li>
+    <li>Edit or delete any shortcut in the list, and move them all to another PC with import and export.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>15. Long phrases in Settings</h2>
+  <figure><img src="img/en-longphrases.png" alt="The Long phrases page"></figure>
+  <ul>
+    <li><b>Open the long phrases list:</b> the shortcut; click it to change it.</li>
+    <li><b>Add a long phrase:</b> a name (up to 60 characters) and the text (up to 4,000 characters). In the text box, <kbd>Enter</kbd> starts a new line and <kbd>Ctrl</kbd> + <kbd>Enter</kbd> saves.</li>
+    <li>Edit and delete; import and export to share them with colleagues.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>16. Updates and About</h2>
+  <figure class="small"><img src="img/en-updates.png" alt="The Updates page"></figure>
+  <p><b>Updates:</b> at start-up Itmam asks Microsoft Store whether a newer version exists (can be turned off), and "Check" asks now. The update itself comes through the Store.</p>
+  <figure class="small"><img src="img/en-about.png" alt="The About page"></figure>
+  <p><b>About:</b> the version, the dictionary and your word counts, the Itmam website, contacting the developer, the source code, the dictionary sources, and the privacy policy.</p>
+</section>
+
+<section>
+  <h2>17. Privacy</h2>
+  <ul>
+    <li><b>No internet:</b> no statistics, no crash reports. The only request is asking Microsoft Store about updates through Windows, and it can be turned off.</li>
+    <li><b>What you type is not saved:</b> for each word only how many times you used it and when, plus the short phrases you repeat with their counts, on your PC.</li>
+    <li><b>Silent where it should be:</b> nothing is read from password fields, excluded apps, or apps running as administrator.</li>
+    <li><b>Open source:</b> anyone can review the code on GitHub.</li>
+  </ul>
+  <p>Full privacy policy: https://nasmn77.github.io/Itmam/en/privacy.html</p>
+
+  <section class="flow">
+    <h2>18. Troubleshooting</h2>
+    <h3>The bar does not appear</h3>
+    <ul>
+      <li>Make sure the keyboard layout is Arabic.</li>
+      <li>Make sure Itmam is on: its icon is next to the clock, and its menu says "Turn off Itmam", not "Turn on Itmam".</li>
+      <li>Is the app excluded? Running as administrator? Full screen?</li>
+      <li>The bar appears after the number of letters set in General (two by default).</li>
+    </ul>
+    <h3>The bar is not at the caret</h3>
+    <p>Some apps do not tell Windows where the caret is, so Itmam places the bar at the text field or at the mouse. Typing and inserting still work.</p>
+    <h3>An odd word keeps being suggested</h3>
+    <p>Right-click it, then "Delete" if it was learned, or "Block" so it is never suggested.</p>
+    <h3>Moving Itmam to a new PC</h3>
+    <p>General → "Back up…" on the old PC, then "Restore…" on the new one.</p>
+    <h3>Contact</h3>
+    <p>nasmn77@gmail.com</p>
+  </section>
+</section>
+
+<section>
+  <h2>19. Shortcut summary</h2>
+  <table>
+    <tr><th>Keys</th><th>What they do</th></tr>
+    <tr><td><kbd>Tab</kbd></td><td>Insert the first suggestion</td></tr>
+    <tr><td><kbd>Ctrl</kbd> + <kbd>1</kbd>…<kbd>9</kbd></td><td>Insert a suggestion by its number</td></tr>
+    <tr><td><kbd>↑</kbd> then <kbd>←</kbd> <kbd>→</kbd> then <kbd>Enter</kbd></td><td>Choose with the arrows, then insert</td></tr>
+    <tr><td><kbd>Esc</kbd></td><td>Hide the suggestions until the next word</td></tr>
+    <tr><td><kbd>Backspace</kbd></td><td>Right after inserting: undo it</td></tr>
+    <tr><td><kbd>Ctrl</kbd> + <kbd>Delete</kbd></td><td>While choosing with the arrows: forget the selected learned word</td></tr>
+    <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Space</kbd></td><td>The long phrases list, in any app</td></tr>
+    <tr><td><kbd>Ctrl</kbd> + <kbd>Alt</kbd></td><td>Turn Itmam off or on from anywhere (press, then release)</td></tr>
+  </table>
+  <p>Every shortcut can be changed in Settings → "Keyboard shortcuts".</p>
+</section>
+
+</body>
+</html>
