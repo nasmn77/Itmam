@@ -445,6 +445,28 @@ kbd {
 .keys td { padding: 14px 4px; border-bottom: 1px solid var(--rule); vertical-align: top; }
 .keys td:first-child { width: 36%; }
 
+/* back to top */
+.to-top {
+  position: fixed;
+  inset-block-end: 24px;
+  inset-inline-end: 24px;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--rule);
+  background: var(--card);
+  color: var(--teal-ink);
+  box-shadow: var(--shadow);
+  transition: opacity .2s, transform .2s;
+}
+.to-top:hover { transform: translateY(-2px); }
+.to-top:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.to-top svg { width: 22px; height: 22px; }
+.to-top.away { opacity: 0; pointer-events: none; transform: translateY(8px); }
+
 /* footer */
 footer { border-top: 1px solid var(--rule); padding-block: 36px 52px; color: var(--ink-soft); font-size: 14px; }
 footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; }
