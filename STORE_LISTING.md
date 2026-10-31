@@ -133,10 +133,12 @@ Screenshots (1920×1032, upload in this order): `docs/store/ar/` for the Arabic 
 | 2 | `2-appearance.png` | ألوان الشريط وحجمه مع معاينة حية | Bar colors and size with a live preview |
 | 3 | `3-general.png` | عدد الاقتراحات والتعلّم | Number of suggestions and learning |
 | 4 | `4-shortcuts.png` | اختصارات قابلة للتغيير | Configurable shortcuts |
+| 5 | `5-phrases.png` | العبارات المتلازمة وعباراتك أنت | Common phrases and your own |
+| 6 | `6-long-phrases.png` | عبارات طويلة لردود الدعم الفني | Long phrases for support replies |
 
 They show the real bar and settings window (the bar at the real caret, with real dictionary suggestions, via the
 Debug-only `--demo-caret` option, because the hook ignores scripted typing). "My words" is not shown: it would
-display the developer's own learned words.
+display the developer's own learned words. Shots 5 and 6 (1.1) use sample data (Debug-only `ITMAM_DEMO_DATA`).
 
 ## Notes for certification
 
