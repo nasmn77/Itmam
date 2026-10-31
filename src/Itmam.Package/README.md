@@ -53,11 +53,11 @@
 
 ```powershell
 & "${env:ProgramFiles(x86)}\Windows Kits\10\App Certification Kit\appcert.exe" test `
-    -appxpackagepath src\Itmam.Package\bin\x64\Release\Itmam.Package_1.0.0.0_x64.msix `
+    -appxpackagepath src\Itmam.Package\bin\x64\Release\Itmam.Package_1.1.0.0_x64.msix `
     -reportoutputpath artifacts\wack-report.xml
 ```
 
-نتيجة الإصدار 1.0.0.0: نجح 21 فحصًا من 23. «Blocked executables» يبلّغ عن نصوص مثل `cmd` داخل ملفات ‎.NET نفسها وداخل بيانات القاموس المضغوطة، وعن `Process.Start` الذي تفتح به صفحة «حول» الروابط في المتصفح؛ إتمام لا يشغّل أي برنامج آخر. وتحذير «DPI Awareness» لأن WinForms يضبط PerMonitorV2 عند البدء (`ApplicationHighDpiMode`) لا في ملف البيان.
+نتيجة الإصدارين 1.0.0.0 و1.1.0.0: نجحت كل الفحوص إلا اثنين. «Blocked executables» يبلّغ عن نصوص مثل `cmd` داخل ملفات ‎.NET نفسها وداخل بيانات القاموس المضغوطة، وعن `Process.Start` الذي تفتح به صفحة «حول» الروابط في المتصفح؛ إتمام لا يشغّل أي برنامج آخر. وتحذير «DPI Awareness» لأن WinForms يضبط PerMonitorV2 عند البدء (`ApplicationHighDpiMode`) لا في ملف البيان.
 
 ### عند كل إصدار جديد
 
@@ -120,11 +120,11 @@ Run the Windows App Certification Kit (needs administrator rights) on the x64 pa
 
 ```powershell
 & "${env:ProgramFiles(x86)}\Windows Kits\10\App Certification Kit\appcert.exe" test `
-    -appxpackagepath src\Itmam.Package\bin\x64\Release\Itmam.Package_1.0.0.0_x64.msix `
+    -appxpackagepath src\Itmam.Package\bin\x64\Release\Itmam.Package_1.1.0.0_x64.msix `
     -reportoutputpath artifacts\wack-report.xml
 ```
 
-Result for 1.0.0.0: 21 of 23 checks passed. "Blocked executables" reports strings such as `cmd` inside .NET's own
+Result for 1.0.0.0 and 1.1.0.0: every check passed except two. "Blocked executables" reports strings such as `cmd` inside .NET's own
 files and inside the compressed dictionary data, and the `Process.Start` the About page uses to open links in the
 browser; Itmam never starts any other program. "DPI Awareness" warns because WinForms sets PerMonitorV2 at start-up
 (`ApplicationHighDpiMode`) rather than in the manifest.

@@ -68,7 +68,7 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
   also exists — unused, «اتمام» is a Store search term instead). Self-contained + ReadyToRun (~67 MB per architecture).
   `tools/Build-Package.ps1` (Store upload / signed test bundle), `tools/New-DevCertificate.ps1` (non-exportable cert in
   CurrentUser\My, no pfx; public part trusted in LocalMachine\TrustedPeople). Verified by the user: installs and runs.
-  WACK 1.0.0.0: 21/23 pass; "Blocked executables" (strings in .NET files/dictionary, Process.Start for About links) and
+  WACK 1.0.0.0 and 1.1.0.0 (2026-10-31, same result): "Blocked executables" (strings in .NET files/dictionary, Process.Start for About links) and
   DPI-awareness warning (set by WinForms at runtime) explained in STORE_LISTING.md certification notes.
   User decisions: category Productivity, free, full self-contained size (no trimming), version 1.0.0.0.
 - Website (user decision: design "paper and ink", GitHub Pages): `site/` (ar default + `site/en/`, home + privacy policy),
