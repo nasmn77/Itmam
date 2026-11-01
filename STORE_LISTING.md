@@ -48,6 +48,7 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 
 - متغيرات في العبارات الطويلة: «إدراج متغير…» يضع في الرد {اسم العميل} فيُسأل عنه عند الإدراج، أو {{التاريخ}} و{{التاريخ الهجري}} و{{اليوم}} و{{الوقت}} فيكتبها إتمام بنفسه.
 - عند اختيار رد فيه متغيرات تظهر خاناتها في القائمة نفسها مع معاينة فورية، ولا تُحفظ القيم.
+- إصلاح: يظهر الشريط من الكلمة الأولى في نافذة جديدة، وبعد تبديل اللغة، وفي برامج مثل VS Code.
 
 **ما الجديد في 1.1.2:**
 
@@ -119,6 +120,7 @@ Your privacy first. Itmam sends no data: no statistics, no crash reports. Its on
 
 - Variables in long phrases: "Insert variable…" adds {customer name}, asked for when inserting, or {{date}}, {{hijri date}}, {{day}} and {{time}}, written by Itmam.
 - Choosing a reply with variables shows their fields in the same list with a live preview; the values are not saved.
+- Fix: the bar now shows from the first word in a new window, after switching the layout, and in apps such as VS Code.
 
 **What's new in 1.1.2:**
 
