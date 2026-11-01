@@ -282,4 +282,14 @@
   <data name="UserGuide" xml:space="preserve"><value>User guide</value></data>
   <data name="UserGuideHint" xml:space="preserve"><value>A complete illustrated guide to Itmam: typing with suggestions, phrases and shortcuts, and every settings page (a PDF on your PC).</value></data>
   <data name="GuideUnavailable" xml:space="preserve"><value>The user guide could not be opened. You need an app that opens PDF files, such as Microsoft Edge.</value></data>
+  <data name="InsertVariableButton" xml:space="preserve"><value>Insert variable…</value></data>
+  <data name="InsertVariableTitle" xml:space="preserve"><value>Insert variable</value></data>
+  <data name="VariableAsked" xml:space="preserve"><value>Asked for</value></data>
+  <data name="VariableAutomatic" xml:space="preserve"><value>Automatic</value></data>
+  <data name="VariableNamePrompt" xml:space="preserve"><value>Its name (asked for when inserting):</value></data>
+  <data name="VariableChoosePrompt" xml:space="preserve"><value>Choose what is written automatically:</value></data>
+  <data name="InsertButton" xml:space="preserve"><value>Insert</value></data>
+  <data name="NotAVariableName" xml:space="preserve"><value>Type a name of up to 30 characters, without braces.</value></data>
+  <data name="UnknownAutoVariable" xml:space="preserve"><value>{0} is not an automatic variable. Insert automatic variables with "Insert variable…".</value></data>
+  <data name="LongPhraseFillHint" xml:space="preserve"><value>"{0}": fill in the fields, then Enter; Esc to go back.</value></data>
 </root>

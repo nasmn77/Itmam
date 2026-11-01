@@ -282,4 +282,14 @@
   <data name="UserGuide" xml:space="preserve"><value>دليل الاستخدام</value></data>
   <data name="UserGuideHint" xml:space="preserve"><value>شرح كامل لإتمام بالصور: الكتابة مع الاقتراحات، والعبارات والاختصارات، وكل صفحة من الإعدادات (ملف PDF على جهازك).</value></data>
   <data name="GuideUnavailable" xml:space="preserve"><value>تعذّر فتح دليل الاستخدام. تحتاج برنامجًا يفتح ملفات PDF، مثل Microsoft Edge.</value></data>
+  <data name="InsertVariableButton" xml:space="preserve"><value>إدراج متغير…</value></data>
+  <data name="InsertVariableTitle" xml:space="preserve"><value>إدراج متغير</value></data>
+  <data name="VariableAsked" xml:space="preserve"><value>متغير تسأل عنه</value></data>
+  <data name="VariableAutomatic" xml:space="preserve"><value>متغير تلقائي</value></data>
+  <data name="VariableNamePrompt" xml:space="preserve"><value>اسمه (يُسأل عنه عند الإدراج):</value></data>
+  <data name="VariableChoosePrompt" xml:space="preserve"><value>اختر ما يُكتب تلقائيًا:</value></data>
+  <data name="InsertButton" xml:space="preserve"><value>إدراج</value></data>
+  <data name="NotAVariableName" xml:space="preserve"><value>اكتب اسمًا لا يزيد على 30 حرفًا، بلا أقواس.</value></data>
+  <data name="UnknownAutoVariable" xml:space="preserve"><value>{0} ليس متغيرًا تلقائيًا. أدرج المتغيرات التلقائية من «إدراج متغير…».</value></data>
+  <data name="LongPhraseFillHint" xml:space="preserve"><value>«{0}»: املأ الخانات ثم Enter، وEsc للرجوع.</value></data>
 </root>

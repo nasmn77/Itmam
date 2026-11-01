@@ -39,7 +39,8 @@ internal static class Program
             return;
         }
 
-        // Visual check of the long phrases list with sample phrases (nothing is typed): --demo-longphrases [en]
+        // Visual check of the long phrases list with sample phrases (nothing is typed): --demo-longphrases [en] [fill]
+        // ("fill" opens the order confirmation, which has variables, with sample values typed in).
         if (args is ["--demo-longphrases", ..])
         {
             var english = args.Contains("en");
@@ -48,6 +49,7 @@ internal static class Program
                 ?
                 [
                     new("Welcome", "Dear customer,\nThank you for contacting technical support.\nHow can we help you?"),
+                    new("Order confirmation", "Dear {customer name},\nWe received your order no. {order number} on {{date}} at {{time}}.\nWe will contact you within two working days."),
                     new("Password reset", "To reset your password:\n1. Open the sign-in page and choose \"Forgot password\".\n2. Enter your email address.\n3. Follow the link we send you."),
                     new("Ask for the order number", "Could you send us your order number so we can check its status?"),
                     new("Close the ticket", "The issue is solved and the ticket is closed.\nDo not hesitate to contact us again.\nBest regards"),
@@ -55,13 +57,42 @@ internal static class Program
                 :
                 [
                     new("ترحيب بالعميل", "عزيزي العميل،\nشكرًا لتواصلك مع الدعم الفني.\nكيف يمكننا مساعدتك؟"),
+                    new("تأكيد الطلب", "عزيزي {اسم العميل}،\nاستلمنا طلبك رقم {رقم الطلب} بتاريخ {{التاريخ}} الساعة {{الوقت}}.\nسنتواصل معك خلال يومين عمل."),
                     new("استعادة كلمة المرور", "لاستعادة كلمة المرور:\n١. افتح صفحة الدخول واختر «نسيت كلمة المرور».\n٢. اكتب بريدك الإلكتروني.\n٣. اتبع الرابط الذي يصلك."),
                     new("طلب رقم الطلب", "نرجو تزويدنا برقم الطلب لنتابع حالته."),
                     new("إغلاق التذكرة", "تم حل المشكلة وإغلاق التذكرة.\nلا تتردد في التواصل معنا.\nمع التحية"),
                 ];
             using var picker = new SettingsUi.LongPhrasePicker(samples, 0, new SendInputInjector(), SettingsUi.SettingsPalette.For(ThemeChoice.System),
                 !english, new Rectangle(Screen.PrimaryScreen!.WorkingArea.Width / 2, 200, 2, 20));
+            if (args.Contains("fill"))
+            {
+                picker.Shown += (_, _) => picker.DemoFill(1, english ? ["Ahmed", "48213"] : ["أحمد", "48213"]);
+            }
+
             Application.Run(picker);
+            return;
+        }
+
+        // Visual check of the long phrase editor and the variable window: --demo-longphrase-dialog [en] [variable] [auto]
+        if (args is ["--demo-longphrase-dialog", ..])
+        {
+            var english = args.Contains("en");
+            UiCulture.Apply(english ? UiLanguage.English : UiLanguage.Arabic);
+            var palette = SettingsUi.SettingsPalette.For(ThemeChoice.System);
+            using var owner = new Form { ShowInTaskbar = false, StartPosition = FormStartPosition.CenterScreen, Size = new Size(1, 1) };
+            if (args.Contains("variable"))
+            {
+                SettingsUi.VariableDialog.Ask(owner, palette, !english, startAutomatic: args.Contains("auto"));
+            }
+            else
+            {
+                SettingsUi.LongPhraseDialog.Ask(owner, Resources.Strings.EditLongPhrase,
+                    english
+                        ? new("Order confirmation", "Dear {customer name},\nWe received your order no. {order number} on {{date}} at {{time}}.\nWe will contact you within two working days.")
+                        : new("تأكيد الطلب", "عزيزي {اسم العميل}،\nاستلمنا طلبك رقم {رقم الطلب} بتاريخ {{التاريخ}} الساعة {{الوقت}}.\nسنتواصل معك خلال يومين عمل."),
+                    palette, !english);
+            }
+
             return;
         }
 

@@ -10,12 +10,19 @@ namespace Itmam.App.SettingsUi;
 /// Ctrl+Shift+Space): type to filter by name or text, Up/Down to choose, Enter or a double-click to
 /// insert, Esc to close. Unlike the suggestion bar it takes the focus (to type in its search box); on
 /// insert it gives the focus back to the app the user was typing in and types the text there.
+/// A phrase with variables asked for (1.2) first shows a field for each in place of the list: Tab moves
+/// between them, Enter in the last one inserts, Esc goes back to the list. The values are not kept.
 /// </summary>
 internal sealed class LongPhrasePicker : Form
 {
     private readonly TextBox _search = new() { BorderStyle = BorderStyle.FixedSingle };
     private readonly ListBox _list = new() { BorderStyle = BorderStyle.None, IntegralHeight = false };
     private readonly Label _preview = new() { AutoSize = false, UseMnemonic = false };
+    private readonly Label _fillHint = new() { AutoSize = false, UseMnemonic = false, Visible = false };
+    private readonly Panel _fields = new() { AutoScroll = true, Visible = false };
+    private readonly List<(string Name, TextBox Box)> _boxes = [];
+    private readonly SettingsPalette _palette;
+    private LongPhrase? _filling;
     private readonly IReadOnlyList<LongPhrase> _all;
     private readonly nint _target;
     private readonly ITextInjector _injector;
@@ -37,6 +44,7 @@ internal sealed class LongPhrasePicker : Form
         Action<int>? inserted = null)
     {
         _inserted = inserted;
+        _palette = palette;
         _all = phrases;
         _shown = phrases;
         _target = target;
@@ -69,10 +77,13 @@ internal sealed class LongPhrasePicker : Form
         }
 
         _preview.ForeColor = palette.SecondaryText;
+        _fillHint.Bounds = new Rectangle(12, 12, 416, 30);
+        _fillHint.ForeColor = palette.SecondaryText;
+        _fields.Bounds = _list.Bounds;
         _search.TextChanged += (_, _) => Filter();
         _list.SelectedIndexChanged += (_, _) => ShowPreview();
         _list.DoubleClick += (_, _) => InsertSelected();
-        Controls.AddRange([_search, _list, _preview]);
+        Controls.AddRange([_search, _list, _fillHint, _fields, _preview]);
 
         // Shown at once, keys still held (user decision). Some apps (the new Notepad) take the focus back
         // when the shortcut's keys go up: until shortly after that, losing the focus does not close it.
@@ -136,6 +147,33 @@ internal sealed class LongPhrasePicker : Form
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
+        if (_filling is not null)
+        {
+            // Filling the variables: Enter moves to the next field and inserts from the last one, Esc
+            // goes back to the list; the arrows stay with the text boxes.
+            if (e.KeyCode == Keys.Enter)
+            {
+                var current = _boxes.FindIndex(b => b.Box.Focused);
+                if (current >= 0 && current < _boxes.Count - 1)
+                {
+                    _boxes[current + 1].Box.Focus();
+                }
+                else
+                {
+                    InsertSelected();
+                }
+
+                e.Handled = e.SuppressKeyPress = true;
+            }
+            else if (e.KeyCode == Keys.Escape)
+            {
+                LeaveFill();
+                e.Handled = e.SuppressKeyPress = true;
+            }
+
+            return;
+        }
+
         switch (e.KeyCode)
         {
             case Keys.Down when _list.Items.Count > 0:
@@ -176,21 +214,91 @@ internal sealed class LongPhrasePicker : Form
         ShowPreview();
     }
 
+    // Automatic variables filled in; the ones asked for show their typed value, or {name} while empty.
     private void ShowPreview() =>
-        _preview.Text = _all.Count == 0 ? Strings.LongPhrasesEmpty
-            : _list.SelectedIndex >= 0 && _list.SelectedIndex < _shown.Count ? _shown[_list.SelectedIndex].Text
+        _preview.Text = _filling is not null ? LongPhraseVariables.Fill(_filling.Text, TypedValues(placeholders: true), DateTime.Now)
+            : _all.Count == 0 ? Strings.LongPhrasesEmpty
+            : _list.SelectedIndex >= 0 && _list.SelectedIndex < _shown.Count ? LongPhraseVariables.Fill(_shown[_list.SelectedIndex].Text, null, DateTime.Now)
             : Strings.LongPhrasesNoMatch;
+
+    private Dictionary<string, string> TypedValues(bool placeholders) =>
+        _boxes.ToDictionary(b => b.Name, b => placeholders && b.Box.TextLength == 0 ? LongPhraseVariables.InputToken(b.Name) : b.Box.Text);
+
+    // A field for each variable asked for, in place of the search box and the list.
+    private void EnterFill(LongPhrase phrase)
+    {
+        _filling = phrase;
+        _fields.SuspendLayout();
+        _fields.Controls.Clear();
+        _boxes.Clear();
+        var y = 0;
+        var width = _fields.ClientSize.Width - SystemInformation.VerticalScrollBarWidth;
+        foreach (var name in LongPhraseVariables.InputNames(phrase.Text))
+        {
+            var label = new Label { Text = name, AutoSize = false, Bounds = new Rectangle(0, y, width, 24), UseMnemonic = false, ForeColor = _palette.Text };
+            var box = new TextBox
+            {
+                BorderStyle = BorderStyle.FixedSingle,
+                Bounds = new Rectangle(0, y + 24, width, 30),
+                BackColor = _palette.ControlFill,
+                ForeColor = _palette.Text,
+                TabIndex = _boxes.Count,
+            };
+            box.TextChanged += (_, _) => ShowPreview();
+            _fields.Controls.AddRange([label, box]);
+            _boxes.Add((name, box));
+            y += 62;
+        }
+
+        _fields.ResumeLayout();
+        _fillHint.Text = string.Format(System.Globalization.CultureInfo.CurrentCulture, Strings.LongPhraseFillHint, phrase.Name);
+        _search.Visible = _list.Visible = false;
+        _fillHint.Visible = _fields.Visible = true;
+        ShowPreview();
+        _boxes[0].Box.Focus();
+    }
+
+#if DEBUG
+    /// <summary>Opens the fields of a phrase with sample values typed in (--demo-longphrases fill).</summary>
+    public void DemoFill(int index, string[] values)
+    {
+        _list.SelectedIndex = index;
+        EnterFill(_shown[index]);
+        for (var i = 0; i < Math.Min(values.Length, _boxes.Count); i++)
+        {
+            _boxes[i].Box.Text = values[i];
+        }
+    }
+#endif
+
+    private void LeaveFill()
+    {
+        _filling = null;
+        _fillHint.Visible = _fields.Visible = false;
+        _fields.Controls.Clear();
+        _boxes.Clear(); // the typed values are not kept
+        _search.Visible = _list.Visible = true;
+        ShowPreview();
+        _search.Focus();
+    }
 
     // Focus back to the app, then paste the text there (the clipboard is restored afterwards).
     private async void InsertSelected()
     {
-        if (_inserting || _list.SelectedIndex < 0 || _list.SelectedIndex >= _shown.Count)
+        if (_inserting || (_filling is null && (_list.SelectedIndex < 0 || _list.SelectedIndex >= _shown.Count)))
         {
             return;
         }
 
+        var phrase = _filling ?? _shown[_list.SelectedIndex];
+        if (_filling is null && LongPhraseVariables.HasInputs(phrase.Text))
+        {
+            EnterFill(phrase);
+            return;
+        }
+
         _inserting = true;
-        var text = _shown[_list.SelectedIndex].Text;
+        var text = LongPhraseVariables.Fill(phrase.Text, TypedValues(placeholders: false), DateTime.Now);
         Hide();
         PopupWindows.Activate(_target);
         await Task.Delay(150); // let the app take the focus before the keys arrive

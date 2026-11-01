@@ -37,8 +37,20 @@ internal sealed class LongPhraseDialog : Form
 
         var nameLabel = new Label { Text = Strings.LongPhraseNamePrompt, AutoSize = false, Bounds = new Rectangle(16, 14, 528, 24), UseMnemonic = false };
         _name.Bounds = new Rectangle(16, 40, 528, 30);
-        var textLabel = new Label { Text = Strings.LongPhraseTextPrompt, AutoSize = false, Bounds = new Rectangle(16, 82, 528, 24), UseMnemonic = false };
-        _text.Bounds = new Rectangle(16, 108, 528, 250);
+        var textLabel = new Label { Text = Strings.LongPhraseTextPrompt, AutoSize = false, Bounds = new Rectangle(16, 86, 528, 24), UseMnemonic = false };
+        _text.Bounds = new Rectangle(16, 116, 528, 242);
+
+        // Variables (user decision 1.2): written at the caret, the braces typed by the code.
+        var variable = new ThemedButton { Text = Strings.InsertVariableButton, Palette = palette, Top = 78 };
+        variable.Click += (_, _) =>
+        {
+            if (VariableDialog.Ask(this, palette, rtl) is { } token)
+            {
+                _text.SelectedText = token;
+            }
+
+            _text.Focus();
+        };
         foreach (var box in new[] { _name, _text })
         {
             box.Font = new Font("Segoe UI", 11f);
@@ -57,7 +69,9 @@ internal sealed class LongPhraseDialog : Form
         cancel.Left = 544 - cancel.Width;
         ok.Click += (_, _) => Accept();
         cancel.Click += (_, _) => DialogResult = DialogResult.Cancel;
-        Controls.AddRange([nameLabel, _name, textLabel, _text, _error, ok, cancel]);
+        Controls.AddRange([nameLabel, _name, textLabel, variable, _text, _error, ok, cancel]);
+        variable.Left = 544 - variable.Width; // measured with the window's font
+        textLabel.Width = variable.Left - 8 - textLabel.Left;
         Shown += (_, _) =>
         {
             WindowChrome.SetDarkTitleBar(Handle, palette.IsDark);
@@ -106,6 +120,11 @@ internal sealed class LongPhraseDialog : Form
         else if (LongPhrases.CleanText(_text.Text) is not { } text)
         {
             _error.Text = Strings.NotALongPhraseText;
+            _text.Focus();
+        }
+        else if (LongPhraseVariables.UnknownAutoVariables(text) is [var unknown, ..])
+        {
+            _error.Text = string.Format(System.Globalization.CultureInfo.CurrentCulture, Strings.UnknownAutoVariable, unknown);
             _text.Focus();
         }
         else
