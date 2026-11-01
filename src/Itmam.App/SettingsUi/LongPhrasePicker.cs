@@ -318,7 +318,9 @@ internal sealed class LongPhrasePicker : Form
         _fields.ResumeLayout();
         _preview.Bounds = new Rectangle(margin, top + shownFields + Px(8), width, previewHeight);
         ClientSize = new Size(ClientSize.Width, _preview.Bottom + margin);
-        PlaceNear(_near);
+
+        // Centred on the screen while filling (user decision): the window is now too big to sit by the caret.
+        Location = new Point(area.Left + Math.Max(0, (area.Width - Width) / 2), area.Top + Math.Max(0, (area.Height - Height) / 2));
 
         _fillHint.Text = string.Format(System.Globalization.CultureInfo.CurrentCulture, Strings.LongPhraseFillHint, phrase.Name);
         _search.Visible = _list.Visible = false;
