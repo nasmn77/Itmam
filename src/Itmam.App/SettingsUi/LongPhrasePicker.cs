@@ -17,12 +17,24 @@ internal sealed class LongPhrasePicker : Form
 {
     private readonly TextBox _search = new() { BorderStyle = BorderStyle.FixedSingle };
     private readonly ListBox _list = new() { BorderStyle = BorderStyle.None, IntegralHeight = false };
-    private readonly Label _preview = new() { AutoSize = false, UseMnemonic = false };
+    // Read-only text box rather than a label: a long reply scrolls instead of being cut off.
+    private readonly TextBox _preview = new()
+    {
+        ReadOnly = true,
+        Multiline = true,
+        WordWrap = true,
+        ScrollBars = ScrollBars.None, // shown by ShowPreview when the text is taller
+        BorderStyle = BorderStyle.None,
+        TabStop = false,
+    };
     private readonly Label _fillHint = new() { AutoSize = false, UseMnemonic = false, Visible = false };
     private readonly Panel _fields = new() { AutoScroll = true, Visible = false };
     private readonly List<(string Name, TextBox Box)> _boxes = [];
     private readonly SettingsPalette _palette;
+    private readonly Rectangle _near;
     private LongPhrase? _filling;
+    private Size _listClientSize;
+    private Rectangle _listPreviewBounds;
     private readonly IReadOnlyList<LongPhrase> _all;
     private readonly nint _target;
     private readonly ITextInjector _injector;
@@ -45,6 +57,7 @@ internal sealed class LongPhrasePicker : Form
     {
         _inserted = inserted;
         _palette = palette;
+        _near = near;
         _all = phrases;
         _shown = phrases;
         _target = target;
@@ -77,6 +90,7 @@ internal sealed class LongPhrasePicker : Form
         }
 
         _preview.ForeColor = palette.SecondaryText;
+        _preview.BackColor = palette.Window;
         _fillHint.Bounds = new Rectangle(12, 12, 416, 30);
         _fillHint.ForeColor = palette.SecondaryText;
         _fields.Bounds = _list.Bounds;
@@ -101,6 +115,8 @@ internal sealed class LongPhrasePicker : Form
             _keysWatch.Start();
             WindowChrome.SetDarkTitleBar(Handle, palette.IsDark);
             WindowChrome.SetDarkScrollbars(_list.Handle, palette.IsDark);
+            WindowChrome.SetDarkScrollbars(_preview.Handle, palette.IsDark);
+            WindowChrome.SetDarkScrollbars(_fields.Handle, palette.IsDark);
             PlaceNear(near);
             Filter();
         };
@@ -215,8 +231,24 @@ internal sealed class LongPhrasePicker : Form
     }
 
     // Automatic variables filled in; the ones asked for show their typed value, or {name} while empty.
-    private void ShowPreview() =>
-        _preview.Text = _filling is not null ? LongPhraseVariables.Fill(_filling.Text, TypedValues(placeholders: true), DateTime.Now)
+    // The scroll bar only when the text is taller than the box.
+    private void ShowPreview()
+    {
+        var text = PreviewText();
+        var height = TextRenderer.MeasureText(text, _preview.Font, new Size(_preview.ClientSize.Width - SystemInformation.VerticalScrollBarWidth, int.MaxValue),
+            TextFormatFlags.WordBreak | TextFormatFlags.TextBoxControl).Height;
+        var scrollBars = height > _preview.ClientSize.Height ? ScrollBars.Vertical : ScrollBars.None;
+        if (_preview.ScrollBars != scrollBars)
+        {
+            _preview.ScrollBars = scrollBars;
+            WindowChrome.SetDarkScrollbars(_preview.Handle, _palette.IsDark); // the handle is recreated
+        }
+
+        _preview.Text = text.Replace("\n", "\r\n", StringComparison.Ordinal);
+    }
+
+    private string PreviewText() =>
+        _filling is not null ? LongPhraseVariables.Fill(_filling.Text, TypedValues(placeholders: true), DateTime.Now)
             : _all.Count == 0 ? Strings.LongPhrasesEmpty
             : _list.SelectedIndex >= 0 && _list.SelectedIndex < _shown.Count ? LongPhraseVariables.Fill(_shown[_list.SelectedIndex].Text, null, DateTime.Now)
             : Strings.LongPhrasesNoMatch;
@@ -224,22 +256,50 @@ internal sealed class LongPhrasePicker : Form
     private Dictionary<string, string> TypedValues(bool placeholders) =>
         _boxes.ToDictionary(b => b.Name, b => placeholders && b.Box.TextLength == 0 ? LongPhraseVariables.InputToken(b.Name) : b.Box.Text);
 
-    // A field for each variable asked for, in place of the search box and the list.
+    // A field for each variable asked for, in place of the search box and the list. The window grows so
+    // every field and the whole preview show, up to the screen's height; beyond that they scroll.
     private void EnterFill(LongPhrase phrase)
     {
         _filling = phrase;
+        _listClientSize = ClientSize;
+        _listPreviewBounds = _preview.Bounds;
+        var scale = DeviceDpi / 96f; // laid out at 100 %, like the constructor
+        int Px(int logical) => (int)Math.Round(logical * scale);
+
+        var names = LongPhraseVariables.InputNames(phrase.Text);
+        var margin = Px(12);
+        var width = ClientSize.Width - 2 * margin;
+        var rowHeight = Px(62);
+        var fieldsHeight = names.Count * rowHeight;
+        var top = _list.Top;
+
+        // Room on the screen for the client area, then the fields and the preview share it.
+        var area = Screen.FromControl(this).WorkingArea;
+        var maxClient = area.Height - (Height - ClientSize.Height) - Px(16);
+        var previewWanted = TextRenderer.MeasureText(
+            LongPhraseVariables.Fill(phrase.Text, null, DateTime.Now) + "\n",
+            _preview.Font,
+            new Size(width - SystemInformation.VerticalScrollBarWidth, int.MaxValue),
+            TextFormatFlags.WordBreak | TextFormatFlags.TextBoxControl).Height + Px(8);
+        previewWanted = Math.Max(previewWanted, Px(80));
+        var room = maxClient - top - Px(8) - margin;
+        // Fields first, but the preview keeps at least half the room it needs (up to half the screen).
+        var shownFields = Math.Clamp(room - Math.Min(previewWanted, room / 2), rowHeight, fieldsHeight);
+        var previewHeight = Math.Max(Px(60), Math.Min(previewWanted, room - shownFields));
+
         _fields.SuspendLayout();
         _fields.Controls.Clear();
         _boxes.Clear();
+        _fields.Bounds = new Rectangle(margin, top, width, shownFields);
+        var rowWidth = shownFields < fieldsHeight ? width - SystemInformation.VerticalScrollBarWidth : width;
         var y = 0;
-        var width = _fields.ClientSize.Width - SystemInformation.VerticalScrollBarWidth;
-        foreach (var name in LongPhraseVariables.InputNames(phrase.Text))
+        foreach (var name in names)
         {
-            var label = new Label { Text = name, AutoSize = false, Bounds = new Rectangle(0, y, width, 24), UseMnemonic = false, ForeColor = _palette.Text };
+            var label = new Label { Text = name, AutoSize = false, Bounds = new Rectangle(0, y, rowWidth, Px(24)), UseMnemonic = false, ForeColor = _palette.Text };
             var box = new TextBox
             {
                 BorderStyle = BorderStyle.FixedSingle,
-                Bounds = new Rectangle(0, y + 24, width, 30),
+                Bounds = new Rectangle(0, y + Px(24), rowWidth, Px(30)),
                 BackColor = _palette.ControlFill,
                 ForeColor = _palette.Text,
                 TabIndex = _boxes.Count,
@@ -247,10 +307,14 @@ internal sealed class LongPhrasePicker : Form
             box.TextChanged += (_, _) => ShowPreview();
             _fields.Controls.AddRange([label, box]);
             _boxes.Add((name, box));
-            y += 62;
+            y += rowHeight;
         }
 
         _fields.ResumeLayout();
+        _preview.Bounds = new Rectangle(margin, top + shownFields + Px(8), width, previewHeight);
+        ClientSize = new Size(ClientSize.Width, _preview.Bottom + margin);
+        PlaceNear(_near);
+
         _fillHint.Text = string.Format(System.Globalization.CultureInfo.CurrentCulture, Strings.LongPhraseFillHint, phrase.Name);
         _search.Visible = _list.Visible = false;
         _fillHint.Visible = _fields.Visible = true;
@@ -277,6 +341,9 @@ internal sealed class LongPhrasePicker : Form
         _fillHint.Visible = _fields.Visible = false;
         _fields.Controls.Clear();
         _boxes.Clear(); // the typed values are not kept
+        _preview.Bounds = _listPreviewBounds;
+        ClientSize = _listClientSize;
+        PlaceNear(_near);
         _search.Visible = _list.Visible = true;
         ShowPreview();
         _search.Focus();

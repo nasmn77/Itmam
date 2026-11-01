@@ -39,7 +39,7 @@ internal static class Program
             return;
         }
 
-        // Visual check of the long phrases list with sample phrases (nothing is typed): --demo-longphrases [en] [fill]
+        // Visual check of the long phrases list with sample phrases (nothing is typed): --demo-longphrases [en] [fill] [long]
         // ("fill" opens the order confirmation, which has variables, with sample values typed in).
         if (args is ["--demo-longphrases", ..])
         {
@@ -58,6 +58,9 @@ internal static class Program
                 [
                     new("ترحيب بالعميل", "عزيزي العميل،\nشكرًا لتواصلك مع الدعم الفني.\nكيف يمكننا مساعدتك؟"),
                     new("تأكيد الطلب", "عزيزي {اسم العميل}،\nاستلمنا طلبك رقم {رقم الطلب} بتاريخ {{التاريخ}} الساعة {{الوقت}}.\nسنتواصل معك خلال يومين عمل."),
+                    new("ترحيب بمتدرب", "عزيزي / {اسم العميل}\nنرحب بك في دورة / {اسم الدورة}\nسنتواصل معك على الجوال {رقم الجوال} قبل موعد البدء {موعد البدء}.\n\n"
+                        + string.Join(" ", Enumerable.Repeat("منصة تعليمية عربية تضم مئات الدورات في التقنية والإدارة واللغات، يقدمها مدربون معتمدون، مع شهادات إتمام ومتابعة شخصية لكل متدرب.", 6))
+                        + "\n\nمع التحية،\nفريق التدريب"),
                     new("استعادة كلمة المرور", "لاستعادة كلمة المرور:\n١. افتح صفحة الدخول واختر «نسيت كلمة المرور».\n٢. اكتب بريدك الإلكتروني.\n٣. اتبع الرابط الذي يصلك."),
                     new("طلب رقم الطلب", "نرجو تزويدنا برقم الطلب لنتابع حالته."),
                     new("إغلاق التذكرة", "تم حل المشكلة وإغلاق التذكرة.\nلا تتردد في التواصل معنا.\nمع التحية"),
@@ -67,6 +70,10 @@ internal static class Program
             if (args.Contains("fill"))
             {
                 picker.Shown += (_, _) => picker.DemoFill(1, english ? ["Ahmed", "48213"] : ["أحمد", "48213"]);
+            }
+            else if (args.Contains("long") && !english)
+            {
+                picker.Shown += (_, _) => picker.DemoFill(2, ["أحمد", "أساسيات البرمجة"]); // four fields, a long reply
             }
 
             Application.Run(picker);
