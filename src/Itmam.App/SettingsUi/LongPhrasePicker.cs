@@ -257,7 +257,8 @@ internal sealed class LongPhrasePicker : Form
         _boxes.ToDictionary(b => b.Name, b => placeholders && b.Box.TextLength == 0 ? LongPhraseVariables.InputToken(b.Name) : b.Box.Text);
 
     // A field for each variable asked for, in place of the search box and the list. The window grows so
-    // every field and the whole preview show, up to the screen's height; beyond that they scroll.
+    // every field and the whole preview show: wider (640, user decision, so long replies take fewer lines)
+    // and taller, both within the screen (small screens such as 1366×768); beyond that they scroll.
     private void EnterFill(LongPhrase phrase)
     {
         _filling = phrase;
@@ -266,15 +267,19 @@ internal sealed class LongPhrasePicker : Form
         var scale = DeviceDpi / 96f; // laid out at 100 %, like the constructor
         int Px(int logical) => (int)Math.Round(logical * scale);
 
+        var area = Screen.FromControl(this).WorkingArea;
+        var frameWidth = Width - ClientSize.Width;
+        ClientSize = new Size(Math.Max(ClientSize.Width, Math.Min(Px(640), area.Width - frameWidth - Px(32))), ClientSize.Height);
+
         var names = LongPhraseVariables.InputNames(phrase.Text);
         var margin = Px(12);
         var width = ClientSize.Width - 2 * margin;
         var rowHeight = Px(62);
         var fieldsHeight = names.Count * rowHeight;
         var top = _list.Top;
+        _fillHint.Width = width;
 
         // Room on the screen for the client area, then the fields and the preview share it.
-        var area = Screen.FromControl(this).WorkingArea;
         var maxClient = area.Height - (Height - ClientSize.Height) - Px(16);
         var previewWanted = TextRenderer.MeasureText(
             LongPhraseVariables.Fill(phrase.Text, null, DateTime.Now) + "\n",
