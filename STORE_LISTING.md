@@ -29,7 +29,7 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 - يكمل العبارات: «بسم الله الرحمن الرحيم»، «جزاك الله خيرًا» ونحو 250 عبارة
 - يتعلّم العبارات التي تكررها، وصفحة «عباراتي» لعباراتك أنت
 - اختصارات نصية: اكتب «ع1» فيقترح «السلام عليكم ورحمة الله وبركاته»
-- عبارات طويلة من عدة أسطر، مثل ردود الدعم الفني، تختارها باختصار في أي برنامج
+- عبارات طويلة من عدة أسطر بمتغيرات (اسم العميل، تاريخ اليوم)، مثل ردود الدعم الفني، تختارها باختصار في أي برنامج
 - يكمل الكلمة من وسطها بعد النقر أو Backspace
 - Tab للإدراج، وCtrl مع رقم للاقتراح الثاني والثالث، أو الاختيار بالأسهم
 - Backspace مباشرة بعد الإدراج يتراجع عنه
@@ -43,6 +43,11 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 - واجهة عربية وإنجليزية، ومفتوح المصدر (MIT)
 
 **كلمات البحث** (7 على الأكثر): اتمام · اكمال الكلمات · اقتراح الكلمات · لوحة المفاتيح العربية · الكتابة بالعربي · التنبؤ بالنص · الكتابة التنبؤية
+
+**ما الجديد في 1.2:**
+
+- متغيرات في العبارات الطويلة: «إدراج متغير…» يضع في الرد {اسم العميل} فيُسأل عنه عند الإدراج، أو {{التاريخ}} و{{التاريخ الهجري}} و{{اليوم}} و{{الوقت}} فيكتبها إتمام بنفسه.
+- عند اختيار رد فيه متغيرات تظهر خاناتها في القائمة نفسها مع معاينة فورية، ولا تُحفظ القيم.
 
 **ما الجديد في 1.1.2:**
 
@@ -95,7 +100,7 @@ Your privacy first. Itmam sends no data: no statistics, no crash reports. Its on
 - Completes phrases: «بسم الله الرحمن الرحيم», «جزاك الله خيرا» and about 250 more
 - Learns the phrases you repeat; "My phrases" for your own
 - Text shortcuts: type «ع1» and it offers «السلام عليكم ورحمة الله وبركاته»
-- Long phrases of several lines, such as support replies, chosen with a shortcut in any app
+- Long phrases of several lines with variables (customer name, today's date), such as support replies, chosen with a shortcut in any app
 - Continues a word from the middle after a click or Backspace
 - Tab to insert, Ctrl + a number for the others, or choose with the arrow keys
 - Backspace right after inserting undoes it
@@ -109,6 +114,11 @@ Your privacy first. Itmam sends no data: no statistics, no crash reports. Its on
 - Arabic and English interface; open source (MIT)
 
 **Search terms** (7 max): Arabic keyboard · Arabic word prediction · Arabic autocomplete · predictive text · word suggestions · Arabic typing · اتمام
+
+**What's new in 1.2:**
+
+- Variables in long phrases: "Insert variable…" adds {customer name}, asked for when inserting, or {{date}}, {{hijri date}}, {{day}} and {{time}}, written by Itmam.
+- Choosing a reply with variables shows their fields in the same list with a live preview; the values are not saved.
 
 **What's new in 1.1.2:**
 

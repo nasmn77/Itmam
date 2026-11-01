@@ -16,7 +16,7 @@ Website: https://nasmn77.github.io/Itmam/en/ · Repository: https://github.com/n
 - **A bar that looks like Windows 11's own**, following light or dark mode, with the colors, size and opacity you choose.
 - **Completes common phrases:** «بسم الله الرحمن الرحيم», «السلام عليكم ورحمة الله وبركاته», «جزاك الله خيرا» and about 250 others, whole with Tab or word by word, plus "My phrases" you add yourself.
 - **Text shortcuts:** type «ع1» and the bar offers «السلام عليكم ورحمة الله وبركاته»; Tab puts it in place, with the shortcuts you choose.
-- **Long phrases of several lines** (such as technical support replies): press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Space</kbd> in any program and choose by name from the list.
+- **Long phrases of several lines** (such as technical support replies): press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Space</kbd> in any program and choose by name from the list. With **variables**: `{customer name}` is asked for when inserting, and `{{date}}` is written by Itmam (the date, the Hijri date, the day and the time).
 - **Fixes common mistakes:** «لاكن» → «لكن», «انشاءالله» → «إن شاء الله», «مدرسه» → «مدرسة», with Tab.
 - **Learns your phrases:** words you type in a row twice are then suggested as a whole phrase (can be turned off).
 - **Completes a word from the middle:** go back into a word with a click or Backspace and it continues from the caret.
@@ -50,7 +50,7 @@ Click the Itmam icon next to the clock (right or left button) and choose "Settin
 - **My words:** add, edit, block and delete words, import and export, delete all.
 - **My phrases:** turn phrase suggestions and phrase learning on or off, "My phrases" (with import and export), and the learned phrases (delete, move to "My phrases", delete all).
 - **Text shortcuts:** add a shortcut («ع1») and its text, edit, delete, import and export.
-- **Long phrases:** add a phrase with its name and text (up to 4,000 characters, several lines), edit, delete, import and export.
+- **Long phrases:** add a phrase with its name and text (up to 4,000 characters, several lines), "Insert variable…", edit, delete, import and export.
 - **Updates:** the version, and checking for an update through Microsoft Store.
 
 ## The icon next to the clock

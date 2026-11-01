@@ -28,6 +28,8 @@ li::marker { color: var(--teal); }
 a { color: var(--teal-ink); }
 b { color: var(--ink); }
 
+code { font: 600 .9em "Cascadia Mono", Consolas, monospace; unicode-bidi: isolate; }
+
 kbd {
   font: 600 9pt "Cascadia Mono", Consolas, monospace;
   padding: .2mm 1.6mm;

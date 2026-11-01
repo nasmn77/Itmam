@@ -175,6 +175,8 @@
 
 ردود بعدة أسطر (`LongPhrase`: اسم ونص حتى 4000 حرف) في `settings.json`. اختصار يعمل في كل البرامج (`HotkeySettings.OpenLongPhrases`، افتراضيًا Ctrl+Shift+Space، ويحتاج Ctrl أو Alt) يبتلعه الخطاف ويرسل `OpenLongPhrases`. يحفظ `ItmamApp` النافذة الأمامية ويحدد مكان مؤشرها، ثم يفتح `LongPhrasePicker` قربه: نافذة تأخذ التركيز (يربط `PopupWindows.BringToFront` إدخال الخيط الأمامي لأن Windows يرفض غير ذلك)، فيها بحث بالاسم أو النص (`LongPhrases.Filter`) وقائمة ومعاينة. عند الاختيار تُخفى، ويعود التركيز إلى النافذة السابقة، ثم يلصق `ClipboardPaste` النص (قرار المستخدم، لأن كتابة مئات الأحرف ضغطةً ضغطة جمّدت Word): تُحفظ الحافظة، ويوضع النص فيها مع علامات Windows التي تستثنيه من سجل الحافظة ومزامنتها، ثم Ctrl+V، ثم تُستعاد الحافظة بعد 700 ملّي ثانية. وإن كانت الحافظة مشغولة يُكتب النص، وكل فاصل سطر Shift+Enter. لا يُتعلَّم منها شيء.
 
+**المتغيرات (من الإصدار 1.2):** `LongPhraseVariables` (في Core) يقسم النص: `{اسم}` يُسأل عنه، و`{{اسم}}` تلقائي من أربعة (التاريخ، التاريخ الهجري بتقويم `UmAlQuraCalendar`، اليوم، الوقت)، بأسماء عربية أو إنجليزية؛ والقوس الذي لا يكوّن متغيرًا صحيحًا يبقى نصًا. تُكتب القيم التلقائية بالعربية إن كان في نص العبارة حرف عربي، وإلا بالإنجليزية. `VariableDialog` يُدرج المتغير من نافذة التعديل، ويرفض `LongPhraseDialog` حفظ `{{اسم}}` غير معروف. في `LongPhrasePicker`، العبارة التي فيها متغير يُسأل عنه تُظهر خانة لكل متغير مكان القائمة، ثم يُلصق `LongPhraseVariables.Fill(...)`. القيم في النافذة فقط ولا تُحفظ.
+
 ### الاختصارات النصية (من الإصدار 1.1)
 
 `TextShortcuts` (في Core) يحمل اختصارات المستخدم من `settings.json` (مثل «ع1» ← «السلام عليكم ورحمة الله وبركاته»). الاختصار حرف عربي ثم حروف عربية أو أرقام؛ ولذلك يُبقي `WordBuffer` الأرقام التي تأتي بعد حرف داخل الكلمة (الرقم في أول الكلمة ما زال حدًّا)، ولا تُتعلَّم كلمة فيها رقم. يضع `SuggestionController` عبارة الاختصار المكتوب بالضبط أولًا في الشريط، مهما كان الحد الأدنى للحروف، ويضعها Tab مكان الاختصار بالطريقة نفسها التي تُقبل بها الاقتراحات. المطابقة تتجاهل التشكيل والهمزات، والأرقام الهندية تساوي الأرقام العربية الغربية.
@@ -488,6 +490,13 @@ choice it hides, gives the focus back to the previous window, and `ClipboardPast
 hundreds of characters as key presses froze Word): the clipboard is saved, the text is put on it with the Windows formats
 that keep it out of the clipboard history and cloud sync, Ctrl+V is sent, and the clipboard is restored after 700 ms. If
 the clipboard is busy the text is typed instead, each line break as Shift+Enter. Nothing is learned from them.
+
+**Variables (from 1.2):** `LongPhraseVariables` (Core) splits the text: `{name}` is asked for, `{{name}}` is one of four
+automatic values (the date, the Hijri date with `UmAlQuraCalendar`, the day, the time), named in Arabic or English; braces
+that do not form a valid variable stay text. Automatic values are written in Arabic when the phrase's text has an Arabic
+letter, otherwise in English. `VariableDialog` inserts a variable from the editor, and `LongPhraseDialog` refuses to save
+an unknown `{{name}}`. In `LongPhrasePicker`, a phrase with a variable asked for shows a field for each in place of the
+list, then `LongPhraseVariables.Fill(...)` is pasted. The values live in the window only and are never saved.
 
 ### Text shortcuts (from 1.1)
 

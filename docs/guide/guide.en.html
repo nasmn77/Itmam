@@ -11,7 +11,7 @@
   <img src="../../site/assets/icon.svg" alt="">
   <h1>Itmam user guide</h1>
   <p class="tag">Arabic word suggestions as you type on your keyboard, in any Windows app.</p>
-  <p class="meta">Version 1.1.2 · https://nasmn77.github.io/Itmam/en/<br>The pictures in this guide are from the app itself, with sample data.</p>
+  <p class="meta">Version 1.2 · https://nasmn77.github.io/Itmam/en/<br>The pictures in this guide are from the app itself, with sample data.</p>
 </div>
 
 <section class="toc">
@@ -133,6 +133,23 @@
 </section>
 
 <section>
+  <h2>Long phrases: variables</h2>
+  <p class="lede">Write the reply once and leave places for what changes each time: the customer's name, the order number, today's date.</p>
+  <ul>
+    <li><b>Asked for</b> <code>{customer name}</code>: in braces; Itmam asks for its value when you insert the reply. If it appears more than once, you type it once.</li>
+    <li><b>Automatic</b> <code>{{date}}</code>: in double braces; Itmam writes it by itself. There are four: the date, the Hijri date (Umm al-Qura calendar), the day and the time. They are written in Arabic in an Arabic reply and in English in an English one.</li>
+  </ul>
+  <figure class="small"><img src="img/en-longphrase-editor.png" alt="Editing a long phrase with variables"><figcaption>"Insert variable…" puts the variable at the caret.</figcaption></figure>
+  <h3>Inserting a variable</h3>
+  <p>In the long phrase window, press "Insert variable…", then choose: "Asked for" and type its name, or "Automatic" and pick it from the list. Itmam types the braces for you. You can also type a variable asked for yourself; automatic ones are picked from the list, and any other name in double braces is refused when saving.</p>
+  <figure class="small"><img src="img/en-variable.png" alt="The Insert variable window"></figure>
+  <h3>Filling in the variables</h3>
+  <p>Choose the reply in the long phrases list and press <kbd>Enter</kbd>: a field appears for each variable asked for, and the preview below follows what you type. <kbd>Tab</kbd> moves between fields, <kbd>Enter</kbd> in the last one inserts the reply, and <kbd>Esc</kbd> goes back to the list. A reply without variables is inserted at once, as before.</p>
+  <figure class="small"><img src="img/en-fill.png" alt="Filling in a reply's variables"></figure>
+  <div class="note"><p>The values you type are not saved; they are forgotten after inserting.</p></div>
+</section>
+
+<section>
   <h2>8. The tray menu</h2>
   <p class="lede">Click Itmam's icon next to the clock with either mouse button:</p>
   <div class="menu">
@@ -248,7 +265,7 @@
   <figure><img src="img/en-longphrases.png" alt="The Long phrases page"></figure>
   <ul>
     <li><b>Open the long phrases list:</b> the shortcut; click it to change it.</li>
-    <li><b>Add a long phrase:</b> a name (up to 60 characters) and the text (up to 4,000 characters). In the text box, <kbd>Enter</kbd> starts a new line and <kbd>Ctrl</kbd> + <kbd>Enter</kbd> saves.</li>
+    <li><b>Add a long phrase:</b> a name (up to 60 characters) and the text (up to 4,000 characters), with "Insert variable…" for the customer's name, today's date and more (see "Long phrases: variables"). In the text box, <kbd>Enter</kbd> starts a new line and <kbd>Ctrl</kbd> + <kbd>Enter</kbd> saves.</li>
     <li>Edit and delete; import and export to share them with colleagues.</li>
   </ul>
 </section>
