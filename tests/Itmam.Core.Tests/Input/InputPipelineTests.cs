@@ -279,6 +279,55 @@ public sealed class InputPipelineTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task Chromium_waking_up_late_is_read_again_while_the_user_types()
+    {
+        // VS Code's chat box (Electron): both reads after the focus change come back empty-handed, the user
+        // types, and the bar used to appear only after another key such as F11.
+        _context.Next = null;
+        _context.Delay = TimeSpan.FromMilliseconds(30);
+        Send(InputEvent.Of(InputEventKind.FocusChanged));
+        await WaitForAsync(_ => _context.Calls == 1);
+        Type("مم");                               // typed at once, while the first read is still running
+        await WaitForAsync(_ => _updates.Count(u => u.Probe == ProbeOutcome.Unavailable) >= 2);
+
+        _context.Next = "ممتا";                    // the app answers now, and the user typed on
+        Type("تا");
+
+        var probe = await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedWithWord);
+        probe.Word.ShouldBe("ممتا");
+        probe.IsDetached.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task Typing_in_an_app_without_ui_automation_reads_only_a_few_more_times()
+    {
+        _context.Next = null;
+        _context.Delay = TimeSpan.FromMilliseconds(30);
+        Send(InputEvent.Of(InputEventKind.FocusChanged));
+        await WaitForAsync(_ => _context.Calls == 1);
+        Type("كل");
+        await WaitForAsync(_ => _updates.Count(u => u.Probe == ProbeOutcome.Unavailable) >= 2);
+
+        async Task TypeSlowlyAsync(string text)
+        {
+            foreach (var c in text)
+            {
+                Send(InputEvent.Char(c));
+                await Task.Delay(60, TestContext.Current.CancellationToken); // a pause long enough to read
+            }
+
+            await Task.Delay(150, TestContext.Current.CancellationToken);
+        }
+
+        // Three more attempts (each may be read again if a key interrupts it), then no more reads.
+        await TypeSlowlyAsync("مةطويلةجدا");
+        _updates.Count(u => u.Probe == ProbeOutcome.Unavailable).ShouldBe(2 + 3);
+        var calls = _context.Calls;
+        await TypeSlowlyAsync("تكتب");
+        _context.Calls.ShouldBe(calls);
+    }
+
+    [Fact]
     public async Task Context_that_stays_unavailable_is_retried_only_once()
     {
         Type("كلمة ");

@@ -166,6 +166,13 @@ public sealed record InputPipelineOptions
     /// </summary>
     public TimeSpan RetryUnavailableAfter { get; init; } = TimeSpan.FromMilliseconds(100);
 
+    /// <summary>
+    /// More reads while the user keeps typing after both of those failed: Chromium/Electron can take
+    /// longer to wake up (VS Code's chat box), and the first word would get no suggestions. Bounded so
+    /// apps without UI Automation are not asked on every key.
+    /// </summary>
+    public int ReadsWhileTyping { get; init; } = 3;
+
     /// <summary>Type a space after an accepted suggestion (setting, default on).</summary>
     public bool AppendSpaceOnAccept { get; init; } = true;
 
@@ -254,6 +261,7 @@ public sealed class InputPipeline(
         long? probeDue = null;
         var retried = false;
         var detachedByBackspace = false;
+        var readsWhileTyping = 0;
         Task<bool>? waitForInput = null;
         while (!cancellation.IsCancellationRequested)
         {
@@ -339,6 +347,15 @@ public sealed class InputPipeline(
                     probeDue = DateTime.UtcNow.Ticks + _options.ProbeDelay.Ticks;
                     retried = false;
                     detachedByBackspace = record.Input.Kind == InputEventKind.Backspace;
+                    readsWhileTyping = 0;
+                }
+                else if (Tracker.Buffer.IsDetached && Tracker.IsArabicLayout && probeDue is null && readsWhileTyping < _options.ReadsWhileTyping)
+                {
+                    // Both reads failed and the user typed on: read again at the next pause in typing (the
+                    // letters typed meanwhile are kept), as a last attempt each time.
+                    probeDue = DateTime.UtcNow.Ticks + _options.ProbeDelay.Ticks;
+                    retried = true;
+                    readsWhileTyping++;
                 }
                 else if (!Tracker.Buffer.IsDetached)
                 {

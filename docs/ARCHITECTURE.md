@@ -77,7 +77,7 @@
 - مندوبات الخطافات محفوظة في حقول حتى لا يجمعها جامع القمامة وهي مثبّتة.
 - قبل التثبيت يُشغَّل كل مسار للضغطات مرة واحدة (إحماء)، فلا يحدث JIT ولا توليد P/Invoke داخل استدعاء حقيقي.
 - هدف زمن دالة لوحة المفاتيح: **p99 أقل من 1 ملّي ثانية، والأقصى أقل من 5**. خيط الخطافات بأولوية `AboveNormal`، وخيط الإدخال الأمامي محفوظ (`ForegroundLayoutCache`)، فتكلّف الضغطة استدعاء `GetForegroundWindow` واستدعاء `GetKeyboardLayout`. تُقرأ اللغة مع كل مفتاح لأن تبديلها لا يغيّر النافذة ولا يرسل حدثًا نستقبله.
-- إذا لم يتوفر سياق المؤشر يُعاد المحاولة مرة بعد 100 ملّي ثانية: Chromium وElectron يفعّلان شجرة الوصول عند أول طلب UI Automation.
+- إذا لم يتوفر سياق المؤشر يُعاد المحاولة مرة بعد 100 ملّي ثانية: Chromium وElectron يفعّلان شجرة الوصول عند أول طلب UI Automation. وإن فشلت المحاولتان واستمر المستخدم في الكتابة، يُقرأ من جديد عند توقف الكتابة حتى 3 مرات (`ReadsWhileTyping`، من الإصدار 1.2): بعض نوافذ Electron، مثل خانة الدردشة في VS Code، تتأخر أكثر. والحرف الذي يأتي معه تغيير اللغة (أول حرف عربي في نافذة جديدة أو بعد Alt+Shift) يطلب القراءة أيضًا.
 - جمع القمامة يوقف كل الخيوط المُدارة ومنها خيط الخطافات. يعمل التطبيق بوضع `GCLatencyMode.SustainedLowLatency`، ويتجنب الخيط العامل التخصيص لكل حدث؛ ونافذة التشخيص (في نسخ Debug فقط) تبلّغ عن الاستدعاءات الأبطأ من 500 ميكروثانية وكم منها تزامن مع جمع القمامة.
 
 ### شريط الاقتراحات
@@ -341,7 +341,10 @@ typed meanwhile; after Backspace, or if letters were typed, it waits for the nex
   `GetForegroundWindow` and one `GetKeyboardLayout` call. The layout itself is read on every key
   because a layout switch changes no window and raises no event we receive.
 - An unavailable caret context is retried once after 100 ms: Chromium/Electron enable their
-  accessibility tree on the first UI Automation request.
+  accessibility tree on the first UI Automation request. If both fail and the user keeps typing, it is read again
+  at pauses in typing, up to 3 times (`ReadsWhileTyping`, from 1.2): some Electron windows, such as VS Code's chat box,
+  take longer. A letter that brings a layout switch (the first Arabic letter in a new window, or after Alt+Shift) starts
+  a read too.
 - A garbage collection pauses all managed threads, the hook thread included. The app runs with
   `GCLatencyMode.SustainedLowLatency` and the worker avoids per-event allocations; the diagnostics
   window (Debug builds only) reports callbacks slower than 500 µs and how many of them overlapped a GC.
