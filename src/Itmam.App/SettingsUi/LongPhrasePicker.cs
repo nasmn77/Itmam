@@ -29,6 +29,8 @@ internal sealed class LongPhrasePicker : Form
     };
     private readonly Label _fillHint = new() { AutoSize = false, UseMnemonic = false, Visible = false };
     private readonly Panel _fields = new() { AutoScroll = true, Visible = false };
+    private readonly ThemedButton _insertButton = new() { Visible = false };
+    private readonly ThemedButton _cancelButton = new() { Visible = false };
     private readonly List<(string Name, TextBox Box)> _boxes = [];
     private readonly SettingsPalette _palette;
     private readonly Rectangle _near;
@@ -97,7 +99,12 @@ internal sealed class LongPhrasePicker : Form
         _search.TextChanged += (_, _) => Filter();
         _list.SelectedIndexChanged += (_, _) => ShowPreview();
         _list.DoubleClick += (_, _) => InsertSelected();
-        Controls.AddRange([_search, _list, _fillHint, _fields, _preview]);
+        _insertButton.Palette = _cancelButton.Palette = palette;
+        _insertButton.Text = Strings.InsertButton;
+        _cancelButton.Text = Strings.CancelButton;
+        _insertButton.Click += (_, _) => InsertSelected();
+        _cancelButton.Click += (_, _) => LeaveFill();
+        Controls.AddRange([_search, _list, _fillHint, _fields, _preview, _insertButton, _cancelButton]);
 
         // Shown at once, keys still held (user decision). Some apps (the new Notepad) take the focus back
         // when the shortcut's keys go up: until shortly after that, losing the focus does not close it.
@@ -165,12 +172,16 @@ internal sealed class LongPhrasePicker : Form
         base.OnKeyDown(e);
         if (_filling is not null)
         {
-            // Filling the variables: Enter moves to the next field and inserts from the last one, Esc
-            // goes back to the list; the arrows stay with the text boxes.
+            // Filling the variables: Enter moves to the next field and inserts from the last one (or acts as
+            // the focused button), Esc goes back to the list; the arrows stay with the text boxes.
             if (e.KeyCode == Keys.Enter)
             {
                 var current = _boxes.FindIndex(b => b.Box.Focused);
-                if (current >= 0 && current < _boxes.Count - 1)
+                if (_cancelButton.Focused)
+                {
+                    LeaveFill();
+                }
+                else if (current >= 0 && current < _boxes.Count - 1)
                 {
                     _boxes[current + 1].Box.Focus();
                 }
@@ -287,7 +298,8 @@ internal sealed class LongPhrasePicker : Form
             new Size(width - SystemInformation.VerticalScrollBarWidth, int.MaxValue),
             TextFormatFlags.WordBreak | TextFormatFlags.TextBoxControl).Height + Px(8);
         previewWanted = Math.Max(previewWanted, Px(80));
-        var room = maxClient - top - Px(8) - margin;
+        var buttonsRow = Px(12) + _insertButton.Height; // the Insert and Cancel buttons under the preview
+        var room = maxClient - top - Px(8) - buttonsRow - margin;
         // Fields first, but the preview keeps at least half the room it needs (up to half the screen).
         var shownFields = Math.Clamp(room - Math.Min(previewWanted, room / 2), rowHeight, fieldsHeight);
         var previewHeight = Math.Max(Px(60), Math.Min(previewWanted, room - shownFields));
@@ -317,14 +329,19 @@ internal sealed class LongPhrasePicker : Form
 
         _fields.ResumeLayout();
         _preview.Bounds = new Rectangle(margin, top + shownFields + Px(8), width, previewHeight);
-        ClientSize = new Size(ClientSize.Width, _preview.Bottom + margin);
+        _insertButton.TabIndex = _boxes.Count;
+        _cancelButton.TabIndex = _boxes.Count + 1;
+        _insertButton.Top = _cancelButton.Top = _preview.Bottom + Px(12);
+        _cancelButton.Left = ClientSize.Width - margin - _cancelButton.Width;
+        _insertButton.Left = _cancelButton.Left - Px(8) - _insertButton.Width;
+        ClientSize = new Size(ClientSize.Width, _insertButton.Bottom + margin);
 
         // Centred on the screen while filling (user decision): the window is now too big to sit by the caret.
         Location = new Point(area.Left + Math.Max(0, (area.Width - Width) / 2), area.Top + Math.Max(0, (area.Height - Height) / 2));
 
         _fillHint.Text = string.Format(System.Globalization.CultureInfo.CurrentCulture, Strings.LongPhraseFillHint, phrase.Name);
         _search.Visible = _list.Visible = false;
-        _fillHint.Visible = _fields.Visible = true;
+        _fillHint.Visible = _fields.Visible = _insertButton.Visible = _cancelButton.Visible = true;
         ShowPreview();
         _boxes[0].Box.Focus();
     }
@@ -345,7 +362,7 @@ internal sealed class LongPhrasePicker : Form
     private void LeaveFill()
     {
         _filling = null;
-        _fillHint.Visible = _fields.Visible = false;
+        _fillHint.Visible = _fields.Visible = _insertButton.Visible = _cancelButton.Visible = false;
         _fields.Controls.Clear();
         _boxes.Clear(); // the typed values are not kept
         _preview.Bounds = _listPreviewBounds;
