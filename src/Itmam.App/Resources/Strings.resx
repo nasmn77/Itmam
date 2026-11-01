@@ -292,4 +292,5 @@
   <data name="NotAVariableName" xml:space="preserve"><value>Type a name of up to 30 characters, without braces.</value></data>
   <data name="UnknownAutoVariable" xml:space="preserve"><value>{0} is not an automatic variable. Insert automatic variables with "Insert variable…".</value></data>
   <data name="LongPhraseFillHint" xml:space="preserve"><value>"{0}": fill in the fields, then Enter; Esc to go back.</value></data>
+  <data name="EmptyVariables" xml:space="preserve"><value>Some fields are empty. Press Insert again to insert it as it is.</value></data>
 </root>

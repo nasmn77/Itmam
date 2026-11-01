@@ -35,6 +35,7 @@ internal sealed class LongPhrasePicker : Form
     private readonly SettingsPalette _palette;
     private readonly Rectangle _near;
     private LongPhrase? _filling;
+    private bool _emptyWarned;
     private Size _listClientSize;
     private Rectangle _listPreviewBounds;
     private readonly IReadOnlyList<LongPhrase> _all;
@@ -181,7 +182,7 @@ internal sealed class LongPhrasePicker : Form
                 {
                     LeaveFill();
                 }
-                else if (current >= 0 && current < _boxes.Count - 1)
+                else if (!_emptyWarned && current >= 0 && current < _boxes.Count - 1) // after the warning, Enter inserts
                 {
                     _boxes[current + 1].Box.Focus();
                 }
@@ -321,7 +322,11 @@ internal sealed class LongPhrasePicker : Form
                 ForeColor = _palette.Text,
                 TabIndex = _boxes.Count,
             };
-            box.TextChanged += (_, _) => ShowPreview();
+            box.TextChanged += (_, _) =>
+            {
+                ShowPreview();
+                ShowFillHint(); // typing again clears the empty-fields warning
+            };
             _fields.Controls.AddRange([label, box]);
             _boxes.Add((name, box));
             y += rowHeight;
@@ -339,7 +344,7 @@ internal sealed class LongPhrasePicker : Form
         // Centred on the screen while filling (user decision): the window is now too big to sit by the caret.
         Location = new Point(area.Left + Math.Max(0, (area.Width - Width) / 2), area.Top + Math.Max(0, (area.Height - Height) / 2));
 
-        _fillHint.Text = string.Format(System.Globalization.CultureInfo.CurrentCulture, Strings.LongPhraseFillHint, phrase.Name);
+        ShowFillHint();
         _search.Visible = _list.Visible = false;
         _fillHint.Visible = _fields.Visible = _insertButton.Visible = _cancelButton.Visible = true;
         ShowPreview();
@@ -373,6 +378,17 @@ internal sealed class LongPhrasePicker : Form
         _search.Focus();
     }
 
+    // The phrase's name and the keys, or (in red) the empty-fields warning.
+    private void ShowFillHint()
+    {
+        _emptyWarned = false;
+        if (_filling is not null)
+        {
+            _fillHint.Text = string.Format(System.Globalization.CultureInfo.CurrentCulture, Strings.LongPhraseFillHint, _filling.Name);
+            _fillHint.ForeColor = _palette.SecondaryText;
+        }
+    }
+
     // Focus back to the app, then paste the text there (the clipboard is restored afterwards).
     private async void InsertSelected()
     {
@@ -385,6 +401,17 @@ internal sealed class LongPhrasePicker : Form
         if (_filling is null && LongPhraseVariables.HasInputs(phrase.Text))
         {
             EnterFill(phrase);
+            return;
+        }
+
+        // Empty fields (user decision): the first press warns and goes to the first empty one; pressing
+        // Insert again inserts the reply as it is (a variable may be optional, such as an unknown e-mail).
+        if (_filling is not null && !_emptyWarned && _boxes.FindIndex(b => b.Box.TextLength == 0) is >= 0 and var empty)
+        {
+            _fillHint.Text = Strings.EmptyVariables;
+            _fillHint.ForeColor = Color.FromArgb(0xE8, 0x11, 0x23);
+            _boxes[empty].Box.Focus();
+            _emptyWarned = true;
             return;
         }
 
