@@ -39,7 +39,7 @@ internal static class Program
             return;
         }
 
-        // Visual check of the long phrases list with sample phrases (nothing is typed): --demo-longphrases [en] [fill] [long]
+        // Visual check of the long phrases list with sample phrases (nothing is typed): --demo-longphrases [en] [fill|ask|long]
         // ("fill" opens the order confirmation, which has variables, with sample values typed in).
         if (args is ["--demo-longphrases", ..])
         {
@@ -70,6 +70,10 @@ internal static class Program
             if (args.Contains("fill"))
             {
                 picker.Shown += (_, _) => picker.DemoFill(1, english ? ["Ahmed", "48213"] : ["أحمد", "48213"]);
+            }
+            else if (args.Contains("ask"))
+            {
+                picker.Shown += (_, _) => picker.DemoFill(1, english ? ["Ahmed"] : ["أحمد"], insert: true); // the empty-fields question
             }
             else if (args.Contains("long") && !english)
             {

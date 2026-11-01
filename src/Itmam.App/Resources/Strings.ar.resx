@@ -292,5 +292,10 @@
   <data name="NotAVariableName" xml:space="preserve"><value>اكتب اسمًا لا يزيد على 30 حرفًا، بلا أقواس.</value></data>
   <data name="UnknownAutoVariable" xml:space="preserve"><value>{0} ليس متغيرًا تلقائيًا. أدرج المتغيرات التلقائية من «إدراج متغير…».</value></data>
   <data name="LongPhraseFillHint" xml:space="preserve"><value>«{0}»: املأ الخانات ثم Enter، وEsc للرجوع.</value></data>
-  <data name="EmptyVariables" xml:space="preserve"><value>بعض الخانات فارغة. اضغط «إدراج» مرة أخرى للإدراج كما هي.</value></data>
+  <data name="EmptyVariables" xml:space="preserve"><value>هذه الخانات فارغة: {0}.
+
+هل تريد إدراج الرد بدونها؟</value></data>
+  <data name="EmptyVariable" xml:space="preserve"><value>هذه الخانة فارغة: {0}.
+
+هل تريد إدراج الرد بدونها؟</value></data>
 </root>
