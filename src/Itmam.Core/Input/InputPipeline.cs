@@ -315,6 +315,7 @@ public sealed class InputPipeline(
                 _lastInputTicks = DateTime.UtcNow.Ticks;
                 _finishedPhrases = null;
                 _usage = null;
+                var wasDetached = Tracker.Buffer.IsDetached;
                 var result = Process(record);
                 var (wordToLearn, phrasesToLearn) = AdvancePendingWord(record.Input.Kind, result);
                 Raise(record, result, probe: null, wordToLearn, phrasesToLearn, _usage);
@@ -329,8 +330,11 @@ public sealed class InputPipeline(
 
                 // Every non-character event that leaves the context unknown (Backspace into a word,
                 // click, arrows, focus/foreground/layout change, paste, shortcut) restarts the delay
-                // and the retry allowance, so holding a key probes once.
-                if (Tracker.Buffer.IsDetached && Tracker.IsArabicLayout && record.Input.Kind != InputEventKind.Character)
+                // and the retry allowance, so holding a key probes once. A character detaches only when it
+                // brings a layout switch (the first Arabic letter in a new window, or after Alt+Shift):
+                // that one starts a read too, or the first word would get no suggestions.
+                var detachedNow = Tracker.Buffer.IsDetached && !wasDetached;
+                if (Tracker.Buffer.IsDetached && Tracker.IsArabicLayout && (record.Input.Kind != InputEventKind.Character || detachedNow))
                 {
                     probeDue = DateTime.UtcNow.Ticks + _options.ProbeDelay.Ticks;
                     retried = false;

@@ -193,6 +193,30 @@ public sealed class InputPipelineTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task The_first_letter_after_a_layout_switch_reads_the_context()
+    {
+        // A new window (or Alt+Shift) still on another layout: the first Arabic letter brings the layout
+        // switch, which detaches the word. That letter must start a read, or the first word gets no
+        // suggestions until Backspace or a space (seen by the user at the start of a new window).
+        const nint english = 0x04090409;
+        _channel.Writer.TryWrite(new InputRecord(InputEvent.Of(InputEventKind.FocusChanged), english, Stopwatch.GetTimestamp()));
+        await DrainEnglishAsync(english);
+        _context.Next = "مدر";
+        Type("مدر");
+
+        var probe = await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedWithWord);
+        probe.Word.ShouldBe("مدر");
+        probe.IsDetached.ShouldBeFalse();
+    }
+
+    private async Task DrainEnglishAsync(nint english)
+    {
+        var marker = InputEvent.Of(InputEventKind.Escape);
+        _channel.Writer.TryWrite(new InputRecord(marker, english, Stopwatch.GetTimestamp()));
+        await WaitForAsync(u => u.Input?.Input == marker);
+    }
+
+    [Fact]
     public async Task Without_ui_automation_letters_typed_before_resuming_are_never_tracked()
     {
         _context.Next = null;
