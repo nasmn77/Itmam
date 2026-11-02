@@ -40,6 +40,15 @@ public sealed record AppSettings
     /// </summary>
     public bool UseWikipediaDictionary { get; init; } = true;
 
+    /// <summary>
+    /// Tags of the languages Itmam suggests in (2.0): Arabic and English by default; any other alphabetic
+    /// language (learning only) once the user turns it on.
+    /// </summary>
+    public IReadOnlyList<string> EnabledLanguages { get; init; } = DefaultLanguages;
+
+    /// <summary>The languages turned on by default.</summary>
+    public static IReadOnlyList<string> DefaultLanguages { get; } = ["ar", "en"];
+
     /// <summary>Show a notification when Itmam is turned off, paused or resumed.</summary>
     public bool NotifyOnToggle { get; init; } = true;
 
@@ -120,6 +129,10 @@ public sealed record AppSettings
         BarText = Presentation.ColorContrast.Parse(BarText) is null ? null : BarText,
         Hotkeys = Hotkeys ?? new HotkeySettings(),
         ExcludedApps = ExcludedApps ?? ExcludedAppsDefaults(),
+        EnabledLanguages = [.. (EnabledLanguages ?? DefaultLanguages)
+            .Where(l => !string.IsNullOrWhiteSpace(l))
+            .Select(l => l.Trim().ToLowerInvariant())
+            .Distinct()],
         MyPhrases = [.. (MyPhrases ?? []).Select(Suggestions.PhraseIndex.CleanAny).OfType<string>().Distinct()],
         HiddenPhrases = [.. (HiddenPhrases ?? []).Select(Suggestions.PhraseIndex.CleanAny).OfType<string>().Distinct()],
         TextShortcuts = [.. (TextShortcuts ?? [])

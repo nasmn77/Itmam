@@ -834,7 +834,7 @@ internal sealed class SettingsWindow : Form
         {
             if (Confirm(Strings.ConfirmClearWords, null))
             {
-                _app.Learning.ClearAll();
+                _app.Learning.ClearAll(_app.Learning.PrimaryLanguage);
                 RefreshWords();
             }
         };
@@ -1255,7 +1255,7 @@ internal sealed class SettingsWindow : Form
         {
             if (Confirm(Strings.ConfirmClearPhrases, null))
             {
-                _app.Learning.ClearPhrases();
+                _app.Learning.ClearPhrases(_app.Learning.PrimaryLanguage);
                 BeginInvoke(RebuildPage);
             }
         };

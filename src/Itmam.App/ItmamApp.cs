@@ -1,8 +1,10 @@
+using System.Collections.Concurrent;
 using System.Runtime;
 using Itmam.App.Suggestions;
 using Itmam.Core.Dictionary;
 using Itmam.Core.Dictionary.Building;
 using Itmam.Core.Input;
+using Itmam.Core.Languages;
 using Itmam.Core.Learning;
 using Itmam.Core.Presentation;
 using Itmam.Core.Settings;
@@ -21,6 +23,10 @@ internal sealed class ItmamApp : IDisposable
     private readonly SynchronizationContext _ui;
     private readonly CancellationTokenSource _stop = new();
     private readonly CaretLocator _caret;
+
+    // What each language typed so far suggests from; Arabic is built at start-up, the others on first use.
+    private readonly ConcurrentDictionary<string, LanguageSuggestions> _languages = new(StringComparer.Ordinal);
+    private readonly Corrections _corrections;
     private Task? _running;
     private int _shutDown;
 
@@ -41,7 +47,7 @@ internal sealed class ItmamApp : IDisposable
         Dictionary = DictionaryFile.Load(DictionaryPath(UsesWikipediaDictionary));
         var blocklist = Blocklist.Load(Path.Combine(AppContext.BaseDirectory, "blocklist.txt"));
         ShippedPhrases = LoadPhrases(Path.Combine(AppContext.BaseDirectory, "phrases.txt"));
-        var corrections = LoadCorrections(Path.Combine(AppContext.BaseDirectory, "corrections.txt"));
+        _corrections = LoadCorrections(Path.Combine(AppContext.BaseDirectory, "corrections.txt"));
 
         // Learned words: %LOCALAPPDATA%\Itmam\user.db (MSIX redirects it into the package's private folder).
         Store = new SqliteUserWordStore(Path.Combine(DataFolder, "user.db"));
@@ -68,7 +74,8 @@ internal sealed class ItmamApp : IDisposable
         Popup.SuggestionClicked += (index, word) => Hooks.Post(InputEvent.Accept(index, word));
         Popup.SuggestionMenuRequested += ShowSuggestionMenu;
         _caret = new CaretLocator(UiAutomation);
-        Suggestions = new SuggestionController(Engine, _caret, Popup, () => Hooks.IsEnabled, Learning.SyncRoot) { Corrections = corrections };
+        _languages[LanguageProfile.Arabic.Id] = new LanguageSuggestions(Engine, PhraseIndex.Empty, _corrections);
+        Suggestions = new SuggestionController(SuggestionsFor, _caret, Popup, () => Hooks.IsEnabled, Learning.SyncRoot);
 
         // Learning first, so a just-forgotten word is gone before the bar is recomputed. Same thread as the engine.
         Pipeline.UndoAvailableChanged += popupState.SetUndoAccept;
@@ -129,7 +136,7 @@ internal sealed class ItmamApp : IDisposable
         lock (Learning.SyncRoot)
         {
             Engine = new SuggestionEngine(dictionary, UserWords, Engine.Options);
-            Suggestions.Engine = Engine;
+            _languages.AddOrUpdate(LanguageProfile.Arabic.Id, _ => throw new InvalidOperationException(), (_, arabic) => arabic with { Engine = Engine });
             Dictionary = dictionary;
             UsesWikipediaDictionary = wikipedia;
         }
@@ -137,12 +144,14 @@ internal sealed class ItmamApp : IDisposable
         GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, blocking: true, compacting: true); // free the old one
     }
 
+    /// <summary>The Arabic user words (the other languages' are in <see cref="Learning"/>).</summary>
     public UserWordIndex UserWords { get; }
 
     public LearningService Learning { get; }
 
     public SqliteUserWordStore Store { get; }
 
+    /// <summary>The Arabic engine.</summary>
     public SuggestionEngine Engine { get; private set; }
 
     /// <summary>Fixed expressions shipped in data/phrases.txt (the user's own come from the settings).</summary>
@@ -230,14 +239,15 @@ internal sealed class ItmamApp : IDisposable
         _running?.Wait(TimeSpan.FromSeconds(1));
 
         // The word finished last is still pending (it could have been deleted); on exit it is final.
+        var pendingLanguage = Pipeline.PendingLanguage;
         if (Pipeline.TakePendingWord() is { } word)
         {
-            Learning.Learn(word);
+            Learning.Learn(word, pendingLanguage);
         }
 
         if (Pipeline.TakePendingPhrases() is { } phrases)
         {
-            Learning.LearnPhrases(phrases);
+            Learning.LearnPhrases(phrases, pendingLanguage);
         }
 
         Learning.Dispose();              // flushes to disk
@@ -257,13 +267,14 @@ internal sealed class ItmamApp : IDisposable
     private void ShowSuggestionMenu(int index, string text)
     {
         var actions = new List<(string, Action)>();
+        var language = Suggestions.ShownLanguage;
         if (text.Contains(' ', StringComparison.Ordinal) && !Settings.TextShortcuts.Any(s => s.Text == text))
         {
             var whole = Suggestions.PhraseSources.GetValueOrDefault(text) ?? text;
-            var key = LearningService.PhraseKey(whole);
-            var mine = Settings.MyPhrases.Where(p => LearningService.PhraseKey(p) == key).ToList();
-            var learned = Learning.IsLearnedPhrase(whole);
-            var shipped = ShippedPhrases.Contains(whole);
+            var key = LearningService.PhraseKey(whole, language);
+            var mine = Settings.MyPhrases.Where(p => LearningService.PhraseKey(p, language) == key).ToList();
+            var learned = Learning.IsLearnedPhrase(whole, language);
+            var shipped = language == LanguageProfile.Arabic && ShippedPhrases.Contains(whole);
             if (learned || mine.Count > 0 || shipped)
             {
                 actions.Add((Resources.Strings.BarMenuDelete, () =>
@@ -284,7 +295,7 @@ internal sealed class ItmamApp : IDisposable
                 }));
             }
 
-            if (mine.Count == 0 && PhraseIndex.Clean(whole) is { } phrase)
+            if (mine.Count == 0 && PhraseIndex.CleanAny(whole) is { } phrase)
             {
                 actions.Add((Resources.Strings.BarMenuAddToMyPhrases,
                     () => UpdateSettings(Settings with { MyPhrases = [.. Settings.MyPhrases, phrase] })));
@@ -292,7 +303,7 @@ internal sealed class ItmamApp : IDisposable
         }
         else if (!text.Contains(' ', StringComparison.Ordinal))
         {
-            if (Learning.IsLearnedWord(text))
+            if (Learning.IsLearnedWord(text, language))
             {
                 actions.Add((Resources.Strings.BarMenuDelete, () => Hooks.Post(InputEvent.Forget(index, text))));
             }
@@ -300,7 +311,7 @@ internal sealed class ItmamApp : IDisposable
             // User decision: block from the bar, without a confirmation (unblock in "My words").
             actions.Add((Resources.Strings.BarMenuBlock, () =>
             {
-                Learning.SetBlocked(text, blocked: true);
+                Learning.SetBlocked(text, blocked: true, language);
                 Popup.HideSuggestions(); // the next key shows the bar without it
             }));
         }
@@ -314,7 +325,7 @@ internal sealed class ItmamApp : IDisposable
         Rectangle near;
         try
         {
-            near = (await _caret.LocateAsync(rightToLeft: true, CancellationToken.None).ConfigureAwait(false)).Bounds;
+            near = (await _caret.LocateAsync(Pipeline.Tracker.Buffer.Language.RightToLeft, CancellationToken.None).ConfigureAwait(false)).Bounds;
         }
         catch (Exception ex) when (ex is InvalidOperationException or System.Runtime.InteropServices.COMException or TimeoutException or OperationCanceledException)
         {
@@ -365,12 +376,18 @@ internal sealed class ItmamApp : IDisposable
             Hooks.IsEnabled = settings.Enabled;
         }
 
-        Engine.Options = Engine.Options with
+        var options = Engine.Options with
         {
             MaxSuggestions = settings.MaxSuggestions,
             MinChars = settings.MinLetters,
             MinUsesToSuggest = settings.MinUsesToSuggest,
         };
+        foreach (var language in _languages.Values)
+        {
+            language.Engine.Options = options;
+        }
+
+        Pipeline.Tracker.EnabledLanguages = settings.EnabledLanguages.ToHashSet(StringComparer.Ordinal);
         Pipeline.Options = Pipeline.Options with { AppendSpaceOnAccept = settings.AddSpaceAfterAccept };
         Learning.IsPaused = settings.LearningPaused;
         Learning.LearnsPhrases = settings.LearnPhrases;
@@ -380,14 +397,36 @@ internal sealed class ItmamApp : IDisposable
         Suggestions.Shortcuts = new TextShortcuts(settings.TextShortcuts);
     }
 
-    // "My phrases" first, then the learned ones (most used first), then the shipped list. Rebuilt when a
-    // phrase is learned or forgotten (pipeline thread, before the bar is recomputed) or the settings change.
+    // What a language suggests from, built the first time it is typed (pipeline thread).
+    private LanguageSuggestions SuggestionsFor(LanguageProfile language) =>
+        _languages.GetOrAdd(language.Id, _ =>
+        {
+            var engine = new SuggestionEngine(WordDictionary.Build([], language: language), Learning.IndexFor(language), Engine.Options);
+            return new LanguageSuggestions(engine, Phrases(language, Settings), Corrections.Empty);
+        });
+
+    // Rebuilt when a phrase is learned or forgotten (pipeline thread, before the bar is recomputed) or the
+    // settings change.
     private void UpdatePhrases()
     {
         var settings = Settings;
-        Suggestions.Phrases = settings.SuggestPhrases
-            ? ShippedPhrases.Without(settings.HiddenPhrases).With([.. settings.MyPhrases, .. Learning.LearnedPhrases().Select(p => p.Text)])
-            : PhraseIndex.Empty;
+        foreach (var (id, language) in _languages)
+        {
+            _languages[id] = language with { Phrases = Phrases(language.Language, settings) };
+        }
+    }
+
+    // "My phrases" first, then the learned ones (most used first), then the shipped list (Arabic). My
+    // phrases hold every language: a language keeps the ones made of its words.
+    private PhraseIndex Phrases(LanguageProfile language, AppSettings settings)
+    {
+        if (!settings.SuggestPhrases)
+        {
+            return PhraseIndex.Empty;
+        }
+
+        var shipped = language == LanguageProfile.Arabic ? ShippedPhrases.Without(settings.HiddenPhrases) : PhraseIndex.Read(TextReader.Null, language);
+        return shipped.With([.. settings.MyPhrases, .. Learning.LearnedPhrases(language: language).Select(p => p.Text)]);
     }
 
     private void PersistEnabled()
@@ -404,12 +443,12 @@ internal sealed class ItmamApp : IDisposable
     {
         if (update.WordToLearn is { } word)
         {
-            Learning.Learn(word);
+            Learning.Learn(word, update.LearnLanguage);
         }
 
         if (update.PhrasesToLearn is { } phrases)
         {
-            Learning.LearnPhrases(phrases);
+            Learning.LearnPhrases(phrases, update.LearnLanguage);
         }
 
         if (update.Usage is { } usage)
@@ -432,11 +471,11 @@ internal sealed class ItmamApp : IDisposable
         {
             if (forgotten.Contains(' ', StringComparison.Ordinal))
             {
-                Learning.ForgetPhrase(forgotten);
+                Learning.ForgetPhrase(forgotten, update.Language);
             }
             else
             {
-                Learning.Remove(forgotten);
+                Learning.Remove(forgotten, update.Language);
             }
         }
 

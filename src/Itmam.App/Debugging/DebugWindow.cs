@@ -106,7 +106,7 @@ internal sealed class DebugWindow : Form
         }
 
         _state.Text =
-            $"Layout: {(update.IsArabicLayout ? "Arabic" : "other (silent)")}  0x{update.Layout:X8}" +
+            $"Layout: {update.Language?.Id ?? "silent"}  0x{update.Layout:X8}" +
             (update.Silenced != SilenceReason.None ? $"   SILENT: {update.Silenced}" : string.Empty) + "\n" +
             $"Letters: {update.Letters}   Last: {update.Result.Outcome}   Commits: {_commits}   Learned: {_learned} (user words: {_learnedCount()})   Chain: {update.RecentWords?.Count ?? 0} words" +
             (update.IsDetached ? "   [paused: caret inside an unseen word]" : string.Empty) +
