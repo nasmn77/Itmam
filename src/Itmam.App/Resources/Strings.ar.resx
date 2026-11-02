@@ -71,7 +71,7 @@
   <data name="BarOpacity" xml:space="preserve"><value>العتامة</value></data>
   <data name="BarFontSize" xml:space="preserve"><value>حجم النص</value></data>
   <data name="HighlightFirst" xml:space="preserve"><value>تمييز الاقتراح الأول</value></data>
-  <data name="HighlightFirstHint" xml:space="preserve"><value>وهو الذي يُقبل بـ Tab، بلون التحديد نفسه.</value></data>
+  <data name="HighlightFirstHint" xml:space="preserve"><value>وهو الذي يُقبل بـ Tab، بدرجة أخف من لون التحديد؛ ويظهر لون التحديد كاملًا عند الاختيار بالأسهم.</value></data>
   <data name="HotkeyHints" xml:space="preserve"><value>إظهار أرقام الاقتراحات</value></data>
   <data name="HotkeyHintsHint" xml:space="preserve"><value>أرقام صغيرة للاختصار الذي يقبل الاقتراح 1، 2، 3…</value></data>
   <data name="ResetLook" xml:space="preserve"><value>استعادة مظهر Windows</value></data>

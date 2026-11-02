@@ -18,7 +18,7 @@ internal static class Program
         ApplicationConfiguration.Initialize();
 
 #if DEBUG
-        // Visual check of the bar without typing: --demo-popup <x> <y> [light|dark] [nohighlight] [hints] [navy] [translucent] [large] [hide]
+        // Visual check of the bar without typing: --demo-popup <x> <y> [light|dark] [nohighlight] [hints] [select] [navy] [translucent] [large] [hide]
         if (args is ["--demo-popup", var x, var y, ..])
         {
             Debugging.PopupDemo.Run(int.Parse(x, CultureInfo.InvariantCulture), int.Parse(y, CultureInfo.InvariantCulture), args[3..]);

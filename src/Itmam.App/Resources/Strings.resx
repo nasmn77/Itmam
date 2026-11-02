@@ -71,7 +71,7 @@
   <data name="BarOpacity" xml:space="preserve"><value>Opacity</value></data>
   <data name="BarFontSize" xml:space="preserve"><value>Text size</value></data>
   <data name="HighlightFirst" xml:space="preserve"><value>Highlight the first suggestion</value></data>
-  <data name="HighlightFirstHint" xml:space="preserve"><value>The one Tab accepts, in the selection color.</value></data>
+  <data name="HighlightFirstHint" xml:space="preserve"><value>The one Tab accepts, in a lighter shade of the selection color; the full color shows when choosing with the arrows.</value></data>
   <data name="HotkeyHints" xml:space="preserve"><value>Show suggestion numbers</value></data>
   <data name="HotkeyHintsHint" xml:space="preserve"><value>Small numbers for the shortcut that accepts suggestion 1, 2, 3…</value></data>
   <data name="ResetLook" xml:space="preserve"><value>Reset to the Windows look</value></data>
