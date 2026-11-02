@@ -72,7 +72,7 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
   phrase via `TrayApplication.SaveLongPhraseText`, No = this time only, Cancel = back; changing selection/closing drops it
   silently); in the fill window the reply is editable for this time only — an edit locks the fields, and variables still
   written as `{name}` get the empty-fields question (No selects the first one, Yes removes them). Debug:
-  `--demo-longphrases [edit [save]]`. Still to do: guide/site/STORE_LISTING for 1.3, version 1.3.0.0, merge, Store submission.
+  `--demo-longphrases [edit [save]]`. Guide (new picker/fill screenshots, `figure.tall`), site, ARCHITECTURE and STORE_LISTING "What's new in 1.3" updated; version 1.3.0.0, Store package built. Still to do: merge into main, Store submission (package + What's new ar/en).
 - **Phase 7** merged into main. `src/Itmam.Package` (.wapproj, x64 + ARM64 bundle),
   identity from Partner Center product **9P08F7KGRJB0** (`NasserAlmadi.563063310BE3D`, `CN=9260B530-9E02-440E-8E99-B74323B1CE93`,
   PublisherDisplayName "Nasser Almadi"; reserved names «إتمام» + "Itmam"; a separate draft product «اتمام» without hamza

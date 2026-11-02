@@ -44,6 +44,14 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 
 **كلمات البحث** (7 على الأكثر): اتمام · اكمال الكلمات · اقتراح الكلمات · لوحة المفاتيح العربية · الكتابة بالعربي · التنبؤ بالنص · الكتابة التنبؤية
 
+**ما الجديد في 1.3:**
+
+- قائمة العبارات الطويلة أكبر وفي منتصف الشاشة، مع زرّي «إدراج» و«إلغاء».
+- تعديل نص العبارة الطويلة قبل إدراجها: لهذه المرة فقط، أو حفظ التعديل في العبارة.
+- تعديل الرد بعد ملء متغيراته، والتنبيه إلى المتغيرات التي لم تُملأ.
+- الاقتراح الأول في الشريط بلون أخف، فيظهر بوضوح التنقل بالأسهم.
+- Esc يخفي الشريط حتى الحرف التالي بدل الكلمة التالية.
+
 **ما الجديد في 1.2:**
 
 - متغيرات في العبارات الطويلة: «إدراج متغير…» يضع في الرد {اسم العميل} فيُسأل عنه عند الإدراج، أو {{التاريخ}} و{{التاريخ الهجري}} و{{اليوم}} و{{الوقت}} فيكتبها إتمام بنفسه.
@@ -115,6 +123,14 @@ Your privacy first. Itmam sends no data: no statistics, no crash reports. Its on
 - Arabic and English interface; open source (MIT)
 
 **Search terms** (7 max): Arabic keyboard · Arabic word prediction · Arabic autocomplete · predictive text · word suggestions · Arabic typing · اتمام
+
+**What's new in 1.3:**
+
+- The long phrases list is larger and centred on the screen, with Insert and Cancel buttons.
+- Edit a long phrase before inserting it: this time only, or save the edit in the phrase.
+- Edit the reply after filling its variables, with a warning about variables left unfilled.
+- The first suggestion in the bar is a lighter shade, so moving with the arrow keys is clearly visible.
+- Esc hides the bar until the next letter instead of the next word.
 
 **What's new in 1.2:**
 
