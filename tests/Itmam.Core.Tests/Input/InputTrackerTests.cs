@@ -94,6 +94,29 @@ public class InputTrackerTests
     }
 
     [Fact]
+    public void Languages_turned_off_then_on_again_are_tracked_again()
+    {
+        _tracker.EnabledLanguages = new HashSet<string> { "ar", "en" };
+        Type("hel ", EnglishUs);
+        _tracker.EnabledLanguages = new HashSet<string> { "ar" };
+        Type("hel ", EnglishUs);
+        _tracker.EnabledLanguages = new HashSet<string>();
+        Type("hel ", EnglishUs);
+        Type("كتا ", ArabicSaudi);
+        _tracker.EnabledLanguages = new HashSet<string> { "en" };
+
+        _tracker.Process(InputEvent.Of(InputEventKind.MouseClick), EnglishUs);
+        _tracker.Buffer.ResumeEmpty();
+        Type("hel", EnglishUs);
+        _tracker.Language.ShouldBe(LanguageProfile.English);
+        _tracker.Buffer.Text.ShouldBe("hel");
+
+        Type(" كتا", ArabicSaudi);
+        _tracker.Language.ShouldBeNull();
+        _tracker.Buffer.Text.ShouldBe("");
+    }
+
+    [Fact]
     public void Turning_a_language_off_stops_tracking_at_once()
     {
         _tracker.EnabledLanguages = new HashSet<string> { "ar", "en" };
