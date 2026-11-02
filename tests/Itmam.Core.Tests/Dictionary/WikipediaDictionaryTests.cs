@@ -5,6 +5,7 @@ using Itmam.Core.Dictionary.Building;
 namespace Itmam.Core.Tests.Dictionary;
 
 /// <summary>Checks against the second shipped dictionary, data/itmam-ar-wikipedia.dict (Settings → General).</summary>
+[Collection(TimingCollection.Name)]
 public class WikipediaDictionaryTests(ITestOutputHelper output)
 {
     private static readonly Lazy<WordDictionary> Wikipedia = new(() => DictionaryFile.Load(TestDictionaries.WikipediaDictionaryPath));

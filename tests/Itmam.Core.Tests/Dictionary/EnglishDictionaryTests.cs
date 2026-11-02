@@ -8,6 +8,7 @@ using Itmam.Core.Suggestions;
 namespace Itmam.Core.Tests.Dictionary;
 
 /// <summary>Size, quality and performance checks against the shipped English dictionary (2.0).</summary>
+[Collection(TimingCollection.Name)]
 public class EnglishDictionaryTests(ITestOutputHelper output)
 {
     private static readonly Lazy<WordDictionary> Shipped = new(() => DictionaryFile.Load(TestDictionaries.EnglishDictionaryPath));
