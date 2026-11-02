@@ -35,7 +35,9 @@ public class TextShortcutsTests
     [InlineData("سلام", "سلام")]
     [InlineData("1ع", null)]
     [InlineData("ع 1", null)]
-    [InlineData("a1", null)]
+    [InlineData("a1", "a1")]   // any language (2.0)
+    [InlineData("brb", "brb")]
+    [InlineData("1a", null)]
     [InlineData("", null)]
     public void Keys_are_cleaned_or_refused(string key, string? expected) =>
         TextShortcuts.CleanKey(key).ShouldBe(expected);
@@ -45,9 +47,20 @@ public class TextShortcutsTests
     {
         var settings = new AppSettings
         {
-            TextShortcuts = [new("ع1", "أولى"), new("ع1", "ثانية"), new("x", "خطأ"), new("ع2", "  ")],
+            TextShortcuts = [new("ع1", "أولى"), new("ع1", "ثانية"), new("1x", "خطأ"), new("ع2", "  ")],
         }.Normalized();
 
         settings.TextShortcuts.ShouldBe([new TextShortcut("ع1", "أولى")]);
+    }
+
+    [Fact]
+    public void A_key_in_another_language_ignores_letter_case()
+    {
+        var shortcuts = new TextShortcuts([new("brb", "be right back"), new("שלום1", "שלום וברכה")]);
+
+        shortcuts.Find("BRB").ShouldBe("be right back");
+        shortcuts.Find("Brb").ShouldBe("be right back");
+        shortcuts.Find("שלום1").ShouldBe("שלום וברכה");
+        shortcuts.Find("br").ShouldBeNull();
     }
 }

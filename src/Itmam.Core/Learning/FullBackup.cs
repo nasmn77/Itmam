@@ -1,13 +1,18 @@
 using System.Globalization;
 using System.IO.Compression;
 using System.Text;
+using Itmam.Core.Languages;
 using Itmam.Core.Settings;
 using Itmam.Core.Suggestions;
 
 namespace Itmam.Core.Learning;
 
-/// <summary>What a full backup holds.</summary>
-public sealed record BackupContent(AppSettings Settings, string Words, IReadOnlyList<(string Text, int Count)> LearnedPhrases, UsageStats? Usage);
+/// <summary>What a full backup holds. <paramref name="Words"/> is in the <see cref="LearningService.Export"/> format.</summary>
+public sealed record BackupContent(
+    AppSettings Settings,
+    string Words,
+    IReadOnlyList<(string Text, int Count, string Language)> LearnedPhrases,
+    UsageStats? Usage);
 
 /// <summary>
 /// The full backup (user decision 1.1): one <c>.itmam</c> file (a ZIP) with everything needed to move
@@ -15,18 +20,24 @@ public sealed record BackupContent(AppSettings Settings, string Words, IReadOnly
 /// the learned phrases and the statistics. Restoring replaces all of it (after the user confirmed).
 /// The file stays where the user saves it; Itmam sends it nowhere.
 /// </summary>
+/// <remarks>
+/// Format 2 (from 2.0): the words of other languages follow a <c># language: tag</c> line in words.txt, and
+/// their learned phrases are in learned-phrases-&lt;tag&gt;.txt. Older versions restore the Arabic part of it
+/// and skip the rest; a format 1 backup is all Arabic.
+/// </remarks>
 public static class FullBackup
 {
     private const string SettingsEntry = "settings.json";
     private const string WordsEntry = "words.txt";
     private const string PhrasesEntry = "learned-phrases.txt";
+    private const string OtherPhrasesPrefix = "learned-phrases-";
     private const string StatsEntry = "statistics.txt";
     private const string MarkerEntry = "itmam-backup.txt";
 
     public static void Write(Stream output, AppSettings settings, LearningService learning)
     {
         using var zip = new ZipArchive(output, ZipArchiveMode.Create, leaveOpen: true);
-        WriteText(zip, MarkerEntry, "Itmam (إتمام) full backup, format 1");
+        WriteText(zip, MarkerEntry, "Itmam (إتمام) full backup, format 2");
 
         using (var stream = zip.CreateEntry(SettingsEntry).Open())
         {
@@ -37,9 +48,13 @@ public static class FullBackup
         learning.Export(words);
         WriteText(zip, WordsEntry, words.ToString());
 
-        var phrases = new StringWriter(CultureInfo.InvariantCulture);
-        UserListFiles.WritePhrases(phrases, [], learning.LearnedPhrases(all: true).Select(p => (p.Text, p.Count)));
-        WriteText(zip, PhrasesEntry, phrases.ToString());
+        foreach (var language in learning.Languages)
+        {
+            var phrases = new StringWriter(CultureInfo.InvariantCulture);
+            UserListFiles.WritePhrases(phrases, [], learning.LearnedPhrases(all: true, language).Select(p => (p.Text, p.Count)));
+            var entry = language == learning.PrimaryLanguage ? PhrasesEntry : $"{OtherPhrasesPrefix}{language.Id}.txt";
+            WriteText(zip, entry, phrases.ToString());
+        }
 
         var usage = learning.Usage;
         WriteText(zip, StatsEntry, string.Join('\n',
@@ -70,8 +85,21 @@ public static class FullBackup
                 return null;
             }
 
-            var learned = new List<(string Text, int Count)>();
-            UserListFiles.ReadPhrases(new StringReader(ReadText(zip, PhrasesEntry)), [], learned);
+            var learned = new List<(string Text, int Count, string Language)>();
+            foreach (var entry in zip.Entries)
+            {
+                var language = entry.FullName == PhrasesEntry ? LanguageProfile.Arabic
+                    : entry.FullName.StartsWith(OtherPhrasesPrefix, StringComparison.Ordinal) && entry.FullName.EndsWith(".txt", StringComparison.Ordinal)
+                        ? LanguageRegistry.ForTag(entry.FullName[OtherPhrasesPrefix.Length..^4])
+                        : null;
+                if (language is not null)
+                {
+                    var phrases = new List<(string Text, int Count)>();
+                    UserListFiles.ReadPhrases(new StringReader(ReadText(zip, entry.FullName)), [], phrases, language);
+                    learned.AddRange(phrases.Select(p => (p.Text, p.Count, language.Id)));
+                }
+            }
+
             return new BackupContent(settings, ReadText(zip, WordsEntry), learned, ReadUsage(ReadText(zip, StatsEntry)));
         }
         catch (InvalidDataException)
@@ -80,13 +108,17 @@ public static class FullBackup
         }
     }
 
-    /// <summary>Replaces the user's words, learned phrases and statistics with the backup's.</summary>
+    /// <summary>Replaces the user's words, learned phrases and statistics (every language) with the backup's.</summary>
     public static void RestoreLearning(BackupContent content, LearningService learning)
     {
         learning.ClearAll();
-        learning.Import(new StringReader(content.Words));
+        learning.Import(new StringReader(content.Words), LanguageProfile.Arabic);
         learning.ClearPhrases();
-        learning.ImportPhrases(content.LearnedPhrases);
+        foreach (var language in content.LearnedPhrases.GroupBy(p => p.Language, StringComparer.Ordinal))
+        {
+            learning.ImportPhrases(language.Select(p => (p.Text, p.Count)), LanguageRegistry.ForTag(language.Key));
+        }
+
         if (content.Usage is { } usage)
         {
             learning.RestoreUsage(usage);

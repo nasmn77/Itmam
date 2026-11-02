@@ -11,15 +11,10 @@ namespace Itmam.Core.Learning;
 /// a sequence not yet learned is deleted once it has not been typed for
 /// <see cref="LearningOptions.PhraseCandidateLifetime"/>. Never in password fields, excluded or
 /// elevated apps or full screen (the pipeline sees nothing there), never while learning is paused, and
-/// never with a word on the blocklist or blocked by the user.
+/// never with a word on the blocklist or blocked by the user. Each language has its own phrases.
 /// </remarks>
 public sealed partial class LearningService
 {
-    private readonly Dictionary<string, PhraseEntry> _phrases = new(StringComparer.Ordinal);
-    private readonly HashSet<string> _changedPhrases = new(StringComparer.Ordinal);
-    private readonly HashSet<string> _removedPhrases = new(StringComparer.Ordinal);
-    private DateTimeOffset _lastPrune;
-
     /// <summary>The set of learned phrases changed (learned, forgotten, cleared). Raised outside the lock.</summary>
     public event Action? LearnedPhrasesChanged;
 
@@ -34,7 +29,7 @@ public sealed partial class LearningService
     }
 
     /// <summary>Sequences that ended with a finished word: count each one.</summary>
-    public void LearnPhrases(IEnumerable<string> sequences)
+    public void LearnPhrases(IEnumerable<string> sequences, LanguageProfile? language = null)
     {
         if (IsPaused || !LearnsPhrases)
         {
@@ -44,30 +39,31 @@ public sealed partial class LearningService
         var learnedOne = false;
         lock (_lock)
         {
+            var state = State(language);
             var now = _time.GetUtcNow();
             foreach (var sequence in sequences)
             {
-                if (!IsLearnable(sequence))
+                if (!IsLearnable(state, sequence))
                 {
                     continue;
                 }
 
-                var key = PhraseKey(sequence);
-                if (!_phrases.TryGetValue(key, out var entry))
+                var key = PhraseKey(sequence, state.Language);
+                if (!state.Phrases.TryGetValue(key, out var entry))
                 {
-                    _phrases[key] = entry = new PhraseEntry(sequence, 0, now);
+                    state.Phrases[key] = entry = new PhraseEntry(sequence, 0, now);
                 }
 
                 entry.Text = sequence; // the spelling typed last
                 entry.Count++;
                 entry.LastUsed = now;
                 learnedOne |= entry.Count == _options.PhraseMinUses;
-                MarkPhraseChanged(key);
+                MarkPhraseChanged(state, key);
             }
 
-            if (_phrases.Count > _options.MaxPhraseCandidates + _options.MaxLearnedPhrases)
+            if (state.Phrases.Count > _options.MaxPhraseCandidates + _options.MaxLearnedPhrases)
             {
-                learnedOne |= PrunePhrases(now);
+                learnedOne |= PrunePhrases(state, now);
             }
         }
 
@@ -83,12 +79,14 @@ public sealed partial class LearningService
     /// alone is only noise, unless it is also typed elsewhere.
     /// </summary>
     /// <param name="all">Every learned phrase, none left out.</param>
-    public IReadOnlyList<StoredPhrase> LearnedPhrases(bool all = false)
+    /// <param name="language">Whose phrases.</param>
+    public IReadOnlyList<StoredPhrase> LearnedPhrases(bool all = false, LanguageProfile? language = null)
     {
         lock (_lock)
         {
-            var learned = _phrases
-                .Where(p => p.Value.Count >= _options.PhraseMinUses && !HasBlockedWord(p.Value.Text))
+            var state = State(language);
+            var learned = state.Phrases
+                .Where(p => p.Value.Count >= _options.PhraseMinUses && !HasBlockedWord(state, p.Value.Text))
                 .ToDictionary(p => p.Key, p => p.Value, StringComparer.Ordinal);
             var covered = new HashSet<string>(StringComparer.Ordinal);
             foreach (var (key, entry) in all ? [] : learned)
@@ -120,31 +118,32 @@ public sealed partial class LearningService
     /// Learned phrases from an exported file: each keeps the larger of its two counts. Returns how many
     /// were new. Respects blocked words like typing does.
     /// </summary>
-    public int ImportPhrases(IEnumerable<(string Text, int Count)> phrases)
+    public int ImportPhrases(IEnumerable<(string Text, int Count)> phrases, LanguageProfile? language = null)
     {
         var added = 0;
         lock (_lock)
         {
+            var state = State(language);
             var now = _time.GetUtcNow();
             foreach (var (text, count) in phrases)
             {
-                if (!IsLearnable(text))
+                if (!IsLearnable(state, text))
                 {
                     continue;
                 }
 
-                var key = PhraseKey(text);
-                if (_phrases.TryGetValue(key, out var entry))
+                var key = PhraseKey(text, state.Language);
+                if (state.Phrases.TryGetValue(key, out var entry))
                 {
                     entry.Count = Math.Max(entry.Count, count);
                 }
                 else
                 {
-                    _phrases[key] = new PhraseEntry(text, count, now);
+                    state.Phrases[key] = new PhraseEntry(text, count, now);
                     added++;
                 }
 
-                MarkPhraseChanged(key);
+                MarkPhraseChanged(state, key);
             }
         }
 
@@ -153,11 +152,12 @@ public sealed partial class LearningService
     }
 
     /// <summary>A learned (suggested) phrase: the bar's menu offers to delete it.</summary>
-    public bool IsLearnedPhrase(string text)
+    public bool IsLearnedPhrase(string text, LanguageProfile? language = null)
     {
         lock (_lock)
         {
-            return _phrases.TryGetValue(PhraseKey(text), out var entry) && entry.Count >= _options.PhraseMinUses;
+            var state = State(language);
+            return state.Phrases.TryGetValue(PhraseKey(text, state.Language), out var entry) && entry.Count >= _options.PhraseMinUses;
         }
     }
 
@@ -166,26 +166,27 @@ public sealed partial class LearningService
     /// Its parts go with it unless they are typed much more on their own (see <see cref="LearnedPhrases"/>):
     /// otherwise deleting «مرحبا بكم في معرضنا» would only bring «مرحبا بكم» forward in its place.
     /// </remarks>
-    public bool ForgetPhrase(string text)
+    public bool ForgetPhrase(string text, LanguageProfile? language = null)
     {
         lock (_lock)
         {
-            var key = PhraseKey(text);
-            if (!_phrases.Remove(key, out var entry))
+            var state = State(language);
+            var key = PhraseKey(text, state.Language);
+            if (!state.Phrases.Remove(key, out var entry))
             {
                 return false;
             }
 
-            MarkPhraseRemoved(key);
+            MarkPhraseRemoved(state, key);
             var words = key.Split(' ');
             for (var length = 2; length < words.Length; length++)
             {
                 for (var start = 0; start + length <= words.Length; start++)
                 {
                     var part = string.Join(' ', words, start, length);
-                    if (_phrases.TryGetValue(part, out var shorter) && entry.Count * 4 >= shorter.Count * 3)
+                    if (state.Phrases.TryGetValue(part, out var shorter) && entry.Count * 4 >= shorter.Count * 3)
                     {
-                        RemovePhraseEntry(part);
+                        RemovePhraseEntry(state, part);
                     }
                 }
             }
@@ -195,69 +196,75 @@ public sealed partial class LearningService
         return true;
     }
 
-    /// <summary>Deletes every learned phrase and every counted sequence, in memory and on disk, now.</summary>
-    public void ClearPhrases()
+    /// <summary>
+    /// Deletes every learned phrase and every counted sequence of one language, or of all of them (null),
+    /// in memory and on disk, now.
+    /// </summary>
+    public void ClearPhrases(LanguageProfile? language = null)
     {
         lock (_saveLock)
         {
             lock (_lock)
             {
-                _phrases.Clear();
-                _changedPhrases.Clear();
-                _removedPhrases.Clear();
+                foreach (var state in language is null ? _languages.Values.ToArray() : [State(language)])
+                {
+                    state.Phrases.Clear();
+                    state.ChangedPhrases.Clear();
+                    state.RemovedPhrases.Clear();
+                }
             }
 
-            _store.ClearPhrases();
+            _store.ClearPhrases(language?.Id);
         }
 
         LearnedPhrasesChanged?.Invoke();
     }
 
     // Under _lock (Load).
-    private void LoadPhrases()
+    private void LoadPhrases(LanguageState state)
     {
-        _phrases.Clear();
-        foreach (var stored in _store.LoadPhrases())
+        state.Phrases.Clear();
+        foreach (var stored in _store.LoadPhrases(state.Language.Id))
         {
-            _phrases[stored.Key] = new PhraseEntry(stored.Text, stored.Count, stored.LastUsed);
+            state.Phrases[stored.Key] = new PhraseEntry(stored.Text, stored.Count, stored.LastUsed);
         }
 
-        PrunePhrases(_time.GetUtcNow());
+        PrunePhrases(state, _time.GetUtcNow());
     }
 
     // Under _lock (Flush): the phrase changes to write, and the keys to delete.
-    private (List<StoredPhrase> Changed, List<string> Removed) TakePhraseChanges()
+    private (List<StoredPhrase> Changed, List<string> Removed) TakePhraseChanges(LanguageState state)
     {
         var now = _time.GetUtcNow();
-        if (now - _lastPrune > TimeSpan.FromDays(1))
+        if (now - state.LastPrune > TimeSpan.FromDays(1))
         {
-            PrunePhrases(now);
+            PrunePhrases(state, now);
         }
 
-        var changed = new List<StoredPhrase>(_changedPhrases.Count);
-        foreach (var key in _changedPhrases)
+        var changed = new List<StoredPhrase>(state.ChangedPhrases.Count);
+        foreach (var key in state.ChangedPhrases)
         {
-            if (_phrases.TryGetValue(key, out var entry))
+            if (state.Phrases.TryGetValue(key, out var entry))
             {
                 changed.Add(new StoredPhrase(key, entry.Text, entry.Count, entry.LastUsed));
             }
         }
 
-        List<string> removed = [.. _removedPhrases];
-        _changedPhrases.Clear();
-        _removedPhrases.Clear();
+        List<string> removed = [.. state.RemovedPhrases];
+        state.ChangedPhrases.Clear();
+        state.RemovedPhrases.Clear();
         return (changed, removed);
     }
 
     // Drops sequences not learned and not typed for a while, then the oldest ones beyond the limits.
     // Returns true when learned phrases were dropped. Callers hold _lock.
-    private bool PrunePhrases(DateTimeOffset now)
+    private bool PrunePhrases(LanguageState state, DateTimeOffset now)
     {
-        _lastPrune = now;
+        state.LastPrune = now;
         var expired = now - _options.PhraseCandidateLifetime;
         var candidates = new List<KeyValuePair<string, PhraseEntry>>();
         var learned = new List<KeyValuePair<string, PhraseEntry>>();
-        foreach (var pair in _phrases)
+        foreach (var pair in state.Phrases)
         {
             if (pair.Value.Count >= _options.PhraseMinUses)
             {
@@ -265,7 +272,7 @@ public sealed partial class LearningService
             }
             else if (pair.Value.LastUsed < expired)
             {
-                RemovePhraseEntry(pair.Key);
+                RemovePhraseEntry(state, pair.Key);
             }
             else
             {
@@ -275,50 +282,50 @@ public sealed partial class LearningService
 
         foreach (var pair in candidates.OrderBy(p => p.Value.LastUsed).Take(candidates.Count - _options.MaxPhraseCandidates))
         {
-            RemovePhraseEntry(pair.Key);
+            RemovePhraseEntry(state, pair.Key);
         }
 
         var dropLearned = learned.Count - _options.MaxLearnedPhrases;
         foreach (var pair in learned.OrderBy(p => p.Value.LastUsed).Take(dropLearned))
         {
-            RemovePhraseEntry(pair.Key);
+            RemovePhraseEntry(state, pair.Key);
         }
 
         return dropLearned > 0;
     }
 
-    private void RemovePhraseEntry(string key)
+    private void RemovePhraseEntry(LanguageState state, string key)
     {
-        _phrases.Remove(key);
-        MarkPhraseRemoved(key);
+        state.Phrases.Remove(key);
+        MarkPhraseRemoved(state, key);
     }
 
     // 2–5 words, each long enough to be learned as a word, none of them blocked.
-    private bool IsLearnable(string sequence)
+    private bool IsLearnable(LanguageState state, string sequence)
     {
         var words = sequence.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         return words.Length >= 2 && words.Length <= _options.MaxPhraseWords
-            && words.All(w => _index.Language.CleanWord(w) is { } clean && _index.Language.CountLetters(clean) >= _options.MinLetters)
-            && !HasBlockedWord(sequence);
+            && words.All(w => state.Language.CleanWord(w) is { } clean && state.Language.CountLetters(clean) >= _options.MinLetters)
+            && !HasBlockedWord(state, sequence);
     }
 
     // Blocked by the user, or on the shipped blocklist and not kept by the user on purpose.
-    private bool HasBlockedWord(string text) =>
-        text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Any(word => _index.Get(word) is { } entry
+    private static bool HasBlockedWord(LanguageState state, string text) =>
+        text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Any(word => state.Index.Get(word) is { } entry
             ? entry.IsBlocked
-            : _blocklist.IsBlocked(word));
+            : state.Blocklist.IsBlocked(word));
 
-    private void MarkPhraseChanged(string key)
+    private void MarkPhraseChanged(LanguageState state, string key)
     {
-        _removedPhrases.Remove(key);
-        _changedPhrases.Add(key);
+        state.RemovedPhrases.Remove(key);
+        state.ChangedPhrases.Add(key);
         _saveTimer.Change(_options.SaveDelay, Timeout.InfiniteTimeSpan);
     }
 
-    private void MarkPhraseRemoved(string key)
+    private void MarkPhraseRemoved(LanguageState state, string key)
     {
-        _changedPhrases.Remove(key);
-        _removedPhrases.Add(key);
+        state.ChangedPhrases.Remove(key);
+        state.RemovedPhrases.Add(key);
         _saveTimer.Change(_options.SaveDelay, Timeout.InfiniteTimeSpan);
     }
 

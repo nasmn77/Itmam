@@ -85,6 +85,12 @@ public sealed class PhraseIndex
     public static string? Clean(string text, LanguageProfile? language = null) => Parse(text, language ?? LanguageProfile.Arabic)?.Text;
 
     /// <summary>
+    /// <see cref="Clean"/> for a phrase of any language ("My phrases" hold phrases of every language):
+    /// Arabic rules for an Arabic phrase, otherwise words of letters of any script.
+    /// </summary>
+    public static string? CleanAny(string text) => Clean(text, LanguageProfile.Arabic) ?? Clean(text, LanguageRegistry.AnyScript);
+
+    /// <summary>
     /// Suggestions that continue a phrase: first the rest of the best phrases (inserted whole), then their
     /// next words. <paramref name="context"/> holds the normalized words typed just before, oldest first.
     /// </summary>

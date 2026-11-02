@@ -4215,7 +4215,7 @@
 جميله	جميله		جميله	True	جميله	جميله	جميله	<null>
 كَتَبَ	كتب		كتب	False	كتب	كتب	كتب	<null>
 مـــدرسة	مدرسه		مدرسة	False	مدرسة	مدرسه	مدرسة	<null>
-abc	abc		abc	False	<null>	abc	<null>	<null>
+abc	abc		abc	False	<null>	abc	abc	<null>
 كتاب1	كتاب1		كتاب1	False	<null>	كتاب1	كتاب1	<null>
 ك	ك		ك	True	ك	ك	ك	<null>
 				False	<null>		<null>	<null>
@@ -4223,4 +4223,4 @@ abc	abc		abc	False	<null>	abc	<null>	<null>
 كتاب جميل	كتاب جميل		كتاب جميل	False	<null>	كتاب جميل	<null>	كتاب جميل
 سؤال	سؤال	سءال,سئال	سؤال	True	سؤال	سءال	سؤال	<null>
 شئون	شئون	شءون,شؤون	شئون	True	شئون	شءون	شئون	<null>
-ﻻ	ﻻ		ﻻ	False	<null>	ﻻ	<null>	<null>
+ﻻ	ﻻ		ﻻ	False	<null>	ﻻ	ﻻ	<null>

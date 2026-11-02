@@ -10,9 +10,10 @@ public sealed record TextShortcut(string Key, string Text);
 /// and Tab inserts it in place of the key. Nothing is replaced without Tab.
 /// </summary>
 /// <remarks>
-/// A key is one Arabic word, optionally with digits after its first letter ("ع1", "سلام"): the word
-/// buffer keeps digits typed after a letter, so the key is seen whole. Matching ignores tashkeel and
-/// hamza seats (<see cref="LanguageProfile.Normalize"/>), and Arabic-Indic digits equal Western ones.
+/// A key is one word of any language, optionally with digits after its first letter ("ع1", "سلام",
+/// "brb"): the word buffer keeps digits typed after a letter, so the key is seen whole. Matching ignores
+/// tashkeel and hamza seats (<see cref="LanguageProfile.Normalize"/>) and letter case, and Arabic-Indic
+/// digits equal Western ones.
 /// </remarks>
 public sealed class TextShortcuts
 {
@@ -45,14 +46,17 @@ public sealed class TextShortcuts
 
     /// <summary>
     /// A key cleaned for storage (tashkeel removed), or null unless it is a letter followed by letters
-    /// or digits, without spaces.
+    /// or digits, without spaces: an Arabic key by the Arabic rules, any other by the letters of any script.
     /// </summary>
-    public static string? CleanKey(string key)
+    public static string? CleanKey(string key) =>
+        CleanKey(key, LanguageProfile.Arabic) ?? CleanKey(key, LanguageRegistry.AnyScript);
+
+    private static string? CleanKey(string key, LanguageProfile language)
     {
-        var cleaned = KeyLanguage.StripIgnorable(key.Trim());
+        var cleaned = language.StripIgnorable(key.Trim());
         return cleaned.Length is > 0 and <= MaxKeyLength
-            && KeyLanguage.IsLetter(cleaned[0])
-            && cleaned.All(c => KeyLanguage.IsLetter(c) || char.IsDigit(c))
+            && language.IsLetter(cleaned[0])
+            && cleaned.All(c => language.IsLetter(c) || char.IsDigit(c))
             ? cleaned
             : null;
     }
@@ -64,10 +68,7 @@ public sealed class TextShortcuts
         return cleaned.Length is > 0 and <= MaxTextLength ? cleaned : null;
     }
 
-    // Shortcut keys are Arabic.
-    private static LanguageProfile KeyLanguage => LanguageProfile.Arabic;
-
-    // Normalized letters and Western digits: «ع١» equals «ع1».
+    // Normalized letters (Arabic rules, then case folded) and Western digits: «ع١» equals «ع1», "BRB" "brb".
     private static string MatchKey(string key) =>
-        new([.. KeyLanguage.Normalize(key).Select(c => char.IsDigit(c) ? (char)('0' + (int)char.GetNumericValue(c)) : c)]);
+        new([.. LanguageRegistry.AnyScript.Normalize(LanguageProfile.Arabic.Normalize(key)).Select(c => char.IsDigit(c) ? (char)('0' + (int)char.GetNumericValue(c)) : c)]);
 }
