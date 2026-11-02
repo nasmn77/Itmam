@@ -523,7 +523,26 @@ internal sealed class LongPhrasePicker : Form
                 return;
             }
 
-            text = edited; // edited by hand after filling: inserted as it is
+            // Edited by hand after filling: inserted as it is, but the variables still written as {name} were
+            // not filled. Same question as for empty fields; "No" selects the first one to type over it, "Yes"
+            // leaves them out (never inserted with their braces).
+            var unfilled = LongPhraseVariables.InputNames(edited);
+            if (unfilled.Count > 0)
+            {
+                var names = string.Join(RightToLeft == RightToLeft.Yes ? "، " : ", ", unfilled);
+                Ask(string.Format(System.Globalization.CultureInfo.CurrentCulture, unfilled.Count == 1 ? Strings.EmptyVariable : Strings.EmptyVariables, names),
+                    MessageBoxButtons.YesNo, out var answer);
+                if (answer != DialogResult.Yes)
+                {
+                    var token = LongPhraseVariables.InputToken(unfilled[0]);
+                    _text.Focus();
+                    _text.Select(Math.Max(0, _text.Text.IndexOf(token, StringComparison.Ordinal)), token.Length);
+                    _text.ScrollToCaret();
+                    return;
+                }
+            }
+
+            text = LongPhraseVariables.Fill(edited, unfilled.ToDictionary(n => n, _ => string.Empty), DateTime.Now);
         }
         else
         {
