@@ -89,6 +89,20 @@ public sealed class SettingsStoreTests : IDisposable
     }
 
     [Fact]
+    public void Languages_default_to_arabic_and_english_and_are_cleaned()
+    {
+        Directory.CreateDirectory(_directory);
+        File.WriteAllText(SettingsPath, """{ "Enabled": true }""");
+        new SettingsStore(SettingsPath).Load().EnabledLanguages.ShouldBe(["ar", "en"]);
+
+        File.WriteAllText(SettingsPath, """{ "EnabledLanguages": ["ar", " HE ", "he", ""] }""");
+        new SettingsStore(SettingsPath).Load().EnabledLanguages.ShouldBe(["ar", "he"]);
+
+        File.WriteAllText(SettingsPath, """{ "EnabledLanguages": [] }""");
+        new SettingsStore(SettingsPath).Load().EnabledLanguages.ShouldBeEmpty(); // every language turned off is a choice too
+    }
+
+    [Fact]
     public void Older_files_without_new_settings_get_defaults_for_them()
     {
         Directory.CreateDirectory(_directory);

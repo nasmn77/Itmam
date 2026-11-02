@@ -120,7 +120,7 @@ internal sealed class DebugWindow : Form
     }
 
     private void RenderState(BufferResult result) =>
-        Render(new PipelineUpdate(null, result, null, string.Empty, 0, false, 0, false), $"{DateTime.Now:HH:mm:ss.fff}  started");
+        Render(new PipelineUpdate(null, result, null, string.Empty, 0, null, 0, false), $"{DateTime.Now:HH:mm:ss.fff}  started");
 
     private void ShowHealth()
     {

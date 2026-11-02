@@ -162,6 +162,10 @@ internal sealed class ItmamApp : IDisposable
 
     public SqliteUserWordStore Store { get; }
 
+    /// <summary>The dictionaries loaded so far (Arabic, and English once it is on), for the About page.</summary>
+    public IReadOnlyList<WordDictionary> LoadedDictionaries =>
+        [.. _languages.Values.Select(l => l.Engine.Dictionary).Where(d => d.Count > 0)];
+
     /// <summary>The Arabic engine.</summary>
     public SuggestionEngine Engine { get; private set; }
 

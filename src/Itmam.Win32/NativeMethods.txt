@@ -4,6 +4,7 @@
 GetForegroundWindow
 GetWindowThreadProcessId
 GetKeyboardLayout
+GetKeyboardLayoutList
 GetGUIThreadInfo
 
 // Process of a window (excluded apps).

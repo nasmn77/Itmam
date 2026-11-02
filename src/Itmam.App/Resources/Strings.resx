@@ -15,7 +15,7 @@
   <data name="MenuDiagnostics" xml:space="preserve"><value>Diagnostics</value></data>
   <data name="MenuExit" xml:space="preserve"><value>Exit</value></data>
   <data name="FirstRunTitle" xml:space="preserve"><value>Itmam is running</value></data>
-  <data name="FirstRunText" xml:space="preserve"><value>Itmam suggests Arabic words as you type. It runs in the notification area: right-click its icon for settings.</value></data>
+  <data name="FirstRunText" xml:space="preserve"><value>Itmam suggests words as you type, in Arabic, English and the languages you turn on. It runs in the notification area: right-click its icon for settings.</value></data>
   <data name="SettingsTitle" xml:space="preserve"><value>Itmam settings</value></data>
   <data name="NavGeneral" xml:space="preserve"><value>General</value></data>
   <data name="NavAbout" xml:space="preserve"><value>About</value></data>
@@ -31,7 +31,7 @@
   <data name="SectionLanguage" xml:space="preserve"><value>Language</value></data>
   <data name="UiLanguage" xml:space="preserve"><value>Interface language</value></data>
   <data name="AboutVersion" xml:space="preserve"><value>Version {0}</value></data>
-  <data name="AboutTagline" xml:space="preserve"><value>Arabic word suggestions as you type, on the physical keyboard.</value></data>
+  <data name="AboutTagline" xml:space="preserve"><value>Word suggestions as you type on the physical keyboard, in Arabic, English and other languages.</value></data>
   <data name="AboutDictionary" xml:space="preserve"><value>Dictionary: {0:N0} words</value></data>
   <data name="AboutLearned" xml:space="preserve"><value>Your words: {0:N0}</value></data>
   <data name="AboutSources" xml:space="preserve"><value>Sources</value></data>
@@ -128,7 +128,7 @@
   <data name="BlockWordPrompt" xml:space="preserve"><value>Type the word that should never be suggested:</value></data>
   <data name="EditWord" xml:space="preserve"><value>Edit word</value></data>
   <data name="EditWordPrompt" xml:space="preserve"><value>Correct the spelling (its uses are kept):</value></data>
-  <data name="NotAnArabicWord" xml:space="preserve"><value>Type one Arabic word, without spaces.</value></data>
+  <data name="NotAnArabicWord" xml:space="preserve"><value>Type one word of this language, without spaces or digits.</value></data>
   <data name="OkButton" xml:space="preserve"><value>OK</value></data>
   <data name="CancelButton" xml:space="preserve"><value>Cancel</value></data>
   <data name="ImportExport" xml:space="preserve"><value>Import and export</value></data>
@@ -191,8 +191,8 @@
   <data name="AddPhrase" xml:space="preserve"><value>Add a phrase</value></data>
   <data name="AddPhraseHint" xml:space="preserve"><value>Your signature, your organization's name, or any phrase you write often. Suggested before the built-in ones.</value></data>
   <data name="EditPhrase" xml:space="preserve"><value>Edit phrase</value></data>
-  <data name="PhrasePrompt" xml:space="preserve"><value>Type the phrase (two Arabic words or more):</value></data>
-  <data name="NotAPhrase" xml:space="preserve"><value>Type two Arabic words or more, without digits or Latin letters.</value></data>
+  <data name="PhrasePrompt" xml:space="preserve"><value>Type the phrase (two words or more):</value></data>
+  <data name="NotAPhrase" xml:space="preserve"><value>Type two words or more, without digits or symbols.</value></data>
   <data name="ConfirmDeletePhrase" xml:space="preserve"><value>Delete «{0}» from your phrases?</value></data>
   <data name="LearnPhrases" xml:space="preserve"><value>Learn phrases from my typing</value></data>
   <data name="LearnPhrasesHint" xml:space="preserve"><value>Words you type in a row twice (2 to 5 words) are suggested as a phrase. Kept on this device only; nothing is learned in password fields, excluded apps or while learning is paused. Sequences not repeated are deleted after 30 days.</value></data>
@@ -208,12 +208,12 @@
   <data name="NavTextShortcuts" xml:space="preserve"><value>Text shortcuts</value></data>
   <data name="TextShortcutsIntro" xml:space="preserve"><value>Type a short code and the bar offers its text first; Tab inserts it in place of the code. For example «ع1» → «السلام عليكم ورحمة الله وبركاته».</value></data>
   <data name="AddTextShortcut" xml:space="preserve"><value>Add a shortcut</value></data>
-  <data name="AddTextShortcutHint" xml:space="preserve"><value>A code of Arabic letters, digits allowed after the first letter, and the text it inserts.</value></data>
+  <data name="AddTextShortcutHint" xml:space="preserve"><value>A code of letters in any language, digits allowed after the first letter, and the text it inserts.</value></data>
   <data name="EditTextShortcut" xml:space="preserve"><value>Edit shortcut</value></data>
   <data name="SectionTextShortcuts" xml:space="preserve"><value>My shortcuts ({0})</value></data>
-  <data name="TextShortcutKeyPrompt" xml:space="preserve"><value>Shortcut (e.g. ع1):</value></data>
+  <data name="TextShortcutKeyPrompt" xml:space="preserve"><value>Shortcut (e.g. ع1 or brb):</value></data>
   <data name="TextShortcutTextPrompt" xml:space="preserve"><value>Text it inserts:</value></data>
-  <data name="NotATextShortcutKey" xml:space="preserve"><value>The shortcut must start with an Arabic letter and contain only Arabic letters and digits, without spaces.</value></data>
+  <data name="NotATextShortcutKey" xml:space="preserve"><value>The shortcut must start with a letter and contain only letters and digits, without spaces.</value></data>
   <data name="NotATextShortcutText" xml:space="preserve"><value>Type the text the shortcut inserts.</value></data>
   <data name="ConfirmDeleteTextShortcut" xml:space="preserve"><value>Delete the shortcut «{0}»?</value></data>
   <data name="ConfirmReplaceTextShortcut" xml:space="preserve"><value>The shortcut «{0}» already exists. Replace its text?</value></data>
@@ -273,7 +273,7 @@
   <data name="NotABackup" xml:space="preserve"><value>This file is not an Itmam backup.</value></data>
   <data name="ConfirmRestoreBackup" xml:space="preserve"><value>Replace all your words, phrases, shortcuts, long phrases and settings on this PC with the backup? This cannot be undone.</value></data>
   <data name="RestoreDone" xml:space="preserve"><value>The backup was restored.</value></data>
-  <data name="SectionDictionary" xml:space="preserve"><value>Dictionary</value></data>
+  <data name="SectionDictionary" xml:space="preserve"><value>Arabic dictionary</value></data>
   <data name="DictionaryChoice" xml:space="preserve"><value>Dictionary</value></data>
   <data name="DictionaryChoiceHint" xml:space="preserve"><value>"Basic": more than 500,000 words of everyday Arabic. "Wikipedia": about 880,000 words: the whole basic dictionary plus the vocabulary of Arabic Wikipedia, for better suggestions in formal writing and terms; uses a little more memory.</value></data>
   <data name="DictionaryBasic" xml:space="preserve"><value>Basic</value></data>
@@ -305,4 +305,15 @@ Insert the reply without it?</value></data>
 Save the edit in the phrase?
 Yes: save it, then insert.
 No: insert it this time only.</value></data>
+  <data name="NavLanguages" xml:space="preserve"><value>Languages</value></data>
+  <data name="LanguagesIntro" xml:space="preserve"><value>Itmam follows your keyboard layout and suggests in the language you are typing. Turn on the languages it should help you with.</value></data>
+  <data name="SectionKeyboardLanguages" xml:space="preserve"><value>Keyboard languages on this PC</value></data>
+  <data name="LanguageFull" xml:space="preserve"><value>Full dictionary: words, phrases and common mistakes.</value></data>
+  <data name="LanguageLearningOnly" xml:space="preserve"><value>No dictionary: suggests the words and phrases you type in it, your phrases and your text shortcuts.</value></data>
+  <data name="LanguageUnsupported" xml:space="preserve"><value>Typed with an input method, or without spaces between words: Itmam stays silent with it.</value></data>
+  <data name="LanguageNoKeyboard" xml:space="preserve"><value>Its keyboard is not installed on this PC.</value></data>
+  <data name="SectionTwoBars" xml:space="preserve"><value>Two suggestion bars?</value></data>
+  <data name="TwoBars" xml:space="preserve"><value>Windows text suggestions</value></data>
+  <data name="TwoBarsHint" xml:space="preserve"><value>If Windows shows its own bar as well, turn off "Show text suggestions when typing on the physical keyboard" in Windows Settings → Time &amp; language → Typing.</value></data>
+  <data name="WordsLanguage" xml:space="preserve"><value>Language</value></data>
 </root>

@@ -1,5 +1,6 @@
 using Windows.Win32;
 using Windows.Win32.Foundation;
+using Windows.Win32.UI.Input.KeyboardAndMouse;
 using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace Itmam.Win32;
@@ -11,6 +12,24 @@ public static class KeyboardLayouts
     {
         var foreground = PInvoke.GetForegroundWindow();
         return foreground.IsNull ? 0 : (nint)PInvoke.GetKeyboardLayout(InputThreadOf(foreground)).Value;
+    }
+
+    /// <summary>The keyboard layouts (HKL) the user has installed (Windows input languages).</summary>
+    public static unsafe IReadOnlyList<nint> Installed()
+    {
+        var count = PInvoke.GetKeyboardLayoutList(0, null);
+        if (count <= 0)
+        {
+            return [];
+        }
+
+        var layouts = new HKL[count];
+        fixed (HKL* list = layouts)
+        {
+            count = PInvoke.GetKeyboardLayoutList(count, list);
+        }
+
+        return [.. layouts.Take(Math.Max(count, 0)).Select(layout => (nint)layout.Value)];
     }
 
     /// <summary>

@@ -40,6 +40,8 @@ public sealed class SuggestionEngine(
 
     public SuggestionOptions Options { get; set; } = options ?? new SuggestionOptions();
 
+    public WordDictionary Dictionary => dictionary;
+
     /// <summary>The dictionary's language: its letters, matching keys and clitics.</summary>
     public LanguageProfile Language => dictionary.Language;
 
