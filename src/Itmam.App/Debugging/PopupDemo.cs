@@ -64,6 +64,12 @@ internal static class PopupDemo
         _ = popup.Handle;
         popup.ShowSuggestions(["مرحبا", "مرحلة", "مرحى"], new Rectangle(caretX, caretY, 2, 20), rightToLeft: true, belowPointer: false);
 
+        // "select": the second suggestion chosen with the arrow keys (stronger than the first item's highlight).
+        if (options.Contains("select"))
+        {
+            popup.SetSelected(1);
+        }
+
         // "hide": hide after 1 s (verifies hiding), then exit at 5 s.
         using var hideTimer = new System.Windows.Forms.Timer { Interval = 1000 };
         hideTimer.Tick += (_, _) => { hideTimer.Stop(); popup.HideSuggestions(); };

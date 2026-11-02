@@ -177,6 +177,8 @@
 
 **المتغيرات (من الإصدار 1.2):** `LongPhraseVariables` (في Core) يقسم النص: `{اسم}` يُسأل عنه، و`{{اسم}}` تلقائي من أربعة (التاريخ، التاريخ الهجري بتقويم `UmAlQuraCalendar`، اليوم، الوقت)، بأسماء عربية أو إنجليزية؛ والقوس الذي لا يكوّن متغيرًا صحيحًا يبقى نصًا. تُكتب القيم التلقائية بالعربية إن كان في نص العبارة حرف عربي، وإلا بالإنجليزية. `VariableDialog` يُدرج المتغير من نافذة التعديل، ويرفض `LongPhraseDialog` حفظ `{{اسم}}` غير معروف. في `LongPhrasePicker`، العبارة التي فيها متغير يُسأل عنه تُظهر خانة لكل متغير مكان القائمة، ثم يُلصق `LongPhraseVariables.Fill(...)`. القيم في النافذة فقط ولا تُحفظ.
 
+**التعديل قبل الإدراج (من الإصدار 1.3):** نص العبارة تحت القائمة قابل للتعديل. إن أُدرج بعد تعديل يُسأل المستخدم: «نعم» يحفظه في `settings.json` (`TrayApplication.SaveLongPhraseText`، بالاسم نفسه ومكانه)، و«لا» يُدرجه هذه المرة فقط. وفي وضع الملء يمكن تعديل الرد نفسه لهذه المرة: تُقفل الخانات، والمتغيرات التي بقيت `{اسم}` يُسأل عنها كالخانات الفارغة، ولا يُحفظ شيء.
+
 ### الاختصارات النصية (من الإصدار 1.1)
 
 `TextShortcuts` (في Core) يحمل اختصارات المستخدم من `settings.json` (مثل «ع1» ← «السلام عليكم ورحمة الله وبركاته»). الاختصار حرف عربي ثم حروف عربية أو أرقام؛ ولذلك يُبقي `WordBuffer` الأرقام التي تأتي بعد حرف داخل الكلمة (الرقم في أول الكلمة ما زال حدًّا)، ولا تُتعلَّم كلمة فيها رقم. يضع `SuggestionController` عبارة الاختصار المكتوب بالضبط أولًا في الشريط، مهما كان الحد الأدنى للحروف، ويضعها Tab مكان الاختصار بالطريقة نفسها التي تُقبل بها الاقتراحات. المطابقة تتجاهل التشكيل والهمزات، والأرقام الهندية تساوي الأرقام العربية الغربية.
@@ -500,6 +502,11 @@ that do not form a valid variable stay text. Automatic values are written in Ara
 letter, otherwise in English. `VariableDialog` inserts a variable from the editor, and `LongPhraseDialog` refuses to save
 an unknown `{{name}}`. In `LongPhrasePicker`, a phrase with a variable asked for shows a field for each in place of the
 list, then `LongPhraseVariables.Fill(...)` is pasted. The values live in the window only and are never saved.
+
+**Editing before inserting (from 1.3):** the phrase's text below the list is editable. Inserted after an edit, the user
+is asked: "Yes" saves it in `settings.json` (`TrayApplication.SaveLongPhraseText`, same name and place), "No" inserts it
+this time only. While filling, the reply itself can be edited for this time only: the fields lock, variables still
+written as `{name}` get the empty-fields question, and nothing is saved.
 
 ### Text shortcuts (from 1.1)
 

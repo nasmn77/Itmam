@@ -35,7 +35,7 @@ public enum InputEventKind
     /// <summary>A shown suggestion was accepted (Tab, Ctrl+N, Enter in navigation, or a click); <see cref="InputEvent.Text"/> is the word.</summary>
     AcceptSuggestion,
 
-    /// <summary>Esc while the bar is shown: hide it until the current word ends.</summary>
+    /// <summary>Esc while the bar is shown: hide it until the next letter.</summary>
     DismissSuggestions,
 
     /// <summary>Native navigation mode moved the selection; <see cref="InputEvent.Index"/> is the item, -1 when leaving the bar.</summary>

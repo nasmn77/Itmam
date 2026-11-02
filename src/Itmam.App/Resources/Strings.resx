@@ -71,7 +71,7 @@
   <data name="BarOpacity" xml:space="preserve"><value>Opacity</value></data>
   <data name="BarFontSize" xml:space="preserve"><value>Text size</value></data>
   <data name="HighlightFirst" xml:space="preserve"><value>Highlight the first suggestion</value></data>
-  <data name="HighlightFirstHint" xml:space="preserve"><value>The one Tab accepts, in the selection color.</value></data>
+  <data name="HighlightFirstHint" xml:space="preserve"><value>The one Tab accepts, in a lighter shade of the selection color; the full color shows when choosing with the arrows.</value></data>
   <data name="HotkeyHints" xml:space="preserve"><value>Show suggestion numbers</value></data>
   <data name="HotkeyHintsHint" xml:space="preserve"><value>Small numbers for the shortcut that accepts suggestion 1, 2, 3…</value></data>
   <data name="ResetLook" xml:space="preserve"><value>Reset to the Windows look</value></data>
@@ -86,7 +86,7 @@
   <data name="ShortcutAcceptNth" xml:space="preserve"><value>Insert suggestion 1–9</value></data>
   <data name="ShortcutAcceptNthHint" xml:space="preserve"><value>This key held with the suggestion's number.</value></data>
   <data name="ShortcutDismiss" xml:space="preserve"><value>Hide the suggestions</value></data>
-  <data name="ShortcutDismissHint" xml:space="preserve"><value>Until you start the next word.</value></data>
+  <data name="ShortcutDismissHint" xml:space="preserve"><value>Until you type the next letter.</value></data>
   <data name="ShortcutToggle" xml:space="preserve"><value>Turn Itmam on or off</value></data>
   <data name="ShortcutToggleHint" xml:space="preserve"><value>Works in any app.</value></data>
   <data name="NativeNavigation" xml:space="preserve"><value>Choose with the arrow keys</value></data>
@@ -291,11 +291,18 @@
   <data name="InsertButton" xml:space="preserve"><value>Insert</value></data>
   <data name="NotAVariableName" xml:space="preserve"><value>Type a name of up to 30 characters, without braces.</value></data>
   <data name="UnknownAutoVariable" xml:space="preserve"><value>{0} is not an automatic variable. Insert automatic variables with "Insert variable…".</value></data>
-  <data name="LongPhraseFillHint" xml:space="preserve"><value>"{0}": fill in the fields, then Enter; Esc to go back.</value></data>
+  <data name="LongPhraseFillHint" xml:space="preserve"><value>"{0}": fill in the fields, then Enter in the last one; Esc to go back.</value></data>
   <data name="EmptyVariables" xml:space="preserve"><value>These fields are empty: {0}.
 
 Insert the reply without them?</value></data>
   <data name="EmptyVariable" xml:space="preserve"><value>This field is empty: {0}.
 
 Insert the reply without it?</value></data>
+  <data name="LongPhraseEditHint" xml:space="preserve"><value>The phrase's text (you can edit it before inserting; Ctrl+Enter inserts):</value></data>
+  <data name="LongPhraseFinalEdited" xml:space="preserve"><value>You edited the reply: the fields are locked, and it is inserted as it is.</value></data>
+  <data name="SaveLongPhraseEdit" xml:space="preserve"><value>You edited the text of "{0}".
+
+Save the edit in the phrase?
+Yes: save it, then insert.
+No: insert it this time only.</value></data>
 </root>

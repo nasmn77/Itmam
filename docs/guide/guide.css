@@ -73,6 +73,7 @@ figure img {
   box-shadow: 0 2mm 6mm rgba(40, 30, 10, .18);
 }
 figure.small img { max-height: 95mm; }
+figure.tall img { max-height: 66mm; }
 figcaption { font-size: 9pt; color: var(--ink-soft); margin-top: 2mm; }
 
 /* a note box */

@@ -5,6 +5,7 @@ using Itmam.App.Resources;
 using Itmam.App.SettingsUi;
 using Itmam.Core.Input;
 using Itmam.Core.Settings;
+using Itmam.Core.Suggestions;
 using Itmam.Win32;
 using Microsoft.Win32;
 
@@ -250,10 +251,16 @@ internal sealed class TrayApplication : ApplicationContext
         _longPhrases?.Close();
         var settings = _app.Settings;
         _longPhrases = new LongPhrasePicker(settings.LongPhrases, target, _app.Injector, SettingsPalette.For(settings.Theme),
-            settings.Language == UiLanguage.Arabic, near, chars => _app.Learning.RecordUsage(1, chars));
+            settings.Language == UiLanguage.Arabic, near, chars => _app.Learning.RecordUsage(1, chars), SaveLongPhraseText);
         _longPhrases.FormClosed += (_, _) => _longPhrases = null;
         _longPhrases.Show();
     }
+
+    // "Save the edit" in the long phrases list (1.3): the phrase keeps its name and place.
+    private void SaveLongPhraseText(LongPhrase phrase, string text) => _app.UpdateSettings(_app.Settings with
+    {
+        LongPhrases = [.. _app.Settings.LongPhrases.Select(p => p.Name == phrase.Name ? p with { Text = text } : p)],
+    });
 
     /// <summary>Opens Settings (also used when a second copy of Itmam is started).</summary>
     public void ShowSettings(SettingsPage page)

@@ -75,7 +75,7 @@
     <li><kbd>Ctrl</kbd> + <kbd>2</kbd> or <kbd>3</kbd>… inserts a suggestion by its number. Numbers can be shown on the bar (Appearance).</li>
     <li>With the arrow keys: <kbd>↑</kbd> moves into the bar, <kbd>←</kbd> <kbd>→</kbd> choose, <kbd>Enter</kbd> inserts, <kbd>Esc</kbd> or <kbd>↓</kbd> leaves.</li>
     <li>Or click the suggestion.</li>
-    <li><kbd>Esc</kbd> hides the bar until you start the next word.</li>
+    <li><kbd>Esc</kbd> hides the bar until you type the next letter.</li>
   </ul>
   <p>After inserting, Itmam adds a space (can be turned off in General), but not when a space or punctuation already follows the caret.</p>
   <h3>Picked the wrong one?</h3>
@@ -123,10 +123,12 @@
   <ol>
     <li>Save each reply once in Settings → "Long phrases" → "Add": a name you know it by, and a text of up to 4,000 characters over several lines.</li>
     <li>In any app, press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Space</kbd>: a list of your replies opens.</li>
-    <li>Type part of a name or of the text to filter it, and move with the arrow keys while you preview the reply.</li>
-    <li>Press <kbd>Enter</kbd>: the reply is pasted at the caret with its lines as you wrote them. <kbd>Esc</kbd> closes the list.</li>
+    <li>Type part of a name or of the text to filter it, and move with the arrow keys while you see the reply's text below the list.</li>
+    <li>Press <kbd>Enter</kbd> or "Insert": the reply is pasted at the caret with its lines as you wrote them. <kbd>Esc</kbd> or "Cancel" closes the list.</li>
   </ol>
-  <figure class="small"><img src="img/en-picker.png" alt="The long phrases list"><figcaption>The long phrases list, with search and a preview of the selected reply.</figcaption></figure>
+  <figure class="small tall"><img src="img/en-picker.png" alt="The long phrases list"><figcaption>The long phrases list, with search and the selected reply's text.</figcaption></figure>
+  <h3>Editing a reply before inserting it</h3>
+  <p>The reply's text below the list can be edited: click in it and change what you like. <kbd>Enter</kbd> there starts a new line and <kbd>Ctrl</kbd> + <kbd>Enter</kbd> inserts. When you insert after an edit, Itmam asks: "Yes" saves the edit in the phrase, then inserts it; "No" inserts the edited text this time only. Choosing another reply or closing the list drops the edit.</p>
   <div class="note"><p>The reply is inserted through the clipboard; Itmam then puts back what was on your clipboard, and the reply stays out of clipboard history.</p></div>
   <h3>For support teams</h3>
   <p>Export the approved replies to a text file and import it on your colleagues' PCs, so everyone sends the same wording. Importing adds to what each person has and removes nothing.</p>
@@ -144,7 +146,8 @@
   <p>In the long phrase window, press "Insert variable…", then choose: "Asked for" and type its name, or "Automatic" and pick it from the list. Itmam types the braces for you. You can also type a variable asked for yourself; automatic ones are picked from the list, and any other name in double braces is refused when saving.</p>
   <figure class="small"><img src="img/en-variable.png" alt="The Insert variable window"></figure>
   <h3>Filling in the variables</h3>
-  <p>Choose the reply in the long phrases list and press <kbd>Enter</kbd>: a field appears for each variable asked for, and the preview below follows what you type. <kbd>Tab</kbd> moves between fields, <kbd>Enter</kbd> in the last one inserts the reply, and <kbd>Esc</kbd> goes back to the list. A reply without variables is inserted at once, as before.</p>
+  <p>Choose the reply in the long phrases list and press <kbd>Enter</kbd>: a field appears for each variable asked for, and the reply below follows what you type. <kbd>Tab</kbd> moves between fields, <kbd>Enter</kbd> in the last one or "Insert" inserts the reply, and <kbd>Esc</kbd> or "Cancel" goes back to the list. If a field is left empty, Itmam asks before inserting. A reply without variables is inserted at once, as before.</p>
+  <p>You can also edit the filled reply itself, for this time only: the fields are then locked so they do not overwrite your edit, and the reply is inserted as you edited it.</p>
   <figure class="small"><img src="img/en-fill.png" alt="Filling in a reply's variables"></figure>
   <div class="note"><p>The values you type are not saved; they are forgotten after inserting.</p></div>
 </section>
@@ -317,7 +320,7 @@
     <tr><td><kbd>Tab</kbd></td><td>Insert the first suggestion</td></tr>
     <tr><td><kbd>Ctrl</kbd> + <kbd>1</kbd>…<kbd>9</kbd></td><td>Insert a suggestion by its number</td></tr>
     <tr><td><kbd>↑</kbd> then <kbd>←</kbd> <kbd>→</kbd> then <kbd>Enter</kbd></td><td>Choose with the arrows, then insert</td></tr>
-    <tr><td><kbd>Esc</kbd></td><td>Hide the suggestions until the next word</td></tr>
+    <tr><td><kbd>Esc</kbd></td><td>Hide the suggestions until the next letter</td></tr>
     <tr><td><kbd>Backspace</kbd></td><td>Right after inserting: undo it</td></tr>
     <tr><td><kbd>Ctrl</kbd> + <kbd>Delete</kbd></td><td>While choosing with the arrows: forget the selected learned word</td></tr>
     <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Space</kbd></td><td>The long phrases list, in any app</td></tr>
