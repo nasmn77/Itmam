@@ -1266,7 +1266,7 @@ internal sealed class SettingsWindow : Form
     private void EditPhrase(string? existing)
     {
         var text = WordDialog.Ask(this, existing is null ? Strings.AddPhrase : Strings.EditPhrase, Strings.PhrasePrompt,
-            existing ?? string.Empty, _palette, _mirrored, PhraseIndex.Clean, Strings.NotAPhrase);
+            existing ?? string.Empty, _palette, _mirrored, p => PhraseIndex.Clean(p), Strings.NotAPhrase);
         if (text is null || text == existing)
         {
             return;

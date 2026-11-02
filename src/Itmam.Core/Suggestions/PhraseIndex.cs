@@ -1,4 +1,4 @@
-using Itmam.Core.Text;
+using Itmam.Core.Languages;
 
 namespace Itmam.Core.Suggestions;
 
@@ -31,59 +31,58 @@ public sealed class Phrase
 /// </remarks>
 public sealed class PhraseIndex
 {
-    /// <summary>Words too common to start a phrase suggestion on their own.</summary>
-    private static readonly HashSet<string> CommonStarts = new(
-        ["في", "علي", "من", "الي", "عن", "مع", "يا", "لا", "ما", "ان", "او", "ثم", "بل", "كل", "هذا", "هذه", "ذلك", "تلك", "قد", "لم", "لن", "هل", "و"],
-        StringComparer.Ordinal);
-
     private const int MinStartLetters = 3;
 
     private readonly Phrase[] _phrases;
 
-    private PhraseIndex(Phrase[] phrases) => _phrases = phrases;
+    private PhraseIndex(Phrase[] phrases, LanguageProfile language) => (_phrases, Language) = (phrases, language);
 
-    public static PhraseIndex Empty { get; } = new([]);
+    public static PhraseIndex Empty { get; } = new([], LanguageProfile.Arabic);
+
+    /// <summary>The language of the phrases: what a word is, how keys are built, which words are too common to start one.</summary>
+    public LanguageProfile Language { get; }
 
     public int Count => _phrases.Length;
 
     public IReadOnlyList<Phrase> Phrases => _phrases;
 
     /// <summary>One phrase per line; <c>#</c> starts a comment. Invalid lines are skipped.</summary>
-    public static PhraseIndex Read(TextReader reader)
+    public static PhraseIndex Read(TextReader reader, LanguageProfile? language = null)
     {
+        language ??= LanguageProfile.Arabic;
         var phrases = new List<Phrase>();
         while (reader.ReadLine() is { } line)
         {
             var text = line.Trim();
-            if (text.Length > 0 && text[0] != '#' && Parse(text) is { } phrase)
+            if (text.Length > 0 && text[0] != '#' && Parse(text, language) is { } phrase)
             {
                 phrases.Add(phrase);
             }
         }
 
-        return new PhraseIndex(Distinct(phrases));
+        return new PhraseIndex(Distinct(phrases), language);
     }
 
     /// <summary>These phrases without the given ones (built-in phrases the user deleted from the bar).</summary>
     public PhraseIndex Without(IEnumerable<string> phrases)
     {
-        var hidden = phrases.Select(Parse).OfType<Phrase>().Select(p => string.Join(' ', p.Keys)).ToHashSet(StringComparer.Ordinal);
-        return hidden.Count == 0 ? this : new([.. _phrases.Where(p => !hidden.Contains(string.Join(' ', p.Keys)))]);
+        var hidden = phrases.Select(p => Parse(p, Language)).OfType<Phrase>().Select(p => string.Join(' ', p.Keys)).ToHashSet(StringComparer.Ordinal);
+        return hidden.Count == 0 ? this : new([.. _phrases.Where(p => !hidden.Contains(string.Join(' ', p.Keys)))], Language);
     }
 
     /// <summary>Whether this list holds the phrase (tashkeel and hamza seats ignored).</summary>
     public bool Contains(string phrase) =>
-        Parse(phrase) is { } parsed && _phrases.Any(p => p.Keys.SequenceEqual(parsed.Keys, StringComparer.Ordinal));
+        Parse(phrase, Language) is { } parsed && _phrases.Any(p => p.Keys.SequenceEqual(parsed.Keys, StringComparer.Ordinal));
 
     /// <summary>The user's phrases first (they win ties), then these.</summary>
     public PhraseIndex With(IEnumerable<string> userPhrases) =>
-        new(Distinct([.. userPhrases.Select(Parse).OfType<Phrase>(), .. _phrases]));
+        new(Distinct([.. userPhrases.Select(p => Parse(p, Language)).OfType<Phrase>(), .. _phrases]), Language);
 
     /// <summary>
     /// A typed phrase cleaned for storage ("My phrases"): single spaces, tashkeel removed; null unless it
-    /// has at least two Arabic words.
+    /// has at least two words of the language (default Arabic).
     /// </summary>
-    public static string? Clean(string text) => Parse(text)?.Text;
+    public static string? Clean(string text, LanguageProfile? language = null) => Parse(text, language ?? LanguageProfile.Arabic)?.Text;
 
     /// <summary>
     /// Suggestions that continue a phrase: first the rest of the best phrases (inserted whole), then their
@@ -98,13 +97,13 @@ public sealed class PhraseIndex
     /// </param>
     public IReadOnlyList<string> Suggest(IReadOnlyList<string> context, string typed, int max, IDictionary<string, string>? sources = null)
     {
-        var literal = ArabicText.StripIgnorable(typed);
-        if (max <= 0 || (literal.Length > 0 && !ArabicText.IsArabicWord(literal)))
+        var literal = Language.StripIgnorable(typed);
+        if (max <= 0 || (literal.Length > 0 && !Language.IsWord(literal)))
         {
             return [];
         }
 
-        var typedKey = literal.Length == 0 ? "" : ArabicNormalizer.Normalize(literal);
+        var typedKey = literal.Length == 0 ? "" : Language.Normalize(literal);
         var matches = new List<(Phrase Phrase, int Position)>();
         foreach (var phrase in _phrases)
         {
@@ -160,7 +159,7 @@ public sealed class PhraseIndex
 
     // The word of the phrase the user is typing now, or -1: the words before it must be the last words
     // typed, and the typed letters must start it.
-    private static int BestPosition(Phrase phrase, IReadOnlyList<string> context, string typedKey)
+    private int BestPosition(Phrase phrase, IReadOnlyList<string> context, string typedKey)
     {
         for (var position = Math.Min(context.Count, phrase.Keys.Count - 1); position >= 0; position--)
         {
@@ -174,11 +173,11 @@ public sealed class PhraseIndex
                 // Starting a phrase: enough of a distinctive first word.
                 var first = phrase.Keys[0];
                 var enough = typedKey.Length >= MinStartLetters && typedKey.Length * 10 >= first.Length * 6;
-                return enough && !CommonStarts.Contains(first) ? 0 : -1;
+                return enough && !Language.CommonPhraseStarts.Contains(first) ? 0 : -1;
             }
 
             // Right after a space with nothing typed yet: not after a common word alone.
-            if (typedKey.Length == 0 && position == 1 && CommonStarts.Contains(phrase.Keys[0]))
+            if (typedKey.Length == 0 && position == 1 && Language.CommonPhraseStarts.Contains(phrase.Keys[0]))
             {
                 continue;
             }
@@ -214,17 +213,17 @@ public sealed class PhraseIndex
         }
     }
 
-    private static Phrase? Parse(string text)
+    private static Phrase? Parse(string text, LanguageProfile language)
     {
         var words = text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)
-            .Select(w => ArabicText.StripIgnorable(w))
+            .Select(w => language.StripIgnorable(w))
             .ToArray();
-        if (words.Length < 2 || !words.All(w => ArabicText.IsArabicWord(w)))
+        if (words.Length < 2 || !words.All(w => language.IsWord(w)))
         {
             return null;
         }
 
-        return new Phrase(words, [.. words.Select(w => ArabicNormalizer.Normalize(w))]);
+        return new Phrase(words, [.. words.Select(w => language.Normalize(w))]);
     }
 
     private static Phrase[] Distinct(IEnumerable<Phrase> phrases) =>

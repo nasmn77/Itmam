@@ -1,4 +1,4 @@
-using Itmam.Core.Text;
+using Itmam.Core.Languages;
 
 namespace Itmam.Core.Learning;
 
@@ -27,8 +27,11 @@ public sealed partial class LearningService
     public bool LearnsPhrases { get; set; } = true;
 
     /// <summary>Normalized key of a phrase: its words' keys, one space apart.</summary>
-    public static string PhraseKey(string text) =>
-        string.Join(' ', text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(w => ArabicNormalizer.Normalize(ArabicText.StripIgnorable(w))));
+    public static string PhraseKey(string text, LanguageProfile? language = null)
+    {
+        language ??= LanguageProfile.Arabic;
+        return string.Join(' ', text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(w => language.Normalize(language.StripIgnorable(w))));
+    }
 
     /// <summary>Sequences that ended with a finished word: count each one.</summary>
     public void LearnPhrases(IEnumerable<string> sequences)
@@ -290,12 +293,12 @@ public sealed partial class LearningService
         MarkPhraseRemoved(key);
     }
 
-    // 2–5 Arabic words, each long enough to be learned as a word, none of them blocked.
+    // 2–5 words, each long enough to be learned as a word, none of them blocked.
     private bool IsLearnable(string sequence)
     {
         var words = sequence.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         return words.Length >= 2 && words.Length <= _options.MaxPhraseWords
-            && words.All(w => UserWordIndex.Clean(w) is { } clean && clean.Count(ArabicText.IsArabicLetter) >= _options.MinLetters)
+            && words.All(w => _index.Language.CleanWord(w) is { } clean && _index.Language.CountLetters(clean) >= _options.MinLetters)
             && !HasBlockedWord(sequence);
     }
 

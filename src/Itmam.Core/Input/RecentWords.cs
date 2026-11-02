@@ -1,4 +1,4 @@
-using Itmam.Core.Text;
+using Itmam.Core.Languages;
 
 namespace Itmam.Core.Input;
 
@@ -19,16 +19,19 @@ public sealed class RecentWords
     private readonly List<string> _keys = new(Max);
     private readonly List<string> _words = new(Max);
 
+    /// <summary>The language being typed; a word of another one breaks the chain.</summary>
+    public LanguageProfile Language { get; set; } = LanguageProfile.Arabic;
+
     /// <summary>Normalized keys, oldest first: a copy, safe to hand to other threads.</summary>
     public IReadOnlyList<string> Snapshot { get; private set; } = [];
 
-    /// <summary>Adds a word, or every word of an accepted phrase. Anything not Arabic breaks the chain.</summary>
+    /// <summary>Adds a word, or every word of an accepted phrase. Anything not a word of <see cref="Language"/> breaks the chain.</summary>
     public void Push(string text)
     {
         foreach (var word in text.Split(' ', StringSplitOptions.RemoveEmptyEntries))
         {
-            var literal = ArabicText.StripIgnorable(word);
-            if (!ArabicText.IsArabicWord(literal))
+            var literal = Language.StripIgnorable(word);
+            if (!Language.IsWord(literal))
             {
                 Clear();
                 return;
@@ -40,7 +43,7 @@ public sealed class RecentWords
                 _words.RemoveAt(0);
             }
 
-            _keys.Add(ArabicNormalizer.Normalize(literal));
+            _keys.Add(Language.Normalize(literal));
             _words.Add(literal);
         }
 
@@ -53,8 +56,8 @@ public sealed class RecentWords
     /// </summary>
     public IEnumerable<string> SequencesEndingWith(string word)
     {
-        var literal = ArabicText.StripIgnorable(word);
-        if (!ArabicText.IsArabicWord(literal))
+        var literal = Language.StripIgnorable(word);
+        if (!Language.IsWord(literal))
         {
             yield break;
         }
@@ -97,10 +100,10 @@ public sealed class RecentWords
         Push(string.Join(' ', words));
     }
 
-    private static bool IsWordChar(char c) => ArabicText.IsArabicLetter(c) || ArabicText.IsIgnorable(c);
+    private bool IsWordChar(char c) => Language.IsWordChar(c);
 
-    // Start of the run of Arabic letters and marks that ends at <paramref name="end"/>.
-    private static int WordStart(ReadOnlySpan<char> text, int end)
+    // Start of the run of letters and marks that ends at <paramref name="end"/>.
+    private int WordStart(ReadOnlySpan<char> text, int end)
     {
         while (end > 0 && IsWordChar(text[end - 1]))
         {

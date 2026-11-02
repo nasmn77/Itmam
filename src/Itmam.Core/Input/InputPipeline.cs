@@ -505,7 +505,7 @@ public sealed class InputPipeline(
             }
         }
         else if (result.Outcome == BufferOutcome.Reset
-            || (input.Character != ' ' && Text.ArabicText.IsWordBoundary(input.Character)))
+            || (input.Character != ' ' && Tracker.Buffer.Language.IsWordBoundary(input.Character)))
         {
             // Also Enter or punctuation after a space (an accepted word ends with one): the chain stops.
             _recent.Clear();

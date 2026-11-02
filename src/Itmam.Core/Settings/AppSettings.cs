@@ -120,8 +120,8 @@ public sealed record AppSettings
         BarText = Presentation.ColorContrast.Parse(BarText) is null ? null : BarText,
         Hotkeys = Hotkeys ?? new HotkeySettings(),
         ExcludedApps = ExcludedApps ?? ExcludedAppsDefaults(),
-        MyPhrases = [.. (MyPhrases ?? []).Select(Suggestions.PhraseIndex.Clean).OfType<string>().Distinct()],
-        HiddenPhrases = [.. (HiddenPhrases ?? []).Select(Suggestions.PhraseIndex.Clean).OfType<string>().Distinct()],
+        MyPhrases = [.. (MyPhrases ?? []).Select(p => Suggestions.PhraseIndex.Clean(p)).OfType<string>().Distinct()],
+        HiddenPhrases = [.. (HiddenPhrases ?? []).Select(p => Suggestions.PhraseIndex.Clean(p)).OfType<string>().Distinct()],
         TextShortcuts = [.. (TextShortcuts ?? [])
             .Where(s => s is not null)
             .Select(s => Suggestions.TextShortcuts.CleanKey(s.Key ?? "") is { } key && Suggestions.TextShortcuts.CleanText(s.Text ?? "") is { } text

@@ -1,5 +1,6 @@
 using System.IO.Compression;
 using System.Text;
+using Itmam.Core.Languages;
 
 namespace Itmam.Core.Dictionary;
 
@@ -142,7 +143,7 @@ public static class DictionaryFile
             builder.Add(key[..keyLength], displaySpan, (uint)reader.ReadVarint());
         }
 
-        return builder.ToDictionary(sources);
+        return builder.ToDictionary(sources, LanguageProfile.Arabic);
     }
 
     public static WordDictionary Load(string path)

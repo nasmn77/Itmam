@@ -436,7 +436,7 @@ internal sealed class WordDialog : Form
 {
     private readonly TextBox _input = new() { BorderStyle = BorderStyle.FixedSingle };
     private readonly Label _error = new() { AutoSize = false, UseMnemonic = false };
-    private Func<string, string?> _clean = UserWordIndex.Clean;
+    private Func<string, string?> _clean = w => UserWordIndex.Clean(w);
     private string _invalid = Strings.NotAnArabicWord;
 
     private WordDialog(string title, string prompt, string initial, SettingsPalette palette, bool rtl)
@@ -488,7 +488,7 @@ internal sealed class WordDialog : Form
         Func<string, string?>? clean = null, string? invalid = null)
     {
         using var dialog = new WordDialog(title, prompt, initial, palette, rtl) { TopMost = owner is Form { TopMost: true } };
-        dialog._clean = clean ?? UserWordIndex.Clean;
+        dialog._clean = clean ?? (w => UserWordIndex.Clean(w));
         dialog._invalid = invalid ?? Strings.NotAnArabicWord;
         return dialog.ShowDialog(owner) == DialogResult.OK ? dialog.Word : null;
     }

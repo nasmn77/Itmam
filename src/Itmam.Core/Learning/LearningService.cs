@@ -1,6 +1,6 @@
 using System.Globalization;
 using Itmam.Core.Dictionary.Building;
-using Itmam.Core.Text;
+using Itmam.Core.Languages;
 
 namespace Itmam.Core.Learning;
 
@@ -188,7 +188,7 @@ public sealed partial class LearningService : IDisposable
             return LearnOutcome.Paused;
         }
 
-        if (UserWordIndex.Clean(word) is not { } clean || clean.Count(ArabicText.IsArabicLetter) < _options.MinLetters)
+        if (_index.Language.CleanWord(word) is not { } clean || _index.Language.CountLetters(clean) < _options.MinLetters)
         {
             return LearnOutcome.NotAWord;
         }
@@ -214,7 +214,7 @@ public sealed partial class LearningService : IDisposable
     {
         lock (_lock)
         {
-            var existing = UserWordIndex.Clean(word) is { } clean ? _index.Get(clean) : null;
+            var existing = _index.Language.CleanWord(word) is { } clean ? _index.Get(clean) : null;
             var entry = _index.Set(word, Math.Max(count, existing?.Count ?? 0), _time.GetUtcNow());
             if (entry is null)
             {
@@ -231,7 +231,7 @@ public sealed partial class LearningService : IDisposable
     {
         lock (_lock)
         {
-            if (_index.Get(word) is not { } entry || UserWordIndex.Clean(newWord) is not { } clean)
+            if (_index.Get(word) is not { } entry || _index.Language.CleanWord(newWord) is not { } clean)
             {
                 return false;
             }
@@ -331,7 +331,7 @@ public sealed partial class LearningService : IDisposable
                 var parts = (blocked ? line[1..] : line).Split(['\t', ' '], 2, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 var count = blocked ? 0 : 1; // a blocked word was not used, only blocked
                 if (parts.Length == 0
-                    || UserWordIndex.Clean(parts[0]) is not { } clean
+                    || _index.Language.CleanWord(parts[0]) is not { } clean
                     || (parts.Length == 2 && (!int.TryParse(parts[1], NumberStyles.None, CultureInfo.InvariantCulture, out count) || count < 1)))
                 {
                     skipped++;

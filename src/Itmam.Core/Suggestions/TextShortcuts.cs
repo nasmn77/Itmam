@@ -1,4 +1,4 @@
-using Itmam.Core.Text;
+using Itmam.Core.Languages;
 
 namespace Itmam.Core.Suggestions;
 
@@ -12,7 +12,7 @@ public sealed record TextShortcut(string Key, string Text);
 /// <remarks>
 /// A key is one Arabic word, optionally with digits after its first letter ("ع1", "سلام"): the word
 /// buffer keeps digits typed after a letter, so the key is seen whole. Matching ignores tashkeel and
-/// hamza seats (<see cref="ArabicNormalizer"/>), and Arabic-Indic digits equal Western ones.
+/// hamza seats (<see cref="LanguageProfile.Normalize"/>), and Arabic-Indic digits equal Western ones.
 /// </remarks>
 public sealed class TextShortcuts
 {
@@ -44,15 +44,15 @@ public sealed class TextShortcuts
         typed.Length > 0 && typed.Length <= MaxKeyLength * 2 && _byKey.TryGetValue(MatchKey(typed), out var text) ? text : null;
 
     /// <summary>
-    /// A key cleaned for storage (tashkeel removed), or null unless it is an Arabic letter followed by
-    /// Arabic letters or digits, without spaces.
+    /// A key cleaned for storage (tashkeel removed), or null unless it is a letter followed by letters
+    /// or digits, without spaces.
     /// </summary>
     public static string? CleanKey(string key)
     {
-        var cleaned = ArabicText.StripIgnorable(key.Trim());
+        var cleaned = KeyLanguage.StripIgnorable(key.Trim());
         return cleaned.Length is > 0 and <= MaxKeyLength
-            && ArabicText.IsArabicLetter(cleaned[0])
-            && cleaned.All(c => ArabicText.IsArabicLetter(c) || char.IsDigit(c))
+            && KeyLanguage.IsLetter(cleaned[0])
+            && cleaned.All(c => KeyLanguage.IsLetter(c) || char.IsDigit(c))
             ? cleaned
             : null;
     }
@@ -64,7 +64,10 @@ public sealed class TextShortcuts
         return cleaned.Length is > 0 and <= MaxTextLength ? cleaned : null;
     }
 
+    // Shortcut keys are Arabic.
+    private static LanguageProfile KeyLanguage => LanguageProfile.Arabic;
+
     // Normalized letters and Western digits: «ع١» equals «ع1».
     private static string MatchKey(string key) =>
-        new([.. ArabicNormalizer.Normalize(key).Select(c => char.IsDigit(c) ? (char)('0' + (int)char.GetNumericValue(c)) : c)]);
+        new([.. KeyLanguage.Normalize(key).Select(c => char.IsDigit(c) ? (char)('0' + (int)char.GetNumericValue(c)) : c)]);
 }

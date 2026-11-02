@@ -1,4 +1,4 @@
-using Itmam.Core.Text;
+using Itmam.Core.Languages;
 
 namespace Itmam.Core.Suggestions;
 
@@ -20,10 +20,13 @@ public sealed class Corrections
 
     public int Count => _byKey.Count;
 
+    /// <summary>The language of the typed words.</summary>
+    public LanguageProfile Language { get; private init; } = LanguageProfile.Arabic;
+
     /// <summary>Lines <c>wrong = right | another right</c>; <c>#</c> starts a comment; invalid lines are skipped.</summary>
-    public static Corrections Read(TextReader reader)
+    public static Corrections Read(TextReader reader, LanguageProfile? language = null)
     {
-        var corrections = new Corrections();
+        var corrections = new Corrections { Language = language ?? LanguageProfile.Arabic };
         while (reader.ReadLine() is { } raw)
         {
             var line = raw.Trim();
@@ -32,9 +35,9 @@ public sealed class Corrections
                 continue;
             }
 
-            var word = ArabicText.StripIgnorable(wrong.Trim());
+            var word = corrections.Language.StripIgnorable(wrong.Trim());
             var fixes = right.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            if (ArabicText.IsArabicWord(word) && fixes.Length > 0)
+            if (corrections.Language.IsWord(word) && fixes.Length > 0)
             {
                 corrections._byKey.TryAdd(word, fixes);
             }
@@ -49,7 +52,7 @@ public sealed class Corrections
     /// </summary>
     public IReadOnlyList<string> Find(string typed)
     {
-        var literal = ArabicText.StripIgnorable(typed);
+        var literal = Language.StripIgnorable(typed);
         return literal.Length > 0 && _byKey.TryGetValue(literal, out var fixes) ? fixes : [];
     }
 }
