@@ -30,7 +30,7 @@ Website: https://nasmn77.github.io/Itmam/en/ · Repository: https://github.com/n
 | <kbd>Tab</kbd> | Insert the first suggestion |
 | <kbd>Ctrl</kbd>+<kbd>1</kbd>…<kbd>9</kbd> | Insert suggestion by number |
 | <kbd>↑</kbd>, then <kbd>←</kbd> <kbd>→</kbd>, then <kbd>Enter</kbd> | Choose with the arrow keys, then insert |
-| <kbd>Esc</kbd> | Hide the suggestions until the next word |
+| <kbd>Esc</kbd> | Hide the suggestions until the next letter |
 | <kbd>Ctrl</kbd>+<kbd>Alt</kbd> (press and release) | Turn Itmam off or on from anywhere |
 | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Space</kbd> | The "Long phrases" list: choose by name and it is typed where you write |
 | <kbd>Backspace</kbd> right after inserting | Undo: puts back what you had typed |

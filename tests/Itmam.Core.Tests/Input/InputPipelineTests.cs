@@ -675,15 +675,14 @@ public sealed class InputPipelineTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task Esc_suppresses_suggestions_until_the_word_ends()
+    public async Task Esc_hides_suggestions_until_the_next_letter()
     {
         Type("مدر");
         Send(InputEvent.Of(InputEventKind.DismissSuggestions));
-        Type("س");
         await DrainAsync();
-        _updates.Last(u => u.Input?.Input.Kind == InputEventKind.Character).SuggestionsSuppressed.ShouldBeTrue();
+        _updates.Last(u => u.Input?.Input.Kind == InputEventKind.DismissSuggestions).SuggestionsSuppressed.ShouldBeTrue();
 
-        Type(" قل");
+        Type("س");
         await DrainAsync();
         _updates.Last(u => u.Input?.Input.Kind == InputEventKind.Character).SuggestionsSuppressed.ShouldBeFalse();
     }

@@ -86,7 +86,7 @@
   <data name="ShortcutAcceptNth" xml:space="preserve"><value>Insert suggestion 1–9</value></data>
   <data name="ShortcutAcceptNthHint" xml:space="preserve"><value>This key held with the suggestion's number.</value></data>
   <data name="ShortcutDismiss" xml:space="preserve"><value>Hide the suggestions</value></data>
-  <data name="ShortcutDismissHint" xml:space="preserve"><value>Until you start the next word.</value></data>
+  <data name="ShortcutDismissHint" xml:space="preserve"><value>Until you type the next letter.</value></data>
   <data name="ShortcutToggle" xml:space="preserve"><value>Turn Itmam on or off</value></data>
   <data name="ShortcutToggleHint" xml:space="preserve"><value>Works in any app.</value></data>
   <data name="NativeNavigation" xml:space="preserve"><value>Choose with the arrow keys</value></data>

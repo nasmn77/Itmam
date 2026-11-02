@@ -117,7 +117,7 @@ public enum ProbeOutcome
 /// <param name="IsArabicLayout">Arabic keyboard layout active.</param>
 /// <param name="Layout">The HKL.</param>
 /// <param name="IsDetached">Context unknown; nothing is tracked.</param>
-/// <param name="SuggestionsSuppressed">Esc hid the bar for this word, or a suggestion was just accepted.</param>
+/// <param name="SuggestionsSuppressed">Esc hid the bar until the next letter, or a suggestion was just accepted.</param>
 /// <param name="Silenced">Why nothing is tracked here, or <see cref="SilenceReason.None"/>.</param>
 /// <param name="WordToLearn">
 /// A finished word that is now final and should be learned. A word ended by a boundary (or
@@ -210,10 +210,10 @@ public sealed class InputPipeline(
     {
         None,
 
-        /// <summary>Esc: until the word ends (boundary, reset, caret move).</summary>
-        UntilWordEnds,
-
-        /// <summary>Just accepted without a trailing space: until the next typed letter.</summary>
+        /// <summary>
+        /// Esc (user decision 1.3: until the next letter, not the next word), or just accepted without a
+        /// trailing space: until the word changes.
+        /// </summary>
         UntilNextLetter,
     }
 
@@ -448,7 +448,7 @@ public sealed class InputPipeline(
             case InputEventKind.AcceptSuggestion:
                 return Accept(record);
             case InputEventKind.DismissSuggestions:
-                _suppression = Suppression.UntilWordEnds;
+                _suppression = Suppression.UntilNextLetter;
                 return BufferResult.None;
         }
 

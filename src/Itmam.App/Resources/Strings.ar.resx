@@ -86,7 +86,7 @@
   <data name="ShortcutAcceptNth" xml:space="preserve"><value>إدراج الاقتراح برقمه (‪1–9‬)</value></data>
   <data name="ShortcutAcceptNthHint" xml:space="preserve"><value>هذا المفتاح مع رقم الاقتراح.</value></data>
   <data name="ShortcutDismiss" xml:space="preserve"><value>إخفاء الاقتراحات</value></data>
-  <data name="ShortcutDismissHint" xml:space="preserve"><value>حتى تبدأ الكلمة التالية.</value></data>
+  <data name="ShortcutDismissHint" xml:space="preserve"><value>حتى تكتب الحرف التالي.</value></data>
   <data name="ShortcutToggle" xml:space="preserve"><value>تشغيل إتمام وإيقافه</value></data>
   <data name="ShortcutToggleHint" xml:space="preserve"><value>يعمل في أي تطبيق.</value></data>
   <data name="NativeNavigation" xml:space="preserve"><value>الاختيار بالأسهم</value></data>

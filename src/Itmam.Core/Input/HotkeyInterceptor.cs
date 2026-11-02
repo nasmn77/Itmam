@@ -17,7 +17,7 @@ public sealed record HotkeySettings
     /// <summary>Held with a digit 1–9 to accept suggestion N. Default Ctrl.</summary>
     public KeyModifiers AcceptNthModifier { get; init; } = KeyModifiers.Ctrl;
 
-    /// <summary>Hide the bar until the current word ends. Default Esc.</summary>
+    /// <summary>Hide the bar until the next letter. Default Esc.</summary>
     public Hotkey Dismiss { get; init; } = new(0x1B, KeyModifiers.None);
 
     /// <summary>
