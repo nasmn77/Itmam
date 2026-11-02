@@ -17,6 +17,9 @@ public abstract class LanguageProfile
     /// <summary>Arabic: the shipped dictionaries, hamza and clitic rules.</summary>
     public static LanguageProfile Arabic { get; } = new ArabicLanguage();
 
+    /// <summary>English: a shipped dictionary, apostrophes inside words, letter case (2.0).</summary>
+    public static LanguageProfile English { get; } = new EnglishLanguage();
+
     /// <summary>Short language tag ("ar", "en", "he" …); also stored with learned words.</summary>
     public abstract string Id { get; }
 
@@ -28,6 +31,12 @@ public abstract class LanguageProfile
 
     /// <summary>A mark kept in the typed text but ignored for matching (tashkeel, niqqud …).</summary>
     public abstract bool IsIgnorable(char c);
+
+    /// <summary>
+    /// A mark that joins letters inside a word and is part of it («don't»): never the first or last
+    /// character of a word, not counted as a letter.
+    /// </summary>
+    public virtual bool IsInnerMark(char c) => false;
 
     /// <summary>The character of the matching key (one character for one, see the remarks).</summary>
     public virtual char Fold(char c) => c;
@@ -41,7 +50,7 @@ public abstract class LanguageProfile
     /// <summary>Normalized words too common to start a phrase suggestion on their own.</summary>
     public virtual IReadOnlySet<string> CommonPhraseStarts { get; } = new HashSet<string>(StringComparer.Ordinal);
 
-    public bool IsWordChar(char c) => IsLetter(c) || IsIgnorable(c);
+    public bool IsWordChar(char c) => IsLetter(c) || IsIgnorable(c) || IsInnerMark(c);
 
     /// <summary>Removes the ignorable marks, keeping the original letters.</summary>
     public virtual string StripIgnorable(ReadOnlySpan<char> text)
@@ -59,17 +68,26 @@ public abstract class LanguageProfile
         return length == text.Length && text.Length > 0 ? text.ToString() : new string(buffer[..length]);
     }
 
-    /// <summary>True when the text is non-empty and contains only letters of this language.</summary>
-    public bool IsWord(ReadOnlySpan<char> text)
+    /// <summary>
+    /// True when the text is non-empty and contains only letters of this language, with inner marks only
+    /// between letters.
+    /// </summary>
+    public bool IsWord(ReadOnlySpan<char> text) => IsWordPrefix(text) && IsLetter(text[^1]);
+
+    /// <summary>
+    /// The start of a word, as it is being typed: like <see cref="IsWord"/>, but it may end with an inner
+    /// mark («don'» on the way to «don't»).
+    /// </summary>
+    public bool IsWordPrefix(ReadOnlySpan<char> text)
     {
-        if (text.IsEmpty)
+        if (text.IsEmpty || !IsLetter(text[0]))
         {
             return false;
         }
 
-        foreach (var c in text)
+        for (var i = 1; i < text.Length; i++)
         {
-            if (!IsLetter(c))
+            if (!IsLetter(text[i]) && !(IsInnerMark(text[i]) && IsLetter(text[i - 1])))
             {
                 return false;
             }
@@ -108,6 +126,12 @@ public abstract class LanguageProfile
 
     /// <summary>Stems of a blocklist key that must be checked too (forms with an attached clitic).</summary>
     public virtual IEnumerable<string> BlocklistStems(string looseKey) => [];
+
+    /// <summary>A suggestion written in the case the user is typing in (English: «Lon» → «London»).</summary>
+    public virtual string MatchCase(string suggestion, ReadOnlySpan<char> typed) => suggestion;
+
+    /// <summary>Two suggestions with the same display key are the same word shown twice (English: case ignored).</summary>
+    public virtual string DisplayKey(string word) => word;
 
     /// <summary>Strips the ignorable marks; null unless the result is a word of this language.</summary>
     public string? CleanWord(string word)

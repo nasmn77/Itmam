@@ -104,7 +104,7 @@ public sealed class PhraseIndex
     public IReadOnlyList<string> Suggest(IReadOnlyList<string> context, string typed, int max, IDictionary<string, string>? sources = null)
     {
         var literal = Language.StripIgnorable(typed);
-        if (max <= 0 || (literal.Length > 0 && !Language.IsWord(literal)))
+        if (max <= 0 || (literal.Length > 0 && !Language.IsWordPrefix(literal)))
         {
             return [];
         }

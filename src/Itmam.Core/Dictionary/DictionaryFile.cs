@@ -18,21 +18,32 @@ namespace Itmam.Core.Dictionary;
 /// </list>
 /// All integers are 7-bit varints. Characters are stored as <c>varint(c ^ 0x0600)</c> so Arabic
 /// letters (U+0600–U+067F) take one byte each before compression.
+/// Format 2 (2.0, every language but Arabic) starts the Brotli stream with the language tag
+/// (length-prefixed UTF-8) and stores characters as <c>varint(c)</c>. Arabic dictionaries stay in
+/// format 1, so the shipped Arabic files are unchanged; a format 1 file is Arabic.
 /// </remarks>
 public static class DictionaryFile
 {
     private static ReadOnlySpan<byte> Magic => "ITMD"u8;
-    private const ushort FormatVersion = 1;
+    private const ushort ArabicFormat = 1;
+    private const ushort LanguageFormat = 2;
     private const int ArabicBlock = 0x0600;
 
     public static void Write(Stream output, WordDictionary dictionary)
     {
+        var arabic = dictionary.Language == LanguageProfile.Arabic;
+        var format = arabic ? ArabicFormat : LanguageFormat;
+        var block = arabic ? ArabicBlock : 0;
         output.Write(Magic);
-        Span<byte> version = [(byte)FormatVersion, (byte)(FormatVersion >> 8)];
+        Span<byte> version = [(byte)format, (byte)(format >> 8)];
         output.Write(version);
 
         using var brotli = new BrotliStream(output, CompressionLevel.SmallestSize, leaveOpen: true);
         using var writer = new BinaryWriter(brotli, Encoding.UTF8, leaveOpen: true);
+        if (!arabic)
+        {
+            writer.Write(dictionary.Language.Id);
+        }
 
         writer.Write7BitEncodedInt(dictionary.Sources.Count);
         foreach (var source in dictionary.Sources)
@@ -49,7 +60,7 @@ public static class DictionaryFile
             var key = dictionary.GetKey(i);
             var shared = key.CommonPrefixLength(previous);
             writer.Write7BitEncodedInt(shared);
-            WriteChars(writer, key[shared..]);
+            WriteChars(writer, key[shared..], block);
 
             var display = dictionary.GetDisplay(i);
             if (display.SequenceEqual(key))
@@ -61,7 +72,7 @@ public static class DictionaryFile
                 writer.Write7BitEncodedInt(display.Length + 1);
                 foreach (var c in display)
                 {
-                    writer.Write7BitEncodedInt(c ^ ArabicBlock);
+                    writer.Write7BitEncodedInt(c ^ block);
                 }
             }
 
@@ -80,7 +91,7 @@ public static class DictionaryFile
         }
 
         var version = header[4] | (header[5] << 8);
-        if (version != FormatVersion)
+        if (version is not (ArabicFormat or LanguageFormat))
         {
             throw new InvalidDataException($"Unsupported dictionary format version {version}.");
         }
@@ -92,7 +103,8 @@ public static class DictionaryFile
             brotli.CopyTo(decompressed);
         }
 
-        var reader = new SpanReader(decompressed.GetBuffer().AsSpan(0, (int)decompressed.Length));
+        var reader = new SpanReader(decompressed.GetBuffer().AsSpan(0, (int)decompressed.Length), version == ArabicFormat ? ArabicBlock : 0);
+        var language = version == ArabicFormat ? LanguageProfile.Arabic : LanguageRegistry.ForTag(reader.ReadString());
 
         var sourceCount = reader.ReadCount();
         var sources = new DictionarySource[sourceCount];
@@ -143,7 +155,7 @@ public static class DictionaryFile
             builder.Add(key[..keyLength], displaySpan, (uint)reader.ReadVarint());
         }
 
-        return builder.ToDictionary(sources, LanguageProfile.Arabic);
+        return builder.ToDictionary(sources, language);
     }
 
     public static WordDictionary Load(string path)
@@ -152,18 +164,19 @@ public static class DictionaryFile
         return Read(stream);
     }
 
-    private static void WriteChars(BinaryWriter writer, ReadOnlySpan<char> chars)
+    private static void WriteChars(BinaryWriter writer, ReadOnlySpan<char> chars, int block)
     {
         writer.Write7BitEncodedInt(chars.Length);
         foreach (var c in chars)
         {
-            writer.Write7BitEncodedInt(c ^ ArabicBlock);
+            writer.Write7BitEncodedInt(c ^ block);
         }
     }
 
-    private ref struct SpanReader(ReadOnlySpan<byte> data)
+    private ref struct SpanReader(ReadOnlySpan<byte> data, int block)
     {
         private readonly ReadOnlySpan<byte> _data = data;
+        private readonly int _block = block;
         private int _position;
 
         public ulong ReadVarint()
@@ -193,7 +206,7 @@ public static class DictionaryFile
             return value <= int.MaxValue ? (int)value : throw new InvalidDataException("Count out of range.");
         }
 
-        public char ReadChar() => (char)((int)ReadVarint() ^ ArabicBlock);
+        public char ReadChar() => (char)((int)ReadVarint() ^ _block);
 
         public string ReadString()
         {

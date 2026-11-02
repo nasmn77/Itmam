@@ -268,6 +268,18 @@ public sealed class WordBuffer
             return BufferResult.None;
         }
 
+        // The apostrophe of «don't»: inside a word only (at its start it is not part of any word).
+        if (Language.IsInnerMark(c) && LetterCount > 0 && !_detached)
+        {
+            if (_text.Length >= MaxLength)
+            {
+                return Detach();
+            }
+
+            _text.Append(c);
+            return new BufferResult(BufferOutcome.Updated);
+        }
+
         if (Language.IsWordBoundary(c))
         {
             return Commit();

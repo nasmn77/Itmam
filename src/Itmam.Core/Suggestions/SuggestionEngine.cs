@@ -46,7 +46,7 @@ public sealed class SuggestionEngine(
     public IReadOnlyList<Suggestion> Suggest(string typed)
     {
         var literal = Language.StripIgnorable(typed);
-        if (literal.Length < Options.MinChars || !Language.IsWord(literal))
+        if (literal.Length < Options.MinChars || !Language.IsWordPrefix(literal))
         {
             return [];
         }
@@ -85,10 +85,14 @@ public sealed class SuggestionEngine(
             }
         }
 
+        // In the case being typed; the same word in two cases (learned «Hello», dictionary «hello») once.
         return context.Results.Values
             .OrderBy(s => Tier(s.Kind))
             .ThenByDescending(s => s.Score)
             .ThenBy(s => s.Word, StringComparer.Ordinal)
+            .Select(s => s with { Word = Language.MatchCase(s.Word, literal) })
+            .Where(s => s.Word != literal)
+            .DistinctBy(s => Language.DisplayKey(s.Word), StringComparer.Ordinal)
             .Take(Options.MaxSuggestions)
             .ToArray();
     }

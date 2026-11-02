@@ -6,7 +6,7 @@ namespace Itmam.Core.Languages;
 /// <summary>How much Itmam does for a language.</summary>
 public enum LanguageSupport
 {
-    /// <summary>A shipped dictionary and tuned rules (Arabic).</summary>
+    /// <summary>A shipped dictionary and tuned rules (Arabic, English).</summary>
     Full,
 
     /// <summary>No dictionary: the user's learned words and phrases, text shortcuts and My phrases.</summary>
@@ -27,6 +27,7 @@ public static class LanguageRegistry
 {
     private const int PrimaryLanguageMask = 0x3FF;
     private const int LangArabic = 0x01;
+    private const int LangEnglish = 0x09;
 
     // Primary language IDs Itmam does not track: input method editors (zh, ja, ko, am, ti, vi), scripts
     // without spaces between words (th, lo, km, my, bo), and Indic scripts whose vowel signs are marks.
@@ -40,6 +41,7 @@ public static class LanguageRegistry
     private static readonly ConcurrentDictionary<string, LanguageProfile> ByTag = new(StringComparer.Ordinal)
     {
         [LanguageProfile.Arabic.Id] = LanguageProfile.Arabic,
+        [LanguageProfile.English.Id] = LanguageProfile.English,
     };
 
     /// <summary>
@@ -58,6 +60,11 @@ public static class LanguageRegistry
         if (primary == LangArabic)
         {
             return LanguageProfile.Arabic;
+        }
+
+        if (primary == LangEnglish)
+        {
+            return LanguageProfile.English;
         }
 
         if (UnsupportedPrimaryIds.Contains(primary) || languageId == 0)
@@ -82,7 +89,7 @@ public static class LanguageRegistry
     public static LanguageSupport Support(LanguageProfile? language) => language switch
     {
         null => LanguageSupport.Unsupported,
-        ArabicLanguage => LanguageSupport.Full,
+        ArabicLanguage or EnglishLanguage => LanguageSupport.Full,
         _ => LanguageSupport.LearningOnly,
     };
 

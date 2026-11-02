@@ -84,6 +84,13 @@ internal sealed class ItmamApp : IDisposable
 
         Apply(Settings);
 
+        // English has a dictionary too: loaded now when it is on, so the first English word is not slower
+        // (otherwise on first use).
+        if (Settings.EnabledLanguages.Contains(LanguageProfile.English.Id))
+        {
+            SuggestionsFor(LanguageProfile.English);
+        }
+
         // Loading leaves tens of MB of temporary buffers: compact once now, before any typing, then
         // avoid blocking full (gen2) collections — a GC pauses the hook thread too.
         GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
@@ -336,12 +343,12 @@ internal sealed class ItmamApp : IDisposable
     }
 
     // A missing or unreadable list only turns the corrections off.
-    private static Corrections LoadCorrections(string path)
+    private static Corrections LoadCorrections(string path, LanguageProfile? language = null)
     {
         try
         {
             using var reader = File.OpenText(path);
-            return Corrections.Read(reader);
+            return Corrections.Read(reader, language);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
@@ -397,13 +404,43 @@ internal sealed class ItmamApp : IDisposable
         Suggestions.Shortcuts = new TextShortcuts(settings.TextShortcuts);
     }
 
-    // What a language suggests from, built the first time it is typed (pipeline thread).
+    // What a language suggests from, built the first time it is typed (pipeline thread). English has its
+    // shipped dictionary, blocklist and common mistakes; the other languages only the user's words.
     private LanguageSuggestions SuggestionsFor(LanguageProfile language) =>
         _languages.GetOrAdd(language.Id, _ =>
         {
-            var engine = new SuggestionEngine(WordDictionary.Build([], language: language), Learning.IndexFor(language), Engine.Options);
-            return new LanguageSuggestions(engine, Phrases(language, Settings), Corrections.Empty);
+            var english = language == LanguageProfile.English;
+            var dictionary = english ? LoadDictionary("itmam-en.dict", language) : WordDictionary.Build([], language: language);
+            var blocklist = english ? LoadBlocklist("blocklist.en.txt", language) : null;
+            var corrections = english ? LoadCorrections(Path.Combine(AppContext.BaseDirectory, "corrections.en.txt"), language) : Corrections.Empty;
+            var engine = new SuggestionEngine(dictionary, Learning.IndexFor(language, blocklist), Engine.Options);
+            return new LanguageSuggestions(engine, Phrases(language, Settings), corrections);
         });
+
+    // A missing or damaged file only leaves the language with the user's own words.
+    private static WordDictionary LoadDictionary(string file, LanguageProfile language)
+    {
+        try
+        {
+            return DictionaryFile.Load(Path.Combine(AppContext.BaseDirectory, file));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
+        {
+            return WordDictionary.Build([], language: language);
+        }
+    }
+
+    private static Blocklist? LoadBlocklist(string file, LanguageProfile language)
+    {
+        try
+        {
+            return Blocklist.Load(Path.Combine(AppContext.BaseDirectory, file), language);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return null;
+        }
+    }
 
     // Rebuilt when a phrase is learned or forgotten (pipeline thread, before the bar is recomputed) or the
     // settings change.
