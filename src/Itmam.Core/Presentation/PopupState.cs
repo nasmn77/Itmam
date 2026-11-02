@@ -3,10 +3,11 @@ using System.Drawing;
 namespace Itmam.Core.Presentation;
 
 /// <summary>
-/// What the suggestion bar shows right now: the words (best first), its screen bounds, and the bounds of
-/// the actions strip shown next to it after a right-click (empty when none).
+/// What the suggestion bar shows right now: the words (best first), its screen bounds, the bounds of
+/// the actions strip shown next to it after a right-click (empty when none), and its direction (the best
+/// suggestion is on the right of a right-to-left bar, on the left of an English one).
 /// </summary>
-public sealed record PopupSnapshot(IReadOnlyList<string> Words, Rectangle Bounds, Rectangle Actions = default)
+public sealed record PopupSnapshot(IReadOnlyList<string> Words, Rectangle Bounds, Rectangle Actions = default, bool RightToLeft = true)
 {
     public static readonly PopupSnapshot Hidden = new([], Rectangle.Empty);
 
@@ -24,7 +25,8 @@ public sealed class PopupState
 
     public PopupSnapshot Current => Volatile.Read(ref _current);
 
-    public void Show(IReadOnlyList<string> words, Rectangle bounds) => Volatile.Write(ref _current, new PopupSnapshot(words, bounds));
+    public void Show(IReadOnlyList<string> words, Rectangle bounds, bool rightToLeft = true) =>
+        Volatile.Write(ref _current, new PopupSnapshot(words, bounds, RightToLeft: rightToLeft));
 
     public void Hide() => Volatile.Write(ref _current, PopupSnapshot.Hidden);
 

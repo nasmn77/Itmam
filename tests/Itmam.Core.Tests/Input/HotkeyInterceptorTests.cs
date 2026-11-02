@@ -173,6 +173,19 @@ public class HotkeyInterceptorTests
         interceptor.Selected.ShouldBe(-1);
     }
 
+    [Fact]
+    public void In_an_english_bar_right_moves_to_the_next_suggestion()
+    {
+        var interceptor = new HotkeyInterceptor(new HotkeySettings { NativeNavigation = true });
+        var english = new PopupSnapshot(["hello", "help", "hell"], new Rectangle(100, 100, 200, 35), RightToLeft: false);
+
+        interceptor.OnKeyDown(Up, KeyModifiers.None, english).ShouldBe(InterceptDecision.Swallow(InputEvent.Select(0)));
+        interceptor.OnKeyDown(Right, KeyModifiers.None, english).ShouldBe(InterceptDecision.Swallow(InputEvent.Select(1)));
+        interceptor.OnKeyDown(Right, KeyModifiers.None, english).ShouldBe(InterceptDecision.Swallow(InputEvent.Select(2)));
+        interceptor.OnKeyDown(Left, KeyModifiers.None, english).ShouldBe(InterceptDecision.Swallow(InputEvent.Select(1)));
+        interceptor.OnKeyDown(Enter, KeyModifiers.None, english).ShouldBe(InterceptDecision.Swallow(InputEvent.Accept(1, "help")));
+    }
+
     [Theory]
     [InlineData(Esc, InterceptAction.Swallow)]
     [InlineData(Down, InterceptAction.Swallow)]

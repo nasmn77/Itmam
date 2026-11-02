@@ -112,7 +112,7 @@ internal sealed class SuggestionPopup : Form
         _shown = bounds;
         _caret = caret;
         IsShowing = true;
-        _state.Show(words, bounds);
+        _state.Show(words, bounds, _rightToLeft);
         Invalidate();
     }
 

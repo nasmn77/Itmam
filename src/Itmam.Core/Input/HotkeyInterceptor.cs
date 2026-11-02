@@ -188,7 +188,8 @@ public sealed class HotkeyInterceptor(HotkeySettings settings)
     /// <summary>A mouse click while the modifiers are held (Ctrl+Alt+click) is not the toggle.</summary>
     public void CancelChord() => _chordArmed = false;
 
-    // Right-to-left bar: the best suggestion is on the right, so Left moves to the next one.
+    // The arrow pointing away from the best suggestion moves to the next one: Left in a right-to-left bar,
+    // Right in a left-to-right (English) one.
     private InterceptDecision Navigate(int virtualKey, KeyModifiers modifiers, PopupSnapshot popup)
     {
         // Ctrl+Delete on the selected suggestion: forget it as a learned word.
@@ -204,12 +205,13 @@ public sealed class HotkeyInterceptor(HotkeySettings settings)
             return Leave(InterceptAction.Pass);
         }
 
+        var (next, previous) = popup.RightToLeft ? (Left, Right) : (Right, Left);
         switch (virtualKey)
         {
-            case Left:
+            case var key when key == next:
                 Selected = Math.Min(popup.Words.Count - 1, Selected + 1);
                 return InterceptDecision.Swallow(InputEvent.Select(Selected));
-            case Right:
+            case var key when key == previous:
                 Selected = Math.Max(0, Selected - 1);
                 return InterceptDecision.Swallow(InputEvent.Select(Selected));
             case Enter:
