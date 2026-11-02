@@ -27,6 +27,9 @@ internal sealed class ItmamApp : IDisposable
     // What each language typed so far suggests from; Arabic is built at start-up, the others on first use.
     private readonly ConcurrentDictionary<string, LanguageSuggestions> _languages = new(StringComparer.Ordinal);
     private readonly Corrections _corrections;
+
+    // The phrases shipped for each language that has them (data/phrases.txt, data/phrases.en.txt).
+    private readonly ConcurrentDictionary<string, PhraseIndex> _shippedPhrases = new(StringComparer.Ordinal);
     private Task? _running;
     private int _shutDown;
 
@@ -47,6 +50,7 @@ internal sealed class ItmamApp : IDisposable
         Dictionary = DictionaryFile.Load(DictionaryPath(UsesWikipediaDictionary));
         var blocklist = Blocklist.Load(Path.Combine(AppContext.BaseDirectory, "blocklist.txt"));
         ShippedPhrases = LoadPhrases(Path.Combine(AppContext.BaseDirectory, "phrases.txt"));
+        _shippedPhrases[LanguageProfile.Arabic.Id] = ShippedPhrases;
         _corrections = LoadCorrections(Path.Combine(AppContext.BaseDirectory, "corrections.txt"));
 
         // Learned words: %LOCALAPPDATA%\Itmam\user.db (MSIX redirects it into the package's private folder).
@@ -161,7 +165,7 @@ internal sealed class ItmamApp : IDisposable
     /// <summary>The Arabic engine.</summary>
     public SuggestionEngine Engine { get; private set; }
 
-    /// <summary>Fixed expressions shipped in data/phrases.txt (the user's own come from the settings).</summary>
+    /// <summary>Fixed Arabic expressions shipped in data/phrases.txt (the user's own come from the settings).</summary>
     public PhraseIndex ShippedPhrases { get; }
 
     public ExcludedApps ExcludedApps { get; }
@@ -281,7 +285,7 @@ internal sealed class ItmamApp : IDisposable
             var key = LearningService.PhraseKey(whole, language);
             var mine = Settings.MyPhrases.Where(p => LearningService.PhraseKey(p, language) == key).ToList();
             var learned = Learning.IsLearnedPhrase(whole, language);
-            var shipped = language == LanguageProfile.Arabic && ShippedPhrases.Contains(whole);
+            var shipped = _shippedPhrases.TryGetValue(language.Id, out var builtIn) && builtIn.Contains(whole);
             if (learned || mine.Count > 0 || shipped)
             {
                 actions.Add((Resources.Strings.BarMenuDelete, () =>
@@ -357,12 +361,12 @@ internal sealed class ItmamApp : IDisposable
     }
 
     // A missing or unreadable list only turns the shipped phrases off; the user's own still work.
-    private static PhraseIndex LoadPhrases(string path)
+    private static PhraseIndex LoadPhrases(string path, LanguageProfile? language = null)
     {
         try
         {
             using var reader = File.OpenText(path);
-            return PhraseIndex.Read(reader);
+            return PhraseIndex.Read(reader, language);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
@@ -413,6 +417,11 @@ internal sealed class ItmamApp : IDisposable
             var dictionary = english ? LoadDictionary("itmam-en.dict", language) : WordDictionary.Build([], language: language);
             var blocklist = english ? LoadBlocklist("blocklist.en.txt", language) : null;
             var corrections = english ? LoadCorrections(Path.Combine(AppContext.BaseDirectory, "corrections.en.txt"), language) : Corrections.Empty;
+            if (english)
+            {
+                _shippedPhrases[language.Id] = LoadPhrases(Path.Combine(AppContext.BaseDirectory, "phrases.en.txt"), language);
+            }
+
             var engine = new SuggestionEngine(dictionary, Learning.IndexFor(language, blocklist), Engine.Options);
             return new LanguageSuggestions(engine, Phrases(language, Settings), corrections);
         });
@@ -453,7 +462,7 @@ internal sealed class ItmamApp : IDisposable
         }
     }
 
-    // "My phrases" first, then the learned ones (most used first), then the shipped list (Arabic). My
+    // "My phrases" first, then the learned ones (most used first), then the shipped list (Arabic, English). My
     // phrases hold every language: a language keeps the ones made of its words.
     private PhraseIndex Phrases(LanguageProfile language, AppSettings settings)
     {
@@ -462,7 +471,9 @@ internal sealed class ItmamApp : IDisposable
             return PhraseIndex.Empty;
         }
 
-        var shipped = language == LanguageProfile.Arabic ? ShippedPhrases.Without(settings.HiddenPhrases) : PhraseIndex.Read(TextReader.Null, language);
+        var shipped = _shippedPhrases.TryGetValue(language.Id, out var builtIn)
+            ? builtIn.Without(settings.HiddenPhrases)
+            : PhraseIndex.Read(TextReader.Null, language);
         return shipped.With([.. settings.MyPhrases, .. Learning.LearnedPhrases(language: language).Select(p => p.Text)]);
     }
 

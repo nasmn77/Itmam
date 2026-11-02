@@ -1,0 +1,189 @@
+# Fixed English expressions that Itmam can complete (whole, or word by word).
+# Common phrases compiled by hand for Itmam; released under the MIT license like the code.
+# One phrase per line, at least two words. Order matters: within a category the more common phrase
+# comes first and is suggested first. Lines starting with # are comments. A phrase that starts with a
+# very common word (I, you, the, to …) is never offered at its first word, only once that word is typed.
+
+# Greetings
+good morning
+good morning everyone
+good afternoon
+good evening
+good night
+hello everyone
+hope you are well
+hope you're doing well
+hope this email finds you well
+how are you
+how are you doing
+nice to meet you
+pleased to meet you
+long time no see
+welcome back
+happy birthday
+happy new year
+merry christmas
+
+# Thanks
+thank you
+thank you very much
+thank you so much
+thank you for your help
+thank you for your time
+thank you for your patience
+thank you for your understanding
+thank you for your reply
+thank you for your email
+thanks a lot
+thanks for your help
+thanks in advance
+many thanks
+much appreciated
+you're welcome
+no problem
+my pleasure
+don't mention it
+
+# Apologies
+sorry for the delay
+sorry for the inconvenience
+sorry for the late reply
+apologies for the delay
+apologies for any inconvenience
+excuse me
+never mind
+my apologies
+
+# Emails and letters
+dear sir or madam
+to whom it may concern
+please find attached
+please see attached
+attached please find
+as discussed
+as mentioned earlier
+as per our conversation
+further to our conversation
+just following up
+just a quick reminder
+please let me know
+please let me know if you have any questions
+please don't hesitate to contact me
+feel free to contact me
+looking forward to hearing from you
+looking forward to your reply
+looking forward to meeting you
+I look forward to hearing from you
+I look forward to your reply
+I would like to
+I would be grateful if
+I am writing to
+I'm writing to
+could you please
+would you please
+at your earliest convenience
+best regards
+kind regards
+warm regards
+yours sincerely
+yours faithfully
+yours truly
+best wishes
+all the best
+have a nice day
+have a great day
+have a good weekend
+have a great weekend
+see you soon
+see you tomorrow
+see you later
+talk to you soon
+take care
+
+# Work and meetings
+on behalf of
+in charge of
+in regard to
+with regard to
+with respect to
+in addition to
+in order to
+in accordance with
+in terms of
+as soon as possible
+as soon as
+as well as
+at the moment
+at the same time
+at the end of the day
+for the time being
+on the other hand
+in the meantime
+in other words
+first of all
+last but not least
+by the way
+for example
+for instance
+in fact
+of course
+in case
+in my opinion
+to be honest
+let me know
+let me check
+let me think about it
+keep me posted
+keep in touch
+get back to you
+I will get back to you
+I'll get back to you
+I will let you know
+I'll let you know
+I agree with you
+sounds good to me
+that sounds great
+makes sense
+no worries
+good luck
+well done
+good job
+take your time
+it doesn't matter
+as far as I know
+in the near future
+up to date
+out of office
+conference call
+action items
+next steps
+
+# Everyday
+what do you think
+what's going on
+what's up
+how about you
+how much is it
+how long does it take
+where are you
+I don't know
+I don't think so
+I think so
+I'm not sure
+I'm on my way
+I'll be there
+I'll be right back
+be right back
+on my way
+just a moment
+just a minute
+wait a minute
+see you there
+no thanks
+yes please
+excuse me please
+I love you
+miss you
+get well soon
+happy anniversary
+rest in peace

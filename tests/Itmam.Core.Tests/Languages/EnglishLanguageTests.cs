@@ -79,6 +79,23 @@ public class EnglishLanguageTests
     }
 
     [Fact]
+    public void The_shipped_phrases_complete_in_the_case_being_typed()
+    {
+        PhraseIndex phrases;
+        using (var reader = File.OpenText(Path.Combine(Path.GetDirectoryName(TestDictionaries.EnglishCorrectionsPath)!, "phrases.en.txt")))
+        {
+            phrases = PhraseIndex.Read(reader, English);
+        }
+
+        phrases.Count.ShouldBeGreaterThan(150);
+        phrases.Suggest([], "Tha", 3)[0].ShouldStartWith("Thank you");
+        phrases.Suggest([], "looki", 3)[0].ShouldStartWith("looking forward to"); // 60% of the first word, as in Arabic
+        phrases.Suggest(["thank", "you"], "", 3).ShouldContain("very much");
+        phrases.Suggest([], "the", 3).ShouldBeEmpty(); // a very common word alone never starts a phrase
+        phrases.Suggest(["i"], "loo", 3)[0].ShouldBe("look forward to hearing from you");
+    }
+
+    [Fact]
     public void The_shipped_common_mistakes_are_read_as_english()
     {
         Corrections corrections;

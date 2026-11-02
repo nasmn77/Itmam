@@ -148,7 +148,7 @@ public sealed class PhraseIndex
         {
             if (position < phrase.Words.Count - 1)
             {
-                Add(result, string.Join(' ', phrase.Words.Skip(position)), phraseLimit, phrase, sources);
+                Add(result, Cased(string.Join(' ', phrase.Words.Skip(position)), literal), phraseLimit, phrase, sources);
             }
         }
 
@@ -156,12 +156,15 @@ public sealed class PhraseIndex
         {
             if (position > 0)
             {
-                Add(result, phrase.Words[position], max, phrase, sources);
+                Add(result, Cased(phrase.Words[position], literal), max, phrase, sources);
             }
         }
 
         return result;
     }
+
+    // In the case being typed (English «Tha» → «Thank you»); right after a space, as written.
+    private string Cased(string suggestion, string typed) => typed.Length == 0 ? suggestion : Language.MatchCase(suggestion, typed);
 
     // The word of the phrase the user is typing now, or -1: the words before it must be the last words
     // typed, and the typed letters must start it.
