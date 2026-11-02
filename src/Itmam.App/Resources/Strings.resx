@@ -291,11 +291,18 @@
   <data name="InsertButton" xml:space="preserve"><value>Insert</value></data>
   <data name="NotAVariableName" xml:space="preserve"><value>Type a name of up to 30 characters, without braces.</value></data>
   <data name="UnknownAutoVariable" xml:space="preserve"><value>{0} is not an automatic variable. Insert automatic variables with "Insert variable…".</value></data>
-  <data name="LongPhraseFillHint" xml:space="preserve"><value>"{0}": fill in the fields, then Enter; Esc to go back.</value></data>
+  <data name="LongPhraseFillHint" xml:space="preserve"><value>"{0}": fill in the fields, then Enter in the last one; Esc to go back.</value></data>
   <data name="EmptyVariables" xml:space="preserve"><value>These fields are empty: {0}.
 
 Insert the reply without them?</value></data>
   <data name="EmptyVariable" xml:space="preserve"><value>This field is empty: {0}.
 
 Insert the reply without it?</value></data>
+  <data name="LongPhraseEditHint" xml:space="preserve"><value>The phrase's text (you can edit it before inserting; Ctrl+Enter inserts):</value></data>
+  <data name="LongPhraseFinalEdited" xml:space="preserve"><value>You edited the reply: the fields are locked, and it is inserted as it is.</value></data>
+  <data name="SaveLongPhraseEdit" xml:space="preserve"><value>You edited the text of "{0}".
+
+Save the edit in the phrase?
+Yes: save it, then insert.
+No: insert it this time only.</value></data>
 </root>

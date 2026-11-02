@@ -291,11 +291,18 @@
   <data name="InsertButton" xml:space="preserve"><value>إدراج</value></data>
   <data name="NotAVariableName" xml:space="preserve"><value>اكتب اسمًا لا يزيد على 30 حرفًا، بلا أقواس.</value></data>
   <data name="UnknownAutoVariable" xml:space="preserve"><value>{0} ليس متغيرًا تلقائيًا. أدرج المتغيرات التلقائية من «إدراج متغير…».</value></data>
-  <data name="LongPhraseFillHint" xml:space="preserve"><value>«{0}»: املأ الخانات ثم Enter، وEsc للرجوع.</value></data>
+  <data name="LongPhraseFillHint" xml:space="preserve"><value>«{0}»: املأ الخانات ثم Enter في آخرها، وEsc للرجوع.</value></data>
   <data name="EmptyVariables" xml:space="preserve"><value>هذه الخانات فارغة: {0}.
 
 هل تريد إدراج الرد بدونها؟</value></data>
   <data name="EmptyVariable" xml:space="preserve"><value>هذه الخانة فارغة: {0}.
 
 هل تريد إدراج الرد بدونها؟</value></data>
+  <data name="LongPhraseEditHint" xml:space="preserve"><value>نص العبارة (يمكنك تعديله قبل الإدراج؛ Ctrl+Enter للإدراج):</value></data>
+  <data name="LongPhraseFinalEdited" xml:space="preserve"><value>عدّلت الرد، فقُفلت الخانات، ويُدرج كما هو.</value></data>
+  <data name="SaveLongPhraseEdit" xml:space="preserve"><value>عدّلت نص «{0}».
+
+هل تريد حفظ التعديل في العبارة؟
+نعم: يُحفظ ثم يُدرج.
+لا: يُدرج هذه المرة فقط.</value></data>
 </root>

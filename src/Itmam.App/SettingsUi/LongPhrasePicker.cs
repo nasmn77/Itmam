@@ -9,42 +9,48 @@ namespace Itmam.App.SettingsUi;
 /// The long phrases list (user decision 1.1), opened from anywhere with a shortcut (default
 /// Ctrl+Shift+Space): type to filter by name or text, Up/Down to choose, Enter or a double-click to
 /// insert, Esc to close. Unlike the suggestion bar it takes the focus (to type in its search box); on
-/// insert it gives the focus back to the app the user was typing in and types the text there.
-/// A phrase with variables asked for (1.2) first shows a field for each in place of the list: Tab moves
-/// between them, Enter in the last one inserts, Esc goes back to the list. The values are not kept.
+/// insert it gives the focus back to the app the user was typing in and pastes the text there.
+/// The phrase's text can be edited before inserting (1.3); after an edit, Itmam asks whether to save it
+/// in the phrase or insert it this time only.
+/// A phrase with variables asked for (1.2) then shows a field for each in place of the list: Tab moves
+/// between them, Enter in the last one inserts, Esc goes back to the list. The values are not kept; the
+/// filled text can be edited too, which locks the fields so they do not overwrite the edit.
 /// </summary>
 internal sealed class LongPhrasePicker : Form
 {
     private readonly TextBox _search = new() { BorderStyle = BorderStyle.FixedSingle };
     private readonly ListBox _list = new() { BorderStyle = BorderStyle.None, IntegralHeight = false };
-    // Read-only text box rather than a label: a long reply scrolls instead of being cut off.
-    private readonly TextBox _preview = new()
+    private readonly Label _textLabel = new() { AutoSize = false, UseMnemonic = false };
+
+    // The phrase's text (with its {variables}) in the list, the filled reply while filling; editable.
+    private readonly TextBox _text = new()
     {
-        ReadOnly = true,
         Multiline = true,
+        AcceptsReturn = true, // Enter starts a new line here; Ctrl+Enter or Insert inserts
         WordWrap = true,
-        ScrollBars = ScrollBars.None, // shown by ShowPreview when the text is taller
-        BorderStyle = BorderStyle.None,
-        TabStop = false,
+        ScrollBars = ScrollBars.None, // shown by ShowText when the text is taller
+        BorderStyle = BorderStyle.FixedSingle,
     };
+
     private readonly Label _fillHint = new() { AutoSize = false, UseMnemonic = false, Visible = false };
     private readonly Panel _fields = new() { AutoScroll = true, Visible = false };
-    private readonly ThemedButton _insertButton = new() { Visible = false };
-    private readonly ThemedButton _cancelButton = new() { Visible = false };
+    private readonly ThemedButton _insertButton = new();
+    private readonly ThemedButton _cancelButton = new();
     private readonly List<(string Name, TextBox Box)> _boxes = [];
     private readonly SettingsPalette _palette;
     private readonly Rectangle _near;
-    private LongPhrase? _filling;
-    private bool _asking; // the empty-fields question is open: losing the focus to it must not close the list
-    private Size _listClientSize;
-    private Rectangle _listPreviewBounds;
-    private readonly IReadOnlyList<LongPhrase> _all;
     private readonly nint _target;
     private readonly ITextInjector _injector;
     private readonly Action<int>? _inserted;
-    private IReadOnlyList<LongPhrase> _shown;
-    private bool _inserting;
+    private readonly Action<LongPhrase, string>? _saveEdit;
     private readonly System.Windows.Forms.Timer _keysWatch = new() { Interval = 30 };
+    private IReadOnlyList<LongPhrase> _all;
+    private IReadOnlyList<LongPhrase> _shown;
+    private LongPhrase? _filling;
+    private bool _settingText;   // the text box is being filled by code, not edited by the user
+    private bool _finalEdited;   // the filled reply was edited by hand: the fields no longer change it
+    private bool _asking;        // a question is open: losing the focus to it must not close the list
+    private bool _inserting;
     private long _keysUpAt;
     private int _focusRetries;
 
@@ -53,12 +59,14 @@ internal sealed class LongPhrasePicker : Form
     /// <param name="injector">Types the chosen text.</param>
     /// <param name="palette">Settings colors (light or dark).</param>
     /// <param name="rtl">Arabic interface.</param>
-    /// <param name="near">Where to open (the caret, or the mouse pointer), in screen pixels.</param>
+    /// <param name="near">Where the user is typing (the caret, or the mouse pointer): picks the screen.</param>
     /// <param name="inserted">Called with the length of the inserted text (statistics).</param>
+    /// <param name="saveEdit">Saves an edited text in the phrase (Settings), when the user says so.</param>
     public LongPhrasePicker(IReadOnlyList<LongPhrase> phrases, nint target, ITextInjector injector, SettingsPalette palette, bool rtl, Rectangle near,
-        Action<int>? inserted = null)
+        Action<int>? inserted = null, Action<LongPhrase, string>? saveEdit = null)
     {
         _inserted = inserted;
+        _saveEdit = saveEdit;
         _palette = palette;
         _near = near;
         _all = phrases;
@@ -75,37 +83,33 @@ internal sealed class LongPhrasePicker : Form
         AutoScaleDimensions = new SizeF(96f, 96f); // laid out at 100 %, scaled to the monitor
         AutoScaleMode = AutoScaleMode.Dpi;
         Font = new Font("Segoe UI", 10f);
-        ClientSize = new Size(440, 400);
+        ClientSize = new Size(640, 560);
         RightToLeft = rtl ? RightToLeft.Yes : RightToLeft.No;
         RightToLeftLayout = rtl;
         BackColor = palette.Window;
         ForeColor = palette.Text;
 
-        _search.Bounds = new Rectangle(12, 12, 416, 30);
         _search.PlaceholderText = Strings.LongPhrasesSearch;
-        _list.Bounds = new Rectangle(12, 50, 416, 190);
         _list.Font = new Font("Segoe UI", 11f);
-        _preview.Bounds = new Rectangle(12, 248, 416, 140);
-        foreach (Control control in new Control[] { _search, _list })
+        _text.Font = new Font("Segoe UI", 10.5f);
+        foreach (Control control in new Control[] { _search, _list, _text })
         {
             control.BackColor = palette.ControlFill;
             control.ForeColor = palette.Text;
         }
 
-        _preview.ForeColor = palette.SecondaryText;
-        _preview.BackColor = palette.Window;
-        _fillHint.Bounds = new Rectangle(12, 12, 416, 30);
-        _fillHint.ForeColor = palette.SecondaryText;
-        _fields.Bounds = _list.Bounds;
+        _textLabel.Text = Strings.LongPhraseEditHint;
+        _textLabel.ForeColor = _fillHint.ForeColor = palette.SecondaryText;
         _search.TextChanged += (_, _) => Filter();
-        _list.SelectedIndexChanged += (_, _) => ShowPreview();
+        _list.SelectedIndexChanged += (_, _) => ShowText();
         _list.DoubleClick += (_, _) => InsertSelected();
+        _text.TextChanged += (_, _) => TextEdited();
         _insertButton.Palette = _cancelButton.Palette = palette;
         _insertButton.Text = Strings.InsertButton;
         _cancelButton.Text = Strings.CancelButton;
         _insertButton.Click += (_, _) => InsertSelected();
-        _cancelButton.Click += (_, _) => LeaveFill();
-        Controls.AddRange([_search, _list, _fillHint, _fields, _preview, _insertButton, _cancelButton]);
+        _cancelButton.Click += (_, _) => Cancel();
+        Controls.AddRange([_search, _list, _fillHint, _fields, _textLabel, _text, _insertButton, _cancelButton]);
 
         // Shown at once, keys still held (user decision). Some apps (the new Notepad) take the focus back
         // when the shortcut's keys go up: until shortly after that, losing the focus does not close it.
@@ -123,9 +127,9 @@ internal sealed class LongPhrasePicker : Form
             _keysWatch.Start();
             WindowChrome.SetDarkTitleBar(Handle, palette.IsDark);
             WindowChrome.SetDarkScrollbars(_list.Handle, palette.IsDark);
-            WindowChrome.SetDarkScrollbars(_preview.Handle, palette.IsDark);
+            WindowChrome.SetDarkScrollbars(_text.Handle, palette.IsDark);
             WindowChrome.SetDarkScrollbars(_fields.Handle, palette.IsDark);
-            PlaceNear(near);
+            LayOutList();
             Filter();
         };
         Shown += (_, _) =>
@@ -171,56 +175,88 @@ internal sealed class LongPhrasePicker : Form
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
-        if (_filling is not null)
-        {
-            // Filling the variables: Enter moves to the next field and inserts from the last one (or acts as
-            // the focused button), Esc goes back to the list; the arrows stay with the text boxes.
-            if (e.KeyCode == Keys.Enter)
-            {
-                var current = _boxes.FindIndex(b => b.Box.Focused);
-                if (_cancelButton.Focused)
-                {
-                    LeaveFill();
-                }
-                else if (current >= 0 && current < _boxes.Count - 1)
-                {
-                    _boxes[current + 1].Box.Focus();
-                }
-                else
-                {
-                    InsertSelected();
-                }
-
-                e.Handled = e.SuppressKeyPress = true;
-            }
-            else if (e.KeyCode == Keys.Escape)
-            {
-                LeaveFill();
-                e.Handled = e.SuppressKeyPress = true;
-            }
-
-            return;
-        }
-
+        var handled = true;
         switch (e.KeyCode)
         {
-            case Keys.Down when _list.Items.Count > 0:
-                _list.SelectedIndex = Math.Min(_list.SelectedIndex + 1, _list.Items.Count - 1);
-                e.Handled = e.SuppressKeyPress = true;
+            // In the text box Enter is a new line; Ctrl+Enter inserts from anywhere.
+            case Keys.Enter when _text.Focused && !e.Control:
+                handled = false;
                 break;
-            case Keys.Up when _list.Items.Count > 0:
-                _list.SelectedIndex = Math.Max(_list.SelectedIndex - 1, 0);
-                e.Handled = e.SuppressKeyPress = true;
+            case Keys.Enter when _cancelButton.Focused:
+                Cancel();
+                break;
+            case Keys.Enter when _filling is not null && !e.Control && _boxes.FindIndex(b => b.Box.Focused) is >= 0 and var field && field < _boxes.Count - 1:
+                _boxes[field + 1].Box.Focus(); // the next field; the last one inserts
                 break;
             case Keys.Enter:
                 InsertSelected();
-                e.Handled = e.SuppressKeyPress = true;
                 break;
             case Keys.Escape:
-                Close();
-                e.Handled = e.SuppressKeyPress = true;
+                Cancel();
+                break;
+
+            // The arrows choose in the list, except while editing the text.
+            case Keys.Down when _filling is null && !_text.Focused && _list.Items.Count > 0:
+                _list.SelectedIndex = Math.Min(_list.SelectedIndex + 1, _list.Items.Count - 1);
+                break;
+            case Keys.Up when _filling is null && !_text.Focused && _list.Items.Count > 0:
+                _list.SelectedIndex = Math.Max(_list.SelectedIndex - 1, 0);
+                break;
+            default:
+                handled = false;
                 break;
         }
+
+        if (handled)
+        {
+            e.Handled = e.SuppressKeyPress = true;
+        }
+    }
+
+    // Cancel and Esc: back to the list while filling, otherwise close (an unsaved edit is dropped).
+    private void Cancel()
+    {
+        if (_filling is not null)
+        {
+            LeaveFill();
+        }
+        else
+        {
+            Close();
+        }
+    }
+
+    private int Px(int logical) => (int)Math.Round(logical * DeviceDpi / 96f); // laid out at 100 %
+
+    // The window size (640 × 560, within the screen) centred on the screen the user is typing on (user
+    // decision 1.3: like the fields, so the window does not jump when they open).
+    private void SizeWindow(int clientHeight)
+    {
+        var area = Screen.FromRectangle(_near).WorkingArea;
+        var frame = Size - ClientSize;
+        ClientSize = new Size(Math.Min(Px(640), area.Width - frame.Width - Px(32)), Math.Min(clientHeight, area.Height - frame.Height - Px(16)));
+        Location = new Point(area.Left + Math.Max(0, (area.Width - Width) / 2), area.Top + Math.Max(0, (area.Height - Height) / 2));
+    }
+
+    // Search, list, the editable text, then the buttons.
+    private void LayOutList()
+    {
+        SizeWindow(Px(560));
+        var margin = Px(12);
+        var width = ClientSize.Width - 2 * margin;
+        _search.Bounds = new Rectangle(margin, margin, width, Px(30));
+        _list.Bounds = new Rectangle(margin, Px(50), width, Px(170));
+        _textLabel.Bounds = new Rectangle(margin, _list.Bottom + Px(8), width, Px(24));
+        LayOutBottom(_textLabel.Bottom + Px(4), margin, width);
+    }
+
+    // The text box fills what the buttons leave.
+    private void LayOutBottom(int textTop, int margin, int width)
+    {
+        _insertButton.Top = _cancelButton.Top = ClientSize.Height - margin - _insertButton.Height;
+        _cancelButton.Left = ClientSize.Width - margin - _cancelButton.Width;
+        _insertButton.Left = _cancelButton.Left - Px(8) - _insertButton.Width;
+        _text.Bounds = new Rectangle(margin, textTop, width, _insertButton.Top - Px(12) - textTop);
     }
 
     private void Filter()
@@ -239,71 +275,104 @@ internal sealed class LongPhrasePicker : Form
             _list.SelectedIndex = 0;
         }
 
-        ShowPreview();
+        ShowText();
     }
 
-    // Automatic variables filled in; the ones asked for show their typed value, or {name} while empty.
-    // The scroll bar only when the text is taller than the box.
-    private void ShowPreview()
+    private LongPhrase? Selected => _list.SelectedIndex >= 0 && _list.SelectedIndex < _shown.Count ? _shown[_list.SelectedIndex] : null;
+
+    // In the list: the chosen phrase's text as saved, {variables} included, to edit. While filling: the
+    // reply with automatic variables filled in and the asked ones as typed, or {name} while empty.
+    private void ShowText()
     {
-        var text = PreviewText();
-        var height = TextRenderer.MeasureText(text, _preview.Font, new Size(_preview.ClientSize.Width - SystemInformation.VerticalScrollBarWidth, int.MaxValue),
-            TextFormatFlags.WordBreak | TextFormatFlags.TextBoxControl).Height;
-        var scrollBars = height > _preview.ClientSize.Height ? ScrollBars.Vertical : ScrollBars.None;
-        if (_preview.ScrollBars != scrollBars)
+        string text;
+        if (_filling is not null)
         {
-            _preview.ScrollBars = scrollBars;
-            WindowChrome.SetDarkScrollbars(_preview.Handle, _palette.IsDark); // the handle is recreated
+            if (_finalEdited)
+            {
+                return; // edited by hand: the fields no longer change it
+            }
+
+            text = LongPhraseVariables.Fill(_filling.Text, TypedValues(placeholders: true), DateTime.Now);
+        }
+        else
+        {
+            text = Selected?.Text ?? (_all.Count == 0 ? Strings.LongPhrasesEmpty : Strings.LongPhrasesNoMatch);
+            _text.ReadOnly = Selected is null;
         }
 
-        _preview.Text = text.Replace("\n", "\r\n", StringComparison.Ordinal);
+        _settingText = true;
+        var height = TextRenderer.MeasureText(text, _text.Font, new Size(_text.ClientSize.Width - SystemInformation.VerticalScrollBarWidth, int.MaxValue),
+            TextFormatFlags.WordBreak | TextFormatFlags.TextBoxControl).Height;
+        var scrollBars = height > _text.ClientSize.Height ? ScrollBars.Vertical : ScrollBars.None;
+        if (_text.ScrollBars != scrollBars)
+        {
+            _text.ScrollBars = scrollBars;
+            WindowChrome.SetDarkScrollbars(_text.Handle, _palette.IsDark); // the handle is recreated
+        }
+
+        _text.Text = text.Replace("\n", "\r\n", StringComparison.Ordinal);
+        _settingText = false;
     }
 
-    private string PreviewText() =>
-        _filling is not null ? LongPhraseVariables.Fill(_filling.Text, TypedValues(placeholders: true), DateTime.Now)
-            : _all.Count == 0 ? Strings.LongPhrasesEmpty
-            : _list.SelectedIndex >= 0 && _list.SelectedIndex < _shown.Count ? LongPhraseVariables.Fill(_shown[_list.SelectedIndex].Text, null, DateTime.Now)
-            : Strings.LongPhrasesNoMatch;
+    // Edited by hand: a long text gets its scroll bar; while filling, the fields stop changing the reply.
+    private void TextEdited()
+    {
+        if (_settingText)
+        {
+            return;
+        }
+
+        if (_text.ScrollBars == ScrollBars.None && _text.GetLineFromCharIndex(_text.TextLength) * _text.Font.Height > _text.ClientSize.Height)
+        {
+            var caret = _text.SelectionStart;
+            _text.ScrollBars = ScrollBars.Vertical;
+            WindowChrome.SetDarkScrollbars(_text.Handle, _palette.IsDark);
+            _text.SelectionStart = caret;
+        }
+
+        if (_filling is not null && !_finalEdited)
+        {
+            _finalEdited = true;
+            foreach (var (_, box) in _boxes)
+            {
+                box.Enabled = false;
+            }
+
+            _fillHint.Text = Strings.LongPhraseFinalEdited;
+        }
+    }
 
     private Dictionary<string, string> TypedValues(bool placeholders) =>
         _boxes.ToDictionary(b => b.Name, b => placeholders && b.Box.TextLength == 0 ? LongPhraseVariables.InputToken(b.Name) : b.Box.Text);
 
-    // A field for each variable asked for, in place of the search box and the list. The window grows so
-    // every field and the whole preview show: wider (640, user decision, so long replies take fewer lines)
-    // and taller, both within the screen (small screens such as 1366×768); beyond that they scroll.
+    // A field for each variable asked for, in place of the search box and the list, then the reply. The
+    // window grows to show every field and the whole reply, up to the screen's height; beyond that they scroll.
     private void EnterFill(LongPhrase phrase)
     {
         _filling = phrase;
-        _listClientSize = ClientSize;
-        _listPreviewBounds = _preview.Bounds;
-        var scale = DeviceDpi / 96f; // laid out at 100 %, like the constructor
-        int Px(int logical) => (int)Math.Round(logical * scale);
-
-        var area = Screen.FromControl(this).WorkingArea;
-        var frameWidth = Width - ClientSize.Width;
-        ClientSize = new Size(Math.Max(ClientSize.Width, Math.Min(Px(640), area.Width - frameWidth - Px(32))), ClientSize.Height);
-
+        _finalEdited = false;
         var names = LongPhraseVariables.InputNames(phrase.Text);
         var margin = Px(12);
-        var width = ClientSize.Width - 2 * margin;
+        var area = Screen.FromRectangle(_near).WorkingArea;
+        var width = Math.Min(Px(640), area.Width - (Width - ClientSize.Width) - Px(32)) - 2 * margin;
         var rowHeight = Px(62);
         var fieldsHeight = names.Count * rowHeight;
-        var top = _list.Top;
-        _fillHint.Width = width;
+        var top = Px(50);
 
-        // Room on the screen for the client area, then the fields and the preview share it.
+        // Room on the screen for the client area, then the fields and the reply share it.
         var maxClient = area.Height - (Height - ClientSize.Height) - Px(16);
-        var previewWanted = TextRenderer.MeasureText(
+        var textWanted = TextRenderer.MeasureText(
             LongPhraseVariables.Fill(phrase.Text, null, DateTime.Now) + "\n",
-            _preview.Font,
+            _text.Font,
             new Size(width - SystemInformation.VerticalScrollBarWidth, int.MaxValue),
-            TextFormatFlags.WordBreak | TextFormatFlags.TextBoxControl).Height + Px(8);
-        previewWanted = Math.Max(previewWanted, Px(80));
-        var buttonsRow = Px(12) + _insertButton.Height; // the Insert and Cancel buttons under the preview
+            TextFormatFlags.WordBreak | TextFormatFlags.TextBoxControl).Height + Px(12);
+        textWanted = Math.Max(textWanted, Px(100));
+        var buttonsRow = Px(12) + _insertButton.Height;
         var room = maxClient - top - Px(8) - buttonsRow - margin;
-        // Fields first, but the preview keeps at least half the room it needs (up to half the screen).
-        var shownFields = Math.Clamp(room - Math.Min(previewWanted, room / 2), rowHeight, fieldsHeight);
-        var previewHeight = Math.Max(Px(60), Math.Min(previewWanted, room - shownFields));
+        // Fields first, but the reply keeps at least half the room it needs (up to half the screen).
+        var shownFields = Math.Clamp(room - Math.Min(textWanted, room / 2), rowHeight, fieldsHeight);
+        var textHeight = Math.Max(Px(80), Math.Min(textWanted, room - shownFields));
+        SizeWindow(top + shownFields + Px(8) + textHeight + buttonsRow + margin);
 
         _fields.SuspendLayout();
         _fields.Controls.Clear();
@@ -322,28 +391,23 @@ internal sealed class LongPhrasePicker : Form
                 ForeColor = _palette.Text,
                 TabIndex = _boxes.Count,
             };
-            box.TextChanged += (_, _) => ShowPreview();
+            box.TextChanged += (_, _) => ShowText();
             _fields.Controls.AddRange([label, box]);
             _boxes.Add((name, box));
             y += rowHeight;
         }
 
         _fields.ResumeLayout();
-        _preview.Bounds = new Rectangle(margin, top + shownFields + Px(8), width, previewHeight);
-        _insertButton.TabIndex = _boxes.Count;
-        _cancelButton.TabIndex = _boxes.Count + 1;
-        _insertButton.Top = _cancelButton.Top = _preview.Bottom + Px(12);
-        _cancelButton.Left = ClientSize.Width - margin - _cancelButton.Width;
-        _insertButton.Left = _cancelButton.Left - Px(8) - _insertButton.Width;
-        ClientSize = new Size(ClientSize.Width, _insertButton.Bottom + margin);
-
-        // Centred on the screen while filling (user decision): the window is now too big to sit by the caret.
-        Location = new Point(area.Left + Math.Max(0, (area.Width - Width) / 2), area.Top + Math.Max(0, (area.Height - Height) / 2));
-
+        _fillHint.Bounds = new Rectangle(margin, margin, width, Px(30));
         _fillHint.Text = string.Format(System.Globalization.CultureInfo.CurrentCulture, Strings.LongPhraseFillHint, phrase.Name);
-        _search.Visible = _list.Visible = false;
-        _fillHint.Visible = _fields.Visible = _insertButton.Visible = _cancelButton.Visible = true;
-        ShowPreview();
+        LayOutBottom(top + shownFields + Px(8), margin, width);
+        _text.ReadOnly = false;
+        _text.TabIndex = _boxes.Count;
+        _insertButton.TabIndex = _boxes.Count + 1;
+        _cancelButton.TabIndex = _boxes.Count + 2;
+        _search.Visible = _list.Visible = _textLabel.Visible = false;
+        _fillHint.Visible = _fields.Visible = true;
+        ShowText();
         _boxes[0].Box.Focus();
     }
 
@@ -363,57 +427,124 @@ internal sealed class LongPhrasePicker : Form
             BeginInvoke(InsertSelected);
         }
     }
+
+    /// <summary>Adds a line to the text as if typed (--demo-longphrases edit): an edit to save, or a locked reply.</summary>
+    public void DemoEdit(string line, bool insert = false)
+    {
+        _text.AppendText(Environment.NewLine + line);
+        if (insert)
+        {
+            BeginInvoke(InsertSelected); // the save question
+        }
+    }
 #endif
 
     private void LeaveFill()
     {
         _filling = null;
-        _fillHint.Visible = _fields.Visible = _insertButton.Visible = _cancelButton.Visible = false;
+        _finalEdited = false;
+        _fillHint.Visible = _fields.Visible = false;
         _fields.Controls.Clear();
         _boxes.Clear(); // the typed values are not kept
-        _preview.Bounds = _listPreviewBounds;
-        ClientSize = _listClientSize;
-        PlaceNear(_near);
-        _search.Visible = _list.Visible = true;
-        ShowPreview();
+        _search.Visible = _list.Visible = _textLabel.Visible = true;
+        LayOutList();
+        ShowText();
         _search.Focus();
+    }
+
+    private bool Ask(string question, MessageBoxButtons buttons, out DialogResult answer)
+    {
+        var rtl = RightToLeft == RightToLeft.Yes;
+        _asking = true;
+        answer = MessageBox.Show(this, question, Strings.AppName, buttons, MessageBoxIcon.Question,
+            buttons == MessageBoxButtons.YesNo ? MessageBoxDefaultButton.Button2 : MessageBoxDefaultButton.Button1,
+            rtl ? MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign : 0);
+        _asking = false;
+        Activate();
+        return answer != DialogResult.Cancel;
     }
 
     // Focus back to the app, then paste the text there (the clipboard is restored afterwards).
     private async void InsertSelected()
     {
-        if (_inserting || (_filling is null && (_list.SelectedIndex < 0 || _list.SelectedIndex >= _shown.Count)))
+        if (_inserting || (_filling ?? Selected) is not { } phrase)
         {
             return;
         }
 
-        var phrase = _filling ?? _shown[_list.SelectedIndex];
-        if (_filling is null && LongPhraseVariables.HasInputs(phrase.Text))
+        string text;
+        if (_filling is null)
         {
-            EnterFill(phrase);
-            return;
-        }
-
-        // Empty fields (user decision): ask, naming them; "No" (the default) goes back to the first empty
-        // one, "Yes" inserts the reply as it is (a variable may be optional, such as an unknown e-mail).
-        if (_filling is not null && _boxes.Where(b => b.Box.TextLength == 0).Select(b => b.Name).ToList() is [_, ..] empty)
-        {
-            var rtl = RightToLeft == RightToLeft.Yes;
-            var question = string.Format(System.Globalization.CultureInfo.CurrentCulture, empty.Count == 1 ? Strings.EmptyVariable : Strings.EmptyVariables, string.Join(rtl ? "، " : ", ", empty));
-            _asking = true;
-            var insert = MessageBox.Show(this, question, Strings.AppName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2,
-                rtl ? MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign : 0) == DialogResult.Yes;
-            _asking = false;
-            if (!insert)
+            // Edited before inserting (user decision 1.3): save it in the phrase ("Yes") or use it this
+            // time only ("No"); Cancel goes back to editing.
+            if (LongPhrases.CleanText(_text.Text) is not { } edited)
             {
-                Activate();
-                _boxes.First(b => b.Box.TextLength == 0).Box.Focus();
+                return; // emptied: nothing to insert
+            }
+
+            if (edited != (LongPhrases.CleanText(phrase.Text) ?? phrase.Text))
+            {
+                if (!Ask(string.Format(System.Globalization.CultureInfo.CurrentCulture, Strings.SaveLongPhraseEdit, phrase.Name), MessageBoxButtons.YesNoCancel, out var answer))
+                {
+                    _text.Focus();
+                    return;
+                }
+
+                if (answer == DialogResult.Yes)
+                {
+                    if (LongPhraseVariables.UnknownAutoVariables(edited) is [var unknown, ..])
+                    {
+                        Ask(string.Format(System.Globalization.CultureInfo.CurrentCulture, Strings.UnknownAutoVariable, unknown), MessageBoxButtons.OK, out _);
+                        _text.Focus();
+                        return;
+                    }
+
+                    _saveEdit?.Invoke(phrase, edited);
+                    var saved = phrase with { Text = edited };
+                    _all = [.. _all.Select(p => p.Name == phrase.Name ? saved : p)]; // Esc from the fields shows it
+                    _shown = [.. _shown.Select(p => p.Name == phrase.Name ? saved : p)];
+                }
+
+                phrase = phrase with { Text = edited };
+            }
+
+            if (LongPhraseVariables.HasInputs(phrase.Text))
+            {
+                EnterFill(phrase);
                 return;
             }
+
+            text = LongPhraseVariables.Fill(phrase.Text, new Dictionary<string, string>(), DateTime.Now);
+        }
+        else if (_finalEdited)
+        {
+            if (LongPhrases.CleanText(_text.Text) is not { } edited)
+            {
+                return;
+            }
+
+            text = edited; // edited by hand after filling: inserted as it is
+        }
+        else
+        {
+            // Empty fields (user decision): ask, naming them; "No" (the default) goes back to the first empty
+            // one, "Yes" inserts the reply as it is (a variable may be optional, such as an unknown e-mail).
+            if (_boxes.Where(b => b.Box.TextLength == 0).Select(b => b.Name).ToList() is [_, ..] empty)
+            {
+                var names = string.Join(RightToLeft == RightToLeft.Yes ? "، " : ", ", empty);
+                Ask(string.Format(System.Globalization.CultureInfo.CurrentCulture, empty.Count == 1 ? Strings.EmptyVariable : Strings.EmptyVariables, names),
+                    MessageBoxButtons.YesNo, out var answer);
+                if (answer != DialogResult.Yes)
+                {
+                    _boxes.First(b => b.Box.TextLength == 0).Box.Focus();
+                    return;
+                }
+            }
+
+            text = LongPhraseVariables.Fill(_filling.Text, TypedValues(placeholders: false), DateTime.Now);
         }
 
         _inserting = true;
-        var text = LongPhraseVariables.Fill(phrase.Text, TypedValues(placeholders: false), DateTime.Now);
         Hide();
         PopupWindows.Activate(_target);
         await Task.Delay(150); // let the app take the focus before the keys arrive
@@ -428,19 +559,5 @@ internal sealed class LongPhrasePicker : Form
         _inserted?.Invoke(text.Length);
 
         Close();
-    }
-
-    // Under the caret line, kept on the screen.
-    private void PlaceNear(Rectangle near)
-    {
-        var area = Screen.FromRectangle(near).WorkingArea;
-        var x = RightToLeft == RightToLeft.Yes ? near.Right - Width : near.Left;
-        var y = near.Bottom + 8;
-        if (y + Height > area.Bottom)
-        {
-            y = near.Top - Height - 8;
-        }
-
-        Location = new Point(Math.Clamp(x, area.Left, Math.Max(area.Left, area.Right - Width)), Math.Clamp(y, area.Top, Math.Max(area.Top, area.Bottom - Height)));
     }
 }
