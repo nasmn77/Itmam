@@ -42,6 +42,9 @@ public enum SilenceReason
     ElevatedApp,
     ExcludedApp,
     FullScreen,
+
+    /// <summary>An input method editor took a key (it composes the text itself).</summary>
+    InputMethod,
 }
 
 /// <summary>
@@ -442,6 +445,12 @@ public sealed class InputPipeline(
         {
             _silence = guard?.Check() ?? SilenceReason.None;
             _guardChecked = true;
+        }
+
+        // Kept until the next event that may change the context (focus, window, layout, click, arrows …).
+        if (kind == InputEventKind.InputMethod)
+        {
+            _silence = SilenceReason.InputMethod;
         }
 
         if (_silence != SilenceReason.None)

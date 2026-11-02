@@ -211,6 +211,20 @@ public sealed class InputPipelineTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task An_input_method_key_silences_until_the_context_changes()
+    {
+        Type("كت");
+        Send(InputEvent.Of(InputEventKind.InputMethod));
+        Type("ب");
+
+        (await WaitForAsync(u => u.Input?.Input.Character == 'ب')).Silenced.ShouldBe(SilenceReason.InputMethod);
+
+        _context.Next = "";
+        Send(InputEvent.Of(InputEventKind.MouseClick));
+        (await WaitForAsync(u => u.Input?.Input.Kind == InputEventKind.MouseClick)).Silenced.ShouldBe(SilenceReason.None);
+    }
+
+    [Fact]
     public async Task A_word_is_learned_in_the_language_it_was_typed_in()
     {
         const nint english = 0x04090409;

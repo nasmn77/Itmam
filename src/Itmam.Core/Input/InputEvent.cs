@@ -59,6 +59,12 @@ public enum InputEventKind
 
     /// <summary>The long phrases shortcut: the list of their names opens (the focus moves to it).</summary>
     OpenLongPhrases,
+
+    /// <summary>
+    /// A key taken by an input method editor (VK_PROCESSKEY): the IME composes the text, so Itmam stays
+    /// silent until the focus, window, layout or caret changes.
+    /// </summary>
+    InputMethod,
 }
 
 /// <param name="Kind">What happened.</param>

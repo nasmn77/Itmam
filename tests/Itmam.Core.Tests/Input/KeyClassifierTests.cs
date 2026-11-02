@@ -67,8 +67,12 @@ public class KeyClassifierTests
     [InlineData(0x24)]
     [InlineData(0x2E)]
     [InlineData(0x2D)]
-    [InlineData(0xE5)]
-    public void Navigation_delete_and_ime_keys_reset(int vk) => Classify(vk).Kind.ShouldBe(InputEventKind.Navigation);
+    [InlineData(0xE7)]
+    public void Navigation_delete_and_injected_keys_reset(int vk) => Classify(vk).Kind.ShouldBe(InputEventKind.Navigation);
+
+    [Fact]
+    public void A_key_taken_by_an_input_method_is_its_own_event() =>
+        Classify(0xE5).Kind.ShouldBe(InputEventKind.InputMethod);
 
     [Theory]
     [InlineData(0x25, KeyModifiers.Shift)]                    // Shift+Left

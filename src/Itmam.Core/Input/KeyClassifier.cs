@@ -83,7 +83,12 @@ public static class KeyClassifier
             return Event(InputEventKind.Escape);
         }
 
-        if (virtualKey is >= PageUp and <= Down or Insert or Delete or ProcessKey or Packet)
+        if (virtualKey == ProcessKey)
+        {
+            return Event(InputEventKind.InputMethod);
+        }
+
+        if (virtualKey is >= PageUp and <= Down or Insert or Delete or Packet)
         {
             return Event(InputEventKind.Navigation);
         }
