@@ -23,8 +23,10 @@ internal static class TestDictionaries
 
     public static string ShippedPhrasesPath => Path.Combine(RepositoryRoot, "data", "phrases.txt");
 
+    public static string ShippedCorrectionsPath => Path.Combine(RepositoryRoot, "data", "corrections.txt");
+
     /// <summary>Found by walking up from the test output folder to the folder holding Itmam.sln.</summary>
-    private static string RepositoryRoot
+    internal static string RepositoryRoot
     {
         get
         {
