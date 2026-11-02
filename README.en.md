@@ -2,7 +2,7 @@
 
 [العربية](README.md) · **English**
 
-**Itmam** suggests Arabic words as you type on your physical keyboard, in any Windows app, like the suggestions on a phone: a small bar above the caret shows the closest words to what you started typing, and one key inserts the one you want.
+**Itmam** suggests words as you type on your physical keyboard, in any Windows app, in Arabic, English and other languages, like the suggestions on a phone: a small bar above the caret shows the closest words to what you started typing, and one key inserts the one you want.
 
 It sends no data, learns your own words, and never saves your text.
 
@@ -20,6 +20,10 @@ Website: https://nasmn77.github.io/Itmam/en/ · Repository: https://github.com/n
 - **Fixes common mistakes:** «لاكن» → «لكن», «انشاءالله» → «إن شاء الله», «مدرسه» → «مدرسة», with Tab.
 - **Learns your phrases:** words you type in a row twice are then suggested as a whole phrase (can be turned off).
 - **Completes a word from the middle:** go back into a word with a click or Backspace and it continues from the caret.
+- **Several languages (from 2.0):** it follows your keyboard layout and suggests in the language you are typing.
+  Arabic and English have a full dictionary (about 300,000 English words, with `don't`, `I'm` and letter case:
+  «Lon» → «London»). Any other alphabetic language (Hebrew, French, Russian …) can be turned on in Settings →
+  Languages: Itmam then learns its words and phrases from your typing. It stays silent with Chinese, Japanese and Korean.
 - **Silent where it should be:** password fields, excluded apps (such as terminals and remote desktop) and full-screen games.
 - **Arabic and English interface**, switched instantly, right to left in Arabic.
 
@@ -44,10 +48,12 @@ Shortcuts can be changed in Settings → "Keyboard shortcuts".
 Click the Itmam icon next to the clock (right or left button) and choose "Settings":
 
 - **General:** start with Windows, number of suggestions, letters before they appear, interface language.
+- **Languages:** the keyboard languages on your PC and what Itmam does with each, turning them on or off, and the Arabic
+  dictionary (basic or Wikipedia).
 - **Appearance:** theme, bar, text and selection colors, opacity, text size, with a live preview.
 - **Shortcuts:** record a new shortcut by pressing it; shortcuts that would break typing or Windows shortcuts are refused.
 - **Excluded apps:** programs where Itmam stays completely silent.
-- **My words:** add, edit, block and delete words, import and export, delete all.
+- **My words:** add, edit, block and delete words, import and export, delete all, one language at a time.
 - **My phrases:** turn phrase suggestions and phrase learning on or off, "My phrases" (with import and export), and the learned phrases (delete, move to "My phrases", delete all).
 - **Text shortcuts:** add a shortcut («ع1») and its text, edit, delete, import and export.
 - **Long phrases:** add a phrase with its name and text (up to 4,000 characters, several lines), "Insert variable…", edit, delete, import and export.
@@ -79,7 +85,7 @@ Full details in the [privacy policy](docs/PRIVACY.md).
 
 - Windows 10 version 2004 (19041) or later, or Windows 11.
 - x64 or ARM64 processor.
-- An Arabic keyboard layout added in Windows.
+- An Arabic or English keyboard layout (or another language you turn on) added in Windows.
 
 ## Building from source
 
@@ -105,7 +111,7 @@ How it works and how the code is organized: [docs/ARCHITECTURE.md](docs/ARCHITEC
 ## License and sources
 
 - Source code: [MIT](LICENSE).
-- The dictionary (`data/itmam-ar.dict`) is derived from the [FrequencyWords](https://github.com/hermitdave/FrequencyWords) word frequency lists (built from OpenSubtitles subtitles) and is licensed [CC-BY-SA-4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+- The Arabic (`data/itmam-ar.dict`) and English (`data/itmam-en.dict`) dictionaries are derived from the [FrequencyWords](https://github.com/hermitdave/FrequencyWords) word frequency lists (built from OpenSubtitles subtitles) and are licensed [CC-BY-SA-4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 - All components and their licenses: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Developer

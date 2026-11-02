@@ -1348,9 +1348,9 @@ internal sealed class SettingsWindow : Form
     // or delete them all together with every sequence counted so far.
     private void BuildLearnedPhrases()
     {
-        AddLanguageChoice();
         var phrases = _app.Learning.LearnedPhrases(language: _wordsLanguage); // like the bar: not the parts of a longer learned phrase
         AddSection(string.Format(CultureInfo.CurrentCulture, Strings.SectionLearnedPhrases, phrases.Count));
+        AddLanguageChoice();
         if (phrases.Count == 0)
         {
             AddText(Strings.NoLearnedPhrases, secondary: true);

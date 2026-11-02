@@ -6,13 +6,13 @@
 
 ## العربية
 
-**تاريخ السريان:** الإصدار 1.1 (29 أكتوبر 2026)
+**تاريخ السريان:** الإصدار 2.0 (2 نوفمبر 2026)
 
 **لا يرسل إتمام أي بيانات.** لا يجمع إحصاءات استخدام، ولا يرفع تقارير الأعطال، وكل ما يفعله بما تكتبه يبقى على جهازك. والاتصال الوحيد سؤال متجر Microsoft عن التحديثات، ويمكن إيقافه (انظر «التحقق من التحديثات» أدناه).
 
 ### ما الذي يقرؤه التطبيق
 
-- **ضغطات لوحة المفاتيح** أثناء الكتابة بلوحة مفاتيح عربية فقط، لمعرفة الكلمة التي تكتبها الآن واقتراح إكمالها. الكتابة بأي لغة أخرى (مثل الإنجليزية) لا تُتتبع.
+- **ضغطات لوحة المفاتيح** أثناء الكتابة بلغة مفعّلة في الإعدادات فقط (العربية والإنجليزية افتراضيًا، وغيرهما إذا فعّلتها من «اللغات»)، لمعرفة الكلمة التي تكتبها الآن واقتراح إكمالها. الكتابة بلغة غير مفعّلة، أو بمحرّر إدخال (مثل الصينية واليابانية والكورية)، لا تُتتبع.
 - **الكلمة الحالية قبل المؤشر فقط:** عندما ينتقل المؤشر إلى نص موجود (Backspace، أو نقرة بالفأرة، أو الأسهم، أو الانتقال إلى حقل أو نافذة أخرى)، يقرأ التطبيق عبر خدمة UI Automation في Windows ما لا يزيد عن 49 حرفًا قبل المؤشر، ليكمل الكلمة التي يقف فيها المؤشر. يحتفظ في الذاكرة بهذه الكلمة وحدها ويتجاهل الباقي فورًا.
 - **آخر الكلمات التي كتبتها متتالية** (8 كلمات على الأكثر)، لإكمال العبارات المتلازمة مثل «بسم الله الرحمن الرحيم». تبقى في الذاكرة فقط، وتُنسى عند أي علامة غير المسافة أو عند تحريك المؤشر أو تغيير النافذة. وما يُحفظ منها موصوف في «العبارات المتعلَّمة» أدناه.
 - **اسم ملف البرنامج** الذي تكتب فيه (مثل `notepad.exe`)، لمعرفة هل هو من التطبيقات المستثناة. لا يُحفظ هذا الاسم.
@@ -31,16 +31,16 @@
 
 ### ما الذي يُحفظ على جهازك
 
-- **كلماتك:** لكل كلمة: الكلمة نفسها، وعدد مرات استعمالها، ووقت آخر استعمال، وهل حظرتها. لا شيء غير ذلك: لا جمل، ولا اسم التطبيق الذي كتبت فيه.
+- **كلماتك:** لكل كلمة: الكلمة نفسها، ولغتها، وعدد مرات استعمالها، ووقت آخر استعمال، وهل حظرتها. لا شيء غير ذلك: لا جمل، ولا اسم التطبيق الذي كتبت فيه.
   المكان: `%LOCALAPPDATA%\Itmam\user.db` (عند التثبيت من المتجر يكون داخل المجلد الخاص بالتطبيق).
-- **العبارات المتعلَّمة** (من الإصدار 1.1، مفعّلة افتراضيًا): من كلمتين إلى 5 كلمات عربية كتبتها متتالية، مع عدد مرات كتابتها ووقت آخرها، في الملف نفسه. التسلسل الذي تكتبه مرتين يُقترح عبارةً، وما لم يتكرر يُحذف بعد 30 يومًا من آخر كتابة له. لا يُحفظ معها اسم التطبيق ولا ما قبلها أو بعدها، ولا يُعدّ شيء في المواضع المذكورة في «ما لا يُتعلَّم». لإيقافها: الإعدادات ← «عباراتي» ← «تعلّم العبارات من كتابتي».
+- **العبارات المتعلَّمة** (من الإصدار 1.1، مفعّلة افتراضيًا): من كلمتين إلى 5 كلمات كتبتها متتالية بلغة واحدة، مع لغتها وعدد مرات كتابتها ووقت آخرها، في الملف نفسه. التسلسل الذي تكتبه مرتين يُقترح عبارةً، وما لم يتكرر يُحذف بعد 30 يومًا من آخر كتابة له. لا يُحفظ معها اسم التطبيق ولا ما قبلها أو بعدها، ولا يُعدّ شيء في المواضع المذكورة في «ما لا يُتعلَّم». لإيقافها: الإعدادات ← «عباراتي» ← «تعلّم العبارات من كتابتي».
 - **الإحصاءات:** عدد الكلمات والعبارات التي أكملها إتمام، وعدد الأحرف التي كتبها عنك، وتاريخ البدء. أرقام فقط، في `user.db`، ويمكن تصفيرها من الإعدادات ← «عام».
 - **إعداداتك:** مثل الألوان والاختصارات وقائمة التطبيقات المستثناة، و«عباراتي» و«الاختصارات النصية» و«العبارات الطويلة» التي تضيفها بنفسك، في `%LOCALAPPDATA%\Itmam\settings.json`. لا تحتوي أي نص مما تكتبه في البرامج الأخرى، ولا القيم التي تكتبها في متغيرات العبارات الطويلة (تُنسى بعد الإدراج).
 - **ما لا يُتعلَّم:** الكلمات في حقول كلمات المرور، والتطبيقات المستثناة، والتطبيقات التي تعمل بصلاحيات المسؤول، والألعاب بملء الشاشة، والكلمات المحظورة وأي تسلسل فيه كلمة محظورة، وأي كلمة تمسحها مباشرة بعد كتابتها.
 
 ### تحكّمك في بياناتك
 
-- **الحذف:** من الإعدادات ← «كلماتي»: حذف كلمة، أو «حذف كل كلماتي»، أو إطفاء «تعلّم الكلمات الجديدة». ومن «عباراتي»: حذف عبارة متعلَّمة، أو «حذف العبارات المتعلَّمة» مع كل ما عُدّ، أو إيقاف تعلّمها.
+- **الحذف:** من الإعدادات ← «كلماتي» (لكل لغة على حدة): حذف كلمة، أو «حذف كل كلماتي»، أو إطفاء «تعلّم الكلمات الجديدة». ومن «عباراتي»: حذف عبارة متعلَّمة، أو «حذف العبارات المتعلَّمة» مع كل ما عُدّ، أو إيقاف تعلّمها.
 - **التصدير:** لا تُنسخ كلماتك إلى أي مكان إلا إذا اخترت «تصدير…» بنفسك، فتُكتب في الملف الذي تختاره أنت.
 - **النسخة الاحتياطية الشاملة:** لا تُنشأ إلا إذا اخترت «نسخ احتياطي…» في الإعدادات ← «عام»، فتُكتب في الملف الذي تختاره أنت ولا تُرسل إلى أي مكان. وفيها كلماتك وعباراتك واختصاراتك وعباراتك الطويلة وإعداداتك وإحصاءاتك، فاحفظها حيث تحفظ ملفاتك الخاصة.
 - **إلغاء التثبيت:** يحذف التطبيق وملفاته من جهازك.
@@ -57,13 +57,13 @@
 
 ## English
 
-**Effective date:** version 1.1 (October 29, 2026)
+**Effective date:** version 2.0 (November 2, 2026)
 
 **Itmam sends no data.** It collects no usage statistics, uploads no crash reports, and everything it does with what you type stays on your device. Its only connection is asking Microsoft Store about updates, and it can be turned off (see "Update check" below).
 
 ### What the app reads
 
-- **Keystrokes**, only while you type with an Arabic keyboard layout, to know the word you are typing and suggest completions. Typing in any other language (e.g. English) is not tracked.
+- **Keystrokes**, only while you type in a language turned on in Settings (Arabic and English by default, others once you turn them on under "Languages"), to know the word you are typing and suggest completions. Typing in a language that is turned off, or with an input method editor (such as Chinese, Japanese or Korean), is not tracked.
 - **Only the current word before the caret:** when the caret moves into existing text (Backspace, a mouse click, arrow keys, or switching to another field or window), the app uses Windows UI Automation to read at most 49 characters before the caret so it can continue the word the caret is in. It keeps only that word, in memory, and discards the rest immediately.
 - **The last words you typed in a row** (8 at most), to complete common phrases such as «بسم الله الرحمن الرحيم». They stay in memory only and are forgotten at any boundary other than a space, any caret move or window change. What is kept from them is described under "Learned phrases" below.
 - **The program file name** of the app you type in (e.g. `notepad.exe`), to know whether it is an excluded app. This name is not stored.
@@ -82,16 +82,16 @@
 
 ### What is stored on your device
 
-- **Your words:** for each word: the word itself, how many times you used it, when you last used it, and whether you blocked it. Nothing else: no sentences, not the app you typed in.
+- **Your words:** for each word: the word itself, its language, how many times you used it, when you last used it, and whether you blocked it. Nothing else: no sentences, not the app you typed in.
   Location: `%LOCALAPPDATA%\Itmam\user.db` (inside the app's private folder when installed from the Store).
-- **Learned phrases** (from 1.1, on by default): sequences of 2 to 5 Arabic words you typed in a row, with how many times and when you last typed them, in the same file. A sequence typed twice is suggested as a phrase; one not repeated is deleted 30 days after it was last typed. The app and the text around it are not kept, and nothing is counted in the places listed under "Never learned". To turn it off: Settings → "My phrases" → "Learn phrases from my typing".
+- **Learned phrases** (from 1.1, on by default): sequences of 2 to 5 words you typed in a row in one language, with their language, how many times and when you last typed them, in the same file. A sequence typed twice is suggested as a phrase; one not repeated is deleted 30 days after it was last typed. The app and the text around it are not kept, and nothing is counted in the places listed under "Never learned". To turn it off: Settings → "My phrases" → "Learn phrases from my typing".
 - **Statistics:** how many words and phrases Itmam completed, how many characters it typed for you, and since when. Numbers only, in `user.db`; reset them in Settings → "General".
 - **Your settings:** such as colors, shortcuts, the excluded apps list and the "My phrases", text shortcuts and long phrases you add yourself, in `%LOCALAPPDATA%\Itmam\settings.json`. They contain nothing you type in other apps, nor the values you type for long phrase variables (forgotten after inserting).
 - **Never learned:** words in password fields, excluded apps, apps running as administrator, full-screen games, blocked words and any sequence containing one, and any word you delete right after typing it.
 
 ### Your control over your data
 
-- **Delete:** Settings → "My words": delete a word, "Delete all my words", or turn off "Learn new words". Settings → "My phrases": delete a learned phrase, "Delete learned phrases" (with everything counted so far), or stop learning them.
+- **Delete:** Settings → "My words" (one language at a time): delete a word, "Delete all my words", or turn off "Learn new words". Settings → "My phrases": delete a learned phrase, "Delete learned phrases" (with everything counted so far), or stop learning them.
 - **Export:** your words are copied nowhere unless you choose "Export…" yourself; they are then written to the file you pick.
 - **Full backup:** created only when you choose "Back up…" in Settings → "General", written to the file you pick and sent nowhere. It holds your words, phrases, shortcuts, long phrases, settings and statistics, so keep it where you keep private files.
 - **Uninstall:** removes the app and its files from your device.

@@ -12,9 +12,9 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 
 **الوصف:**
 
-إتمام يقترح عليك الكلمات العربية أثناء الكتابة بلوحة المفاتيح في أي برنامج على Windows، مثل اقتراحات الهاتف: شريط صغير فوق المؤشر فيه أقرب الكلمات لما بدأت كتابته، تختار منها بضغطة Tab.
+إتمام يقترح عليك الكلمات أثناء الكتابة بلوحة المفاتيح في أي برنامج على Windows، بالعربية والإنجليزية ولغات أخرى، مثل اقتراحات الهاتف: شريط صغير فوق المؤشر فيه أقرب الكلمات لما بدأت كتابته، تختار منها بضغطة Tab.
 
-يعمل في المفكرة وWord والمتصفحات ومعظم البرامج، من قاموس عربي فيه نحو 880 ألف كلمة، ويتعلّم كلماتك أنت فيقدّم ما تستعمله أكثر.
+يعمل في المفكرة وWord والمتصفحات ومعظم البرامج، من قاموس عربي فيه نحو 880 ألف كلمة وقاموس إنجليزي بنحو 300 ألف، ويتعلّم كلماتك أنت فيقدّم ما تستعمله أكثر، وبأي لغة أبجدية أخرى تفعّلها.
 
 ويوفّر عليك الكتابة المتكررة: يكمل العبارات المعروفة، ويحوّل اختصاراتك إلى نصوص كاملة، ويدرج ردودًا طويلة من عدة أسطر، مثل ردود الدعم الفني، بضغطة اختصار.
 
@@ -23,6 +23,7 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 **المزايا** (حتى 20 بندًا):
 - اقتراحات فورية أثناء الكتابة في أي برنامج
 - قاموس بنحو 880 ألف كلمة من لغة الاستعمال اليومي وويكيبيديا العربية، أو القاموس الأساسي الأخف
+- بعدة لغات: يتبع لوحة المفاتيح، مع قاموس إنجليزي كامل، ويتعلّم كلمات أي لغة أبجدية أخرى تفعّلها
 - يتعلّم كلماتك ويقدّم الأكثر استعمالًا
 - يفهم الكتابة بلا همزات: «احمد» تجد «أحمد»
 - يصحح الأخطاء الشائعة: «لاكن» ← «لكن»، «انشاءالله» ← «إن شاء الله»
@@ -31,8 +32,7 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 - اختصارات نصية: اكتب «ع1» فيقترح «السلام عليكم ورحمة الله وبركاته»
 - عبارات طويلة من عدة أسطر بمتغيرات (اسم العميل، تاريخ اليوم)، مثل ردود الدعم الفني، تختارها باختصار في أي برنامج
 - يكمل الكلمة من وسطها بعد النقر أو Backspace
-- Tab للإدراج، وCtrl مع رقم للاقتراح الثاني والثالث، أو الاختيار بالأسهم
-- Backspace مباشرة بعد الإدراج يتراجع عنه
+- Tab للإدراج، وCtrl مع رقم أو الأسهم لغيره، وBackspace مباشرة بعده يتراجع عنه
 - الزر الأيمن على اقتراح: احذفه، أو احظر الكلمة، أو أضف العبارة إلى عباراتك
 - شريط بتصميم Windows 11، بالوضع الفاتح أو الداكن وبألوان تختارها
 - اختصارات قابلة للتغيير، وCtrl+Alt للإيقاف والتشغيل
@@ -43,6 +43,15 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 - واجهة عربية وإنجليزية، ومفتوح المصدر (MIT)
 
 **كلمات البحث** (7 على الأكثر): اتمام · اكمال الكلمات · اقتراح الكلمات · لوحة المفاتيح العربية · الكتابة بالعربي · التنبؤ بالنص · الكتابة التنبؤية
+
+**ما الجديد في 2.0:**
+
+- عدة لغات: يتبع إتمام تخطيط لوحة المفاتيح، فيقترح بلغة ما تكتبه.
+- قاموس إنجليزي بنحو 300 ألف كلمة، مع الاختصارات (don't، I'm) وحالة الأحرف، وعبارات وأخطاء شائعة.
+- أي لغة أبجدية أخرى (العبرية، الفرنسية، الروسية…) تفعّلها فيتعلّم كلماتها وعباراتها من كتابتك.
+- صفحة «اللغات» في الإعدادات، واختيار اللغة في «كلماتي» و«عباراتي».
+- الاختصارات النصية و«عباراتي» بأي لغة.
+- يصمت مع محرّرات الإدخال (الصينية، اليابانية، الكورية).
 
 **ما الجديد في 1.3:**
 
@@ -92,9 +101,9 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 
 **Description:**
 
-Itmam suggests Arabic words as you type on your keyboard, in any Windows app, like the suggestions on a phone: a small bar above the caret shows the closest words to what you started typing, and Tab inserts the one you want.
+Itmam suggests words as you type on your keyboard, in any Windows app, in Arabic, English and other languages, like the suggestions on a phone: a small bar above the caret shows the closest words to what you started typing, and Tab inserts the one you want.
 
-It works in Notepad, Word, browsers and most apps, with an Arabic dictionary of about 880,000 words, and learns your own words so the ones you use most come first.
+It works in Notepad, Word, browsers and most apps, with an Arabic dictionary of about 880,000 words and an English one of about 300,000, and learns your own words so the ones you use most come first, in any other alphabetic language you turn on too.
 
 It also saves you repeated typing: it completes well-known phrases, turns your shortcuts into full text, and inserts long replies of several lines, such as support answers, with one shortcut.
 
@@ -103,6 +112,7 @@ Your privacy first. Itmam sends no data: no statistics, no crash reports. Its on
 **Features** (up to 20):
 - Instant suggestions as you type, in any app
 - A dictionary of about 880,000 words from everyday Arabic and Arabic Wikipedia, or the lighter basic one
+- Several languages: follows your keyboard, with a full English dictionary, and learns any other alphabetic language you turn on
 - Learns your words and puts the ones you use most first
 - Understands writing without hamza: «احمد» finds «أحمد»
 - Fixes common mistakes: «لاكن» → «لكن», «انشاءالله» → «إن شاء الله»
@@ -111,8 +121,7 @@ Your privacy first. Itmam sends no data: no statistics, no crash reports. Its on
 - Text shortcuts: type «ع1» and it offers «السلام عليكم ورحمة الله وبركاته»
 - Long phrases of several lines with variables (customer name, today's date), such as support replies, chosen with a shortcut in any app
 - Continues a word from the middle after a click or Backspace
-- Tab to insert, Ctrl + a number for the others, or choose with the arrow keys
-- Backspace right after inserting undoes it
+- Tab to insert, Ctrl + a number or the arrow keys for the others; Backspace right after undoes it
 - Right-click a suggestion: delete it, block the word, or add the phrase to your phrases
 - A Windows 11 style bar, light or dark, in the colors you choose
 - Configurable shortcuts; Ctrl+Alt turns it off and on
@@ -123,6 +132,15 @@ Your privacy first. Itmam sends no data: no statistics, no crash reports. Its on
 - Arabic and English interface; open source (MIT)
 
 **Search terms** (7 max): Arabic keyboard · Arabic word prediction · Arabic autocomplete · predictive text · word suggestions · Arabic typing · اتمام
+
+**What's new in 2.0:**
+
+- Several languages: Itmam follows your keyboard layout and suggests in the language you are typing.
+- An English dictionary of about 300,000 words, with contractions (don't, I'm), letter case, phrases and common mistakes.
+- Any other alphabetic language (Hebrew, French, Russian …) you turn on: Itmam learns its words and phrases from your typing.
+- A "Languages" page in Settings, and a language choice in "My words" and "My phrases".
+- Text shortcuts and "My phrases" in any language.
+- Silent with input method editors (Chinese, Japanese, Korean).
 
 **What's new in 1.3:**
 
@@ -192,18 +210,21 @@ display the developer's own learned words. Shots 5 and 6 (1.1) use sample data (
 
 Paste into Partner Center → Submission options → Notes for certification.
 
-> **What Itmam does.** Itmam is an Arabic word-prediction app for the physical keyboard. While the user types with an
-> Arabic keyboard layout, it shows a small suggestion bar above the caret; Tab (or a click) inserts the chosen word.
+> **What Itmam does.** Itmam is a word-prediction app for the physical keyboard (Arabic and English dictionaries; other
+> alphabetic languages learn from the user's typing once turned on). While the user types with a keyboard layout of a
+> language turned on, it shows a small suggestion bar above the caret; Tab (or a click) inserts the chosen word.
 > It runs in the notification area (tray); click the tray icon (either button) and choose Settings.
 >
 > **How to test.** Add an Arabic keyboard layout (Settings → Time & language → Language & region → Arabic), switch to
 > it, open Notepad and type «مرح»: a bar with word suggestions appears above the caret, and Tab inserts the first
-> one. With an English layout Itmam does nothing.
+> one. With an English layout, type "hel": the bar offers "help", "hello" … Settings → Languages lists the keyboard
+> languages and turns them on or off.
 >
 > **Why runFullTrust and a global keyboard hook.** Word prediction must see the keys typed in other apps, which is only
 > possible with a low-level keyboard hook (`SetWindowsHookEx(WH_KEYBOARD_LL)`) in a full-trust desktop process;
 > inserting the chosen word uses `SendInput`; the caret position and the word around it are read with UI Automation.
-> - Keys are tracked only while the foreground window uses an Arabic layout.
+> - Keys are tracked only while the foreground window uses a layout of a language turned on (Arabic and English by
+>   default); never with input method editors (Chinese, Japanese, Korean).
 > - Nothing typed is logged or sent anywhere; the app has no network capability. Its only online request is the
 >   update check through `Windows.Services.Store.StoreContext` (Store service; can be turned off in Settings → Updates).
 > - Only word → use count / last use is stored, locally (`%LOCALAPPDATA%\Itmam\user.db`), plus 2–5-word sequences

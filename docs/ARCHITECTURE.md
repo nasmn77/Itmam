@@ -45,14 +45,14 @@
 
 1. تتجاهل الأحداث المُرسَلة برمجيًا (`LLKHF_INJECTED`)، فالنص الذي يكتبه إتمام نفسه عبر `SendInput` لا يعود إليه أبدًا. تعالج ضغط المفتاح (`WM_KEYDOWN` / `WM_SYSKEYDOWN`)، وإفلاته فقط لسببين: إخفاء إفلات مفتاح ابتُلع ضغطه، واختصار المفاتيح المعدِّلة وحدها (Ctrl+Alt).
 2. تقرأ حالة المفاتيح المعدِّلة (`GetAsyncKeyState`، `LLKHF_ALTDOWN`)، ثم تقرر عبر `HotkeyInterceptor` هل المفتاح اختصار لإتمام (انظر «قبول اقتراح»)، ثم تصنّف المفتاح عبر `KeyClassifier` (منطق خالص مختبَر): المفاتيح المعدِّلة تُتجاهل، وBackspace وCtrl+Backspace وEsc والتنقل وDelete واختصارات Ctrl/Alt/Win واللصق تصبح أحداثًا.
-3. مفاتيح الكتابة تُترجم بـ `ToUnicodeEx` بلغة النافذة التي لها تركيز لوحة المفاتيح (`KeyboardLayouts.ForegroundLayout` عبر `GetGUIThreadInfo`، لتصحّ في تطبيقات UWP والطرفيات)، مع العلَم `0x4` حتى لا تتغير حالة لوحة المفاتيح في التطبيق المستهدف ولا المفاتيح الميتة.
+3. مفاتيح الكتابة تُترجم بـ `ToUnicodeEx` بلغة النافذة التي لها تركيز لوحة المفاتيح (`KeyboardLayouts.ForegroundLayout` عبر `GetGUIThreadInfo`، لتصحّ في تطبيقات UWP والطرفيات)، مع العلَم `0x4` حتى لا تتغير حالة لوحة المفاتيح في التطبيق المستهدف ولا المفاتيح الميتة. من الإصدار 2.0: المفتاح الميت (´ ^ ¨ …) يصبح حدث `DeadKey`، لأن التطبيق يركّبه مع المفتاح التالي («é») ولا يرى الخطاف ذلك، فتُفصل الكلمة ثم تُقرأ من التطبيق؛ والمفتاح الذي يأخذه محرّر إدخال (`VK_PROCESSKEY`) يصبح حدث `InputMethod`.
 4. تكتب حدثًا (النوع، واللغة، والوقت) في القناة وتعود. لا تخصيص ذاكرة لكل ضغطة سوى خانة القناة، ولا انتظار. لا يُبتلع إلا اختصار لإتمام والشريط ظاهر، أو اختصار التشغيل والإيقاف إن كان بمفتاح.
 
 دالة الفأرة تبلّغ عن النقرات فقط (وتسجّل أن الخطاف حيّ مع كل حركة). وأحداث WinEvent تبلّغ عن تغيّر النافذة الأمامية والتركيز.
 
 #### تتبّع الكلمة
 
-`InputTracker` يعيد ضبط الكلمة عند تغيّر لغة لوحة المفاتيح، ولا يتتبع شيئًا إطلاقًا ما دامت اللغة غير عربية (اللغة الأساسية `0x01` في الكلمة الدنيا من HKL)، فالكتابة بالإنجليزية لا تُخزَّن أبدًا. الأحداث التي تأتي بلغة «غير معروفة» (القيمة 0، مثل إعادة تشغيل إتمام) تُبقي اللغة الحالية. و`WordBuffer` يطبّق قواعد `PROMPT.md` §4 ولا يُصدر *Committed* إلا عند حدّ كلمة.
+`InputTracker` يعيد ضبط الكلمة عند تغيّر لغة لوحة المفاتيح، ويحدد `LanguageRegistry` لغة التخطيط من الكلمة الدنيا في HKL (انظر «تعدد اللغات»). لا يتتبع شيئًا إطلاقًا ما دامت اللغة غير مدعومة (محرّرات الإدخال …) أو غير مفعّلة في الإعدادات، فكتابتها لا تُخزَّن أبدًا. الأحداث التي تأتي بلغة «غير معروفة» (القيمة 0، مثل إعادة تشغيل إتمام) تُبقي اللغة الحالية. و`WordBuffer` يطبّق قواعد `PROMPT.md` §4 ولا يُصدر *Committed* إلا عند حدّ كلمة.
 
 #### سياق المؤشر (انتقل المؤشر إلى نص موجود)
 
@@ -149,12 +149,16 @@
                 On exit/log-off the pending word is final.
         ▼
  LearningService.Learn(word)    (Core)
-    skip if paused, < 2 letters or not Arabic; tashkeel removed
-    skip if on data/blocklist.txt and not already added by the user (manual adds are respected)
+    skip if paused, < 2 letters or not a word of its language; tashkeel/niqqud removed
+    skip if on the language's blocklist (data/blocklist.txt, data/blocklist.en.txt) and not already
+    added by the user (manual adds are respected)
     UserWordIndex.RecordUse → count + 1, last-used = now
         ▼  (2 s after the last change, and on exit / log-off)
  SqliteUserWordStore  %LOCALAPPDATA%\Itmam\user.db   (MSIX: redirected to the package's private folder)
-    table words(word TEXT PRIMARY KEY, count INTEGER, last_used INTEGER, blocked INTEGER)
+    table words(lang TEXT, word TEXT, count INTEGER, last_used INTEGER, blocked INTEGER,
+                PRIMARY KEY(lang, word))          (schema 4, from 2.0; phrases are keyed by lang too)
+    A 1.x database is first copied to user.db.v3-backup (VACUUM INTO), then migrated in one
+    transaction: every word and phrase becomes Arabic ('ar').
     WAL journal: committed transactions survive crashes. A corrupt file is renamed
     user.db.corrupt-<timestamp> (kept) and a fresh database is created.
 ```
@@ -187,6 +191,18 @@
 
 حين تنتهي كلمة، يكوّن `RecentWords.SequencesEndingWith` التسلسلات من كلمتين إلى 5 التي تنتهي بها (بالتهجئة المكتوبة، بلا تشكيل). وتبقى معلّقة مع الكلمة: إن تلاها Backspace أُسقطت معها، وإلا أرسلتها `PipelineUpdate.PhrasesToLearn`. ثم يعدّها `LearningService.LearnPhrases` في جدول `phrases` في `user.db` (المفتاح المطبّع ← آخر تهجئة، والعدد، ووقت آخر كتابة). وما بلغ مرتين يصير عبارة متعلَّمة. لا يُعدّ شيء أثناء إيقاف التعلّم أو إطفاء «تعلّم العبارات»، ولا ما فيه كلمة أقل من حرفين أو كلمة محظورة، ولا شيء في النوافذ الصامتة (لا يرى المسار فيها شيئًا). التنظيف عند البدء ومرة كل يوم: يُحذف ما لم يُتعلَّم ولم يُكتب منذ 30 يومًا. والحدود 20,000 تسلسل غير متعلَّم و2,000 عبارة متعلَّمة، ويُحذف الأقدم استعمالًا أولًا. `LearnedPhrases()` يرتّبها بالأكثر استعمالًا، ويترك العبارة التي تحتويها عبارة متعلَّمة أطول مكتوبة بقدرها تقريبًا (¾ عددها على الأقل). يضع `ItmamApp.UpdatePhrases` في `PhraseIndex` «عباراتي» ثم المتعلَّمة ثم المضمّنة، ويعيد بناءه عند `LearnedPhrasesChanged` على خيط المسار قبل حساب الشريط. والنقر بالزر الأيمن على عبارة في الشريط ينساها (`ForgetPhrase`). وفي صفحة «عباراتي»: القائمة، والحذف، والنقل إلى «عباراتي»، و«حذف العبارات المتعلَّمة» (مع كل التسلسلات المعدودة). وحين يُقرأ السياق قبل المؤشر (بعد حدث تركيز أو نقرة…) يعيد `RecentWords.ResumeFrom` بناء الكلمات المتتالية من النص المقروء، فلا تضيع عبارة كُتبت قبل اكتمال القراءة.
 
+### تعدد اللغات (من الإصدار 2.0)
+
+كل ما يخص اللغة في `Itmam.Core/Languages`. `LanguageProfile` يحدد حروف الكلمة، والعلامات التي يُتسامح فيها (التشكيل، النِّقود)، وطيّ الحروف للمطابقة (حرف مقابل حرف، وهو شرط `PrefixCandidateCache`)، والسوابق، والكلمات الشائعة التي لا تبدأ بها عبارة، ومفاتيح قائمة الحظر، وحالة الأحرف. وكل الأصناف التي تتعامل مع النص تسأله: `WordBuffer`، و`RecentWords`، و`UserWordIndex`، و`WordDictionary`، و`SuggestionEngine`، و`PhraseIndex`، و`Corrections`، و`Blocklist`. واختبار يمنع استدعاء `ArabicText`/`ArabicNormalizer` مباشرة خارج هذه الطبقة، ولقطات ذهبية (`tests/Itmam.Core.Tests/Golden`) تثبت أن نتائج العربية لم تتغير.
+
+| المستوى | اللغات | ما يقترحه إتمام |
+|---|---|---|
+| كامل | العربية (`ArabicLanguage`)، الإنجليزية (`EnglishLanguage`) | قاموس مشحون، وعبارات مشحونة، وأخطاء شائعة، وقائمة حظر |
+| تعلّم فقط | أي لغة أبجدية أخرى (`LearningOnlyLanguage`: حروف Unicode، والعلامات غير المتباعدة يُتسامح فيها، وحالة الأحرف تُطوى) | ما كتبه المستخدم بها من كلمات وعبارات، و«عباراتي»، والاختصارات النصية |
+| غير مدعوم | محرّرات الإدخال (الصينية، اليابانية، الكورية…)، واللغات بلا مسافات (التايلاندية…)، والهندية وما شابهها | لا شيء: يصمت |
+
+`LanguageRegistry` يحوّل HKL أو LANGID إلى ملف شخصي (الوسم من `CultureInfo`، والاتجاه من `TextInfo.IsRightToLeft`، وملف واحد لكل لغة). `PipelineUpdate.Language` لغة ما يُكتب، و`LearnLanguage` لغة الكلمة التي صارت نهائية (قد يتغير التخطيط بينهما). `ItmamApp.SuggestionsFor` يبني لكل لغة محركها وعباراتها عند أول استعمال (الإنجليزية عند البدء إن كانت مفعّلة: `data/itmam-en.dict`). اتجاه الشريط وجهة المؤشر يتبعان اللغة. `LearningService` يحفظ لكل لغة فهرسها وعباراتها وقائمة حظرها تحت قفل واحد؛ والتصدير يضع كلمات اللغات الأخرى بعد سطر `# language: <tag>`؛ والنسخة الاحتياطية بالصيغة 2 تضيف `learned-phrases-<tag>.txt`. الإنجليزية: الفاصلة العليا داخل الكلمة (`IsInnerMark`)، والاقتراح بحالة أحرف ما يُكتب (`MatchCase`). ملف القاموس بالصيغة 2 يحفظ وسم اللغة لغير العربية؛ ملفات العربية بقيت بالصيغة 1.
+
 ### أين يصمت إتمام
 
 يُفحص `ForegroundGuard` (في Win32، وينفّذ `IInputGuard` من Core) كلما احتمل تغيّر النافذة أو الحقل أو المؤشر. وما دام يبلّغ عن سبب، لا يتتبع خط المعالجة شيئًا ولا يقرأ ولا يعرض ولا يتعلّم:
@@ -197,7 +213,8 @@
 | تطبيق بصلاحيات مسؤول | مستوى السلامة الإلزامي للعملية الأمامية أعلى من مستوانا (أو تعذّرت قراءته) |
 | تطبيق مستثنى | اسم العملية في `ExcludedApps` |
 | ملء الشاشة | `SHQueryUserNotificationState`: ملء شاشة حصري لـ Direct3D أو وضع العرض التقديمي |
-| محررات الإدخال واللغات الأخرى | لا يُتتبع إلا تخطيط لوحة مفاتيح عربي |
+| محرّر إدخال | تخطيطات الصينية واليابانية والكورية… غير مدعومة؛ ومفتاح أخذه محرّر إدخال (`VK_PROCESSKEY`) يُسكت إتمام حتى يتغير السياق (قرار المستخدم 2.0 بدل سؤال IMM) |
+| لغة غير مفعّلة | `EnabledLanguages` في الإعدادات |
 
 ### التطبيق قرب الساعة والإعدادات
 
@@ -218,7 +235,7 @@
 - السؤال الوحيد الذي يخرج من الجهاز هو سؤال متجر Microsoft عن وجود إصدار أحدث (`StoreUpdates`، قابل للإطفاء)، ولا يحمل شيئًا عن المستخدم أو عما يكتبه.
 - لا يكتب أي مسار في الشيفرة حروفًا في سجل أو ملف أو شبكة. قائمة الأحداث في نافذة التشخيص تعرض *أنواع* الأحداث وأزمنتها فقط (الحروف تظهر بصيغة `Character (letter)`).
 - تشخيص الخطافات (`HookDiagnostics`) عدّادات وأزمنة فقط.
-- الكلمات المتعلَّمة تُحفظ بصيغة «الكلمة ← العدد / آخر استعمال» فقط (انظر «التعلّم والتخزين»)، ولا تُنسخ إلى أي مكان إلا بتصدير يختاره المستخدم إلى ملف يختاره.
+- الكلمات المتعلَّمة تُحفظ بصيغة «الكلمة ← العدد / آخر استعمال» فقط، مع وسم لغتها من الإصدار 2.0 (انظر «التعلّم والتخزين»)، ولا تُنسخ إلى أي مكان إلا بتصدير يختاره المستخدم إلى ملف يختاره.
 
 </div>
 
@@ -272,7 +289,9 @@ app can be audited for privacy. It is updated at the end of each phase.
 3. Typing keys are translated with `ToUnicodeEx` using the layout of the window that has keyboard
    focus (`KeyboardLayouts.ForegroundLayout`, via `GetGUIThreadInfo` so UWP apps and consoles
    report the right layout), with flag `0x4` so the target app's keyboard state and dead keys are
-   not changed.
+   not changed. From 2.0 a dead key (´ ^ ¨ …) becomes a `DeadKey` event: the app combines it with
+   the next key («é»), which the hook cannot see, so the word is detached and read from the app.
+   A key taken by an input method editor (`VK_PROCESSKEY`) becomes an `InputMethod` event.
 4. Writes an event (kind, layout, timestamp) to the channel and returns. No allocation per
    keystroke apart from the channel slot; nothing blocks. Only an Itmam shortcut while the bar is
    shown, or a key-based on/off shortcut, is swallowed.
@@ -282,9 +301,10 @@ mouse move). WinEvents report foreground and focus changes.
 
 #### Word tracking
 
-`InputTracker` resets the word whenever the keyboard layout changes and tracks nothing at all
-while the layout is not Arabic (primary language `0x01` of the HKL low word), so English typing is
-never buffered. Events raised with an unknown layout (0, e.g. Itmam turned back on) keep the
+`InputTracker` resets the word whenever the keyboard layout changes; `LanguageRegistry` gives the
+layout's language from the HKL low word (see "Multiple languages"). Nothing at all is tracked while
+that language is unsupported (input method editors …) or not turned on in Settings, so its typing
+is never buffered. Events raised with an unknown layout (0, e.g. Itmam turned back on) keep the
 current layout. `WordBuffer` applies the rules in `PROMPT.md` §4 and emits *Committed* only on a
 word boundary.
 
@@ -440,12 +460,16 @@ refuses keys that type text, editing keys, common Windows shortcuts, duplicates 
                 On exit/log-off the pending word is final.
         ▼
  LearningService.Learn(word)    (Core)
-    skip if paused, < 2 letters or not Arabic; tashkeel removed
-    skip if on data/blocklist.txt and not already added by the user (manual adds are respected)
+    skip if paused, < 2 letters or not a word of its language; tashkeel/niqqud removed
+    skip if on the language's blocklist (data/blocklist.txt, data/blocklist.en.txt) and not already
+    added by the user (manual adds are respected)
     UserWordIndex.RecordUse → count + 1, last-used = now
         ▼  (2 s after the last change, and on exit / log-off)
  SqliteUserWordStore  %LOCALAPPDATA%\Itmam\user.db   (MSIX: redirected to the package's private folder)
-    table words(word TEXT PRIMARY KEY, count INTEGER, last_used INTEGER, blocked INTEGER)
+    table words(lang TEXT, word TEXT, count INTEGER, last_used INTEGER, blocked INTEGER,
+                PRIMARY KEY(lang, word))          (schema 4, from 2.0; phrases are keyed by lang too)
+    A 1.x database is first copied to user.db.v3-backup (VACUUM INTO), then migrated in one
+    transaction: every word and phrase becomes Arabic ('ar').
     WAL journal: committed transactions survive crashes. A corrupt file is renamed
     user.db.corrupt-<timestamp> (kept) and a fresh database is created.
 ```
@@ -534,6 +558,33 @@ move to "My phrases", and "Delete learned phrases" (with every sequence counted)
 read (after a focus event, a click…), `RecentWords.ResumeFrom` rebuilds the words in a row from that text, so a phrase
 typed before the read finished still counts.
 
+### Multiple languages (from 2.0)
+
+Everything language-specific lives in `Itmam.Core/Languages`. A `LanguageProfile` says which
+characters make a word, which marks are ignored for matching (tashkeel, niqqud), how characters fold
+for matching (one for one, which `PrefixCandidateCache` relies on), the clitics, the words too common
+to start a phrase, the blocklist keys and letter case. Every text path asks it: `WordBuffer`,
+`RecentWords`, `UserWordIndex`, `WordDictionary`, `SuggestionEngine`, `PhraseIndex`, `Corrections`,
+`Blocklist`. A test forbids calling `ArabicText`/`ArabicNormalizer` directly outside this layer, and
+golden snapshots (`tests/Itmam.Core.Tests/Golden`) prove the Arabic results did not change.
+
+| Level | Languages | What Itmam suggests |
+|---|---|---|
+| Full | Arabic (`ArabicLanguage`), English (`EnglishLanguage`) | Shipped dictionary, shipped phrases, common mistakes, blocklist |
+| Learning only | Any other alphabetic language (`LearningOnlyLanguage`: Unicode letters, non-spacing marks ignored, case folded) | The words and phrases the user typed in it, My phrases, text shortcuts |
+| Unsupported | Input method editors (Chinese, Japanese, Korean …), languages without spaces (Thai …), Hindi and similar scripts | Nothing: silent |
+
+`LanguageRegistry` maps an HKL or LANGID to a profile (tag from `CultureInfo`, direction from
+`TextInfo.IsRightToLeft`, one profile per language). `PipelineUpdate.Language` is the language being
+typed; `LearnLanguage` the language of the word that became final (the layout may have changed in
+between). `ItmamApp.SuggestionsFor` builds each language's engine and phrases on first use (English
+at start-up when it is on: `data/itmam-en.dict`). The bar's direction and caret side follow the
+language. `LearningService` keeps an index, phrases and blocklist per language under one lock; the
+export puts other languages' words after a `# language: <tag>` line; full backup format 2 adds
+`learned-phrases-<tag>.txt`. English: the apostrophe inside a word (`IsInnerMark`), suggestions in
+the case being typed (`MatchCase`). Dictionary file format 2 records the language tag for languages
+other than Arabic; the Arabic files stay in format 1.
+
 ### Where Itmam is silent
 
 `ForegroundGuard` (Win32, implements Core `IInputGuard`) is checked whenever the window, field or
@@ -546,7 +597,8 @@ nothing:
 | Elevated app | Mandatory integrity level of the foreground process above ours (or unreadable) |
 | Excluded app | Process name in `ExcludedApps` |
 | Full screen | `SHQueryUserNotificationState`: Direct3D exclusive full screen or presentation mode |
-| IME / other languages | Only Arabic keyboard layouts are ever tracked |
+| Input method editor | Chinese, Japanese, Korean … layouts are unsupported; a key taken by an IME (`VK_PROCESSKEY`) silences Itmam until the context changes (user decision 2.0, instead of an IMM query) |
+| Language turned off | `EnabledLanguages` in Settings |
 
 ### Tray app and settings
 
@@ -593,5 +645,6 @@ nothing:
 - No code path writes characters to a log, file, or the network. The diagnostics window's event list
   shows event *kinds* and latencies only (letters are shown as `Character (letter)`).
 - Hook diagnostics (`HookDiagnostics`) are counters and timings only.
-- Learned words are stored as word → count / last use only (see "Learning and storage") and are
-  copied nowhere except by an export the user chooses, to a file the user picks.
+- Learned words are stored as word → count / last use only, with their language tag from 2.0 (see
+  "Learning and storage"), and are copied nowhere except by an export the user chooses, to a file
+  the user picks.
