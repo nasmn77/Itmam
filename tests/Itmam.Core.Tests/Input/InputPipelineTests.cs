@@ -211,6 +211,27 @@ public sealed class InputPipelineTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task After_a_dead_key_the_word_is_read_from_the_app()
+    {
+        _pipeline.Tracker.EnabledLanguages = new HashSet<string> { "ar", "fr" };
+        const nint french = 0x040C040C;
+        void SendFrench(InputEvent input) => _channel.Writer.TryWrite(new InputRecord(input, french, Stopwatch.GetTimestamp()));
+        _context.Next = "";
+        SendFrench(InputEvent.Of(InputEventKind.FocusChanged));
+        await WaitForProbeAsync();
+        foreach (var c in "caf")
+        {
+            SendFrench(InputEvent.Char(c));
+        }
+
+        _context.Next = "café";
+        SendFrench(InputEvent.Of(InputEventKind.DeadKey));
+        SendFrench(InputEvent.Char('e')); // what the hook sees; the app wrote «é»
+
+        (await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedWithWord)).Word.ShouldBe("café");
+    }
+
+    [Fact]
     public async Task An_input_method_key_silences_until_the_context_changes()
     {
         Type("كت");
