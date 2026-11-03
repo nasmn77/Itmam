@@ -84,9 +84,9 @@
 
 ```
  InputPipeline.Updated (pipeline thread)
-        │  Arabic layout, not detached, ≥ MinChars letters, not silenced, Itmam enabled
+        │  a language turned on, not detached, ≥ MinChars letters, not silenced, Itmam enabled
         ▼
- SuggestionEngine.Suggest(word)            (Core; < 0.1 ms with the prefix cache; under LearningService.SyncRoot)
+ SuggestionEngine.Suggest(word) of that language (Core; < 0.1 ms with the prefix cache; under LearningService.SyncRoot)
         │
         ▼
  SuggestionController (one request at a time; stale keystrokes are dropped)
@@ -375,9 +375,9 @@ typed meanwhile; after Backspace, or if letters were typed, it waits for the nex
 
 ```
  InputPipeline.Updated (pipeline thread)
-        │  Arabic layout, not detached, ≥ MinChars letters, not silenced, Itmam enabled
+        │  a language turned on, not detached, ≥ MinChars letters, not silenced, Itmam enabled
         ▼
- SuggestionEngine.Suggest(word)            (Core; < 0.1 ms with the prefix cache; under LearningService.SyncRoot)
+ SuggestionEngine.Suggest(word) of that language (Core; < 0.1 ms with the prefix cache; under LearningService.SyncRoot)
         │
         ▼
  SuggestionController (one request at a time; stale keystrokes are dropped)

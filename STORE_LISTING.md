@@ -182,7 +182,7 @@ Your privacy first. Itmam sends no data: no statistics, no crash reports. Its on
 
 **Release notes 1.0.0:** First release.
 
-**Requirements:** an Arabic keyboard layout added in Windows.
+**Requirements:** an Arabic or English keyboard layout (or another language turned on in Itmam) added in Windows.
 
 ## Links and contact (both languages)
 
