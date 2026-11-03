@@ -49,12 +49,12 @@ Shortcuts can be changed in Settings → "Keyboard shortcuts".
 Click the Itmam icon next to the clock (right or left button) and choose "Settings":
 
 - **General:** start with Windows, number of suggestions, letters before they appear.
-- **Languages:** the interface language, the keyboard languages on your PC and what Itmam does with each, turning them on or off, and the Arabic
-  and English dictionaries (basic or Wikipedia).
+- **Languages:** the interface language, the keyboard languages on your PC and what Itmam does with each, turning them on or off (a
+  language turned off frees its dictionary from memory at once), and the Arabic and English dictionaries (basic or Wikipedia).
 - **Appearance:** theme, bar, text and selection colors, opacity, text size, with a live preview.
 - **Shortcuts:** record a new shortcut by pressing it; shortcuts that would break typing or Windows shortcuts are refused.
 - **Excluded apps:** programs where Itmam stays completely silent.
-- **My words:** add, edit, block and delete words, import and export, delete all, one language at a time.
+- **My words:** add, edit, block and delete words, import from any text file (its words are taken and suggested at once; the text is not kept), export, delete all, one language at a time.
 - **My phrases:** turn phrase suggestions and phrase learning on or off, "My phrases" (with import and export), and the learned phrases (delete, move to "My phrases", delete all).
 - **Text shortcuts:** add a shortcut («ع1») and its text, edit, delete, import and export.
 - **Long phrases:** add a phrase with its name and text (up to 4,000 characters, several lines), "Insert variable…", edit, delete, import and export.
