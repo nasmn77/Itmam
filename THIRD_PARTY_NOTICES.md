@@ -25,7 +25,22 @@
 - الرخصة: المشاع الإبداعي، نسب المصنف – الترخيص بالمثل 4.0 الدولية (CC-BY-SA-4.0).
 - التعديلات: عُدّت الكلمات العربية في نص المقالات بعد حذف القوالب والمراجع والجداول والوسوم والتشكيل (الأداة `tools/DictionaryBuilder/wiki-counts.py`)، ثم دُمجت مع تكرارات FrequencyWords بالأداة نفسها التي تبني القاموس المضمّن.
 
-يُضمَّن هذا القاموس في التطبيق بجانب الأساسي، ويختار المستخدم أحدهما من الإعدادات ← «عام». وهو مُعدَّل عن هذه المادة وعن FrequencyWords، ولذلك رخصته **CC-BY-SA-4.0**.
+يُضمَّن هذا القاموس في التطبيق بجانب الأساسي، ويختار المستخدم أحدهما من الإعدادات ← «اللغات». وهو مُعدَّل عن هذه المادة وعن FrequencyWords، ولذلك رخصته **CC-BY-SA-4.0**.
+
+#### FrequencyWords — تكرار الكلمات الإنجليزية (داخل `data/itmam-en.dict`، من الإصدار 2.0)
+
+- المؤلف والمصدر والرخصة كما في القسم العربي أعلاه: القائمة الإنجليزية `content/2018/en/en_full.txt` من المشروع نفسه (الـ commit `525f9b560de45753a5ea01069454e72e9aa541c6`)، برخصة CC-BY-SA-4.0.
+- التعديلات: أُعيد تركيب الاختصارات التي فصلها المصدر عند الفاصلة العليا (`don` + `'t` ← `don't`، وتكرارات بعضها تقديرية)، وكُتب `i` بحرف كبير، ثم تصفية (حروف لاتينية فقط، وطول من 2 إلى 25، وتكرار 5 على الأقل، وحذف الكلمات المحظورة)، ودمج الصور المختلفة للكلمة، وإعادة الترميز. التفاصيل في `data/README.md`.
+
+ملف القاموس `data/itmam-en.dict` مُعدَّل عن هذه المادة، ولذلك رخصته **CC-BY-SA-4.0**.
+
+#### ويكيبيديا الإنجليزية (القاموس الإنجليزي الثاني `data/itmam-en-wikipedia.dict`، من الإصدار 2.0)
+
+- المصدر: نصوص مقالات ويكيبيديا الإنجليزية من ملف النسخ العام (https://dumps.wikimedia.org/enwiki/، نسخة 2026-10-01)، من تأليف محرري ويكيبيديا.
+- الرخصة: المشاع الإبداعي، نسب المصنف – الترخيص بالمثل 4.0 الدولية (CC-BY-SA-4.0).
+- التعديلات: عُدّت الكلمات في نص المقالات بعد حذف القوالب والمراجع والجداول والوسوم (الأداة `tools/DictionaryBuilder/wiki-counts-en.py`)، دون صيغ الملكية، ثم دُمجت مع تكرارات FrequencyWords الإنجليزية.
+
+يُضمَّن بجانب القاموس الإنجليزي الأساسي وهو الافتراضي، ويختار المستخدم أحدهما من الإعدادات ← «اللغات». رخصته **CC-BY-SA-4.0**.
 
 #### مصادر قائمة الحظر (`data/blocklist.txt`)
 
@@ -33,6 +48,10 @@
 
 - **List of Dirty, Naughty, Obscene, and Otherwise Bad Words — القائمة العربية (`ar`)**: من المساهمين في مشروع LDNOOBW، برخصة المشاع الإبداعي نسب المصنف 4.0 الدولية (CC-BY-4.0). التعديلات: اختيرت بعض الكلمات فقط، واستُبعدت المفردات العادية والطبية والقانونية والإخبارية.
 - **Arabic Bad & Dirty Word Filter List**: من UXBERT، برخصة MIT. حقوق النشر (c) 2017 UXBERT. نص الرخصة كاملًا في القسم الإنجليزي.
+
+#### مصدر قائمة الحظر الإنجليزية (`data/blocklist.en.txt`، من الإصدار 2.0)
+
+- **List of Dirty, Naughty, Obscene, and Otherwise Bad Words — القائمة الإنجليزية (`en`)**: من المساهمين في مشروع LDNOOBW، © 2012–2020 Shutterstock, Inc.، برخصة CC-BY-4.0 (الـ commit `5faf2ba42d7b1c0977169ec3611df25a3c08eb13`). التعديلات: اختار المطوّر الشتائم العنصرية والألفاظ النابية والمصطلحات الإباحية فقط، واستُبعدت المفردات العادية والطبية والقانونية والإخبارية والكلمات التي لها معنى عادي شائع.
 
 ### المكتبات المضمَّنة في التطبيق
 
@@ -83,8 +102,30 @@ licensed under **CC-BY-SA-4.0**. The Itmam program code is not affected and rema
   tashkeel (`tools/DictionaryBuilder/wiki-counts.py`), then merged with the FrequencyWords counts by the same tool that
   builds the shipped dictionary.
 
-This dictionary ships with the app next to the basic one; the user chooses one in Settings → General. It is
+This dictionary ships with the app next to the basic one; the user chooses one in Settings → Languages. It is
 adapted from this material and FrequencyWords, so it is licensed under **CC-BY-SA-4.0**.
+
+#### FrequencyWords — English word frequencies (shipped in `data/itmam-en.dict`, from 2.0)
+
+- Author, source and license as for the Arabic list above: the English list `content/2018/en/en_full.txt` of the same
+  project (commit `525f9b560de45753a5ea01069454e72e9aa541c6`), CC-BY-SA-4.0.
+- Changes made: contractions the source split at the apostrophe were put back together (`don` + `'t` → `don't`; some
+  counts are estimates), `i` written `I`, then filtered (Latin letters only, length 2–25, minimum count 5, blocklisted
+  words removed), spelling variants merged, re-encoded. See `data/README.md`.
+
+The dictionary file `data/itmam-en.dict` is an adaptation of this material and is therefore licensed under
+**CC-BY-SA-4.0**.
+
+#### English Wikipedia (second English dictionary `data/itmam-en-wikipedia.dict`, from 2.0)
+
+- Source: the text of English Wikipedia articles from the public dumps (https://dumps.wikimedia.org/enwiki/, dump of
+  2026-10-01), by Wikipedia contributors.
+- License: Creative Commons Attribution-ShareAlike 4.0 International (CC-BY-SA-4.0).
+- Changes made: words counted in the article text after removing templates, references, tables and tags
+  (`tools/DictionaryBuilder/wiki-counts-en.py`), possessives left out, then merged with the English FrequencyWords counts.
+
+It ships next to the basic English dictionary and is the default; the user chooses one in Settings → Languages. It is
+licensed under **CC-BY-SA-4.0**.
 
 #### Blocklist sources (`data/blocklist.txt`)
 
@@ -122,6 +163,15 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+#### English blocklist source (`data/blocklist.en.txt`, from 2.0)
+
+**List of Dirty, Naughty, Obscene, and Otherwise Bad Words — English (`en`)**
+- LDNOOBW project contributors, © 2012–2020 Shutterstock, Inc. — https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words
+  (commit `5faf2ba42d7b1c0977169ec3611df25a3c08eb13`)
+- License: Creative Commons Attribution 4.0 International (CC-BY-4.0) — https://creativecommons.org/licenses/by/4.0/
+- Changes made: the maintainer kept only slurs, profanity and porn slang; ordinary, medical, legal and news vocabulary
+  and words with a common ordinary meaning were removed.
 
 ### Libraries shipped in the app
 

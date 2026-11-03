@@ -5,6 +5,7 @@ using System.Reflection;
 using Itmam.App.Resources;
 using Itmam.App.Suggestions;
 using Itmam.Core.Input;
+using Itmam.Core.Languages;
 using Itmam.Core.Learning;
 using Itmam.Core.Presentation;
 using Itmam.Core.Settings;
@@ -17,6 +18,7 @@ namespace Itmam.App.SettingsUi;
 internal enum SettingsPage
 {
     General,
+    Languages,
     Appearance,
     Shortcuts,
     Excluded,
@@ -57,6 +59,7 @@ internal sealed class SettingsWindow : Form
     private string _excludedSearch = string.Empty; // kept when the page is rebuilt after add/remove
     private string _wordsFilter = string.Empty;
     private int _wordsSort;
+    private LanguageProfile _wordsLanguage = LanguageProfile.Arabic; // My words, and the learned phrases on My phrases
     private Label? _wordsHeader;
     private SearchBox? _wordsSearch;
     private WordList? _wordList;
@@ -190,7 +193,7 @@ internal sealed class SettingsWindow : Form
         _navigation.Controls.Add(header);
 
         var top = 72;
-        foreach (var (page, title) in new[] { (SettingsPage.General, Strings.NavGeneral), (SettingsPage.Appearance, Strings.NavAppearance), (SettingsPage.Shortcuts, Strings.NavShortcuts), (SettingsPage.Excluded, Strings.NavExcluded), (SettingsPage.Words, Strings.NavWords), (SettingsPage.Phrases, Strings.NavPhrases), (SettingsPage.TextShortcuts, Strings.NavTextShortcuts), (SettingsPage.LongPhrases, Strings.NavLongPhrases), (SettingsPage.Updates, Strings.NavUpdates), (SettingsPage.About, Strings.NavAbout), (SettingsPage.Exit, Strings.NavExit) })
+        foreach (var (page, title) in new[] { (SettingsPage.General, Strings.NavGeneral), (SettingsPage.Languages, Strings.NavLanguages), (SettingsPage.Appearance, Strings.NavAppearance), (SettingsPage.Shortcuts, Strings.NavShortcuts), (SettingsPage.Excluded, Strings.NavExcluded), (SettingsPage.Words, Strings.NavWords), (SettingsPage.Phrases, Strings.NavPhrases), (SettingsPage.TextShortcuts, Strings.NavTextShortcuts), (SettingsPage.LongPhrases, Strings.NavLongPhrases), (SettingsPage.Updates, Strings.NavUpdates), (SettingsPage.About, Strings.NavAbout), (SettingsPage.Exit, Strings.NavExit) })
         {
             var item = new NavItem { Text = title, Left = 8, Top = top, Width = _navigation.Width - 16, Height = 40, Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
             item.Click += (_, _) => SelectPage(page);
@@ -235,6 +238,9 @@ internal sealed class SettingsWindow : Form
         {
             case SettingsPage.General:
                 BuildGeneralPage();
+                break;
+            case SettingsPage.Languages:
+                BuildLanguagesPage();
                 break;
             case SettingsPage.Appearance:
                 BuildAppearancePage();
@@ -335,19 +341,6 @@ internal sealed class SettingsWindow : Form
         uses.SelectedIndexChanged += (_, _) => Update(s => s with { MinUsesToSuggest = uses.SelectedIndex + 1 });
         AddCard(Strings.MinUses, null, uses);
 
-        AddSection(Strings.SectionLanguage);
-        var language = new SegmentedChoice { Options = [Strings.LanguageArabic, Strings.LanguageEnglish] };
-        language.SelectedIndex = settings.Language == UiLanguage.Arabic ? 0 : 1;
-        language.SelectedIndexChanged += (_, _) => Update(s => s with { Language = language.SelectedIndex == 0 ? UiLanguage.Arabic : UiLanguage.English });
-        AddCard(Strings.UiLanguage, null, language);
-
-        // Two shipped dictionaries (user decision 1.1): the basic one, or the larger Wikipedia one.
-        AddSection(Strings.SectionDictionary);
-        var dictionary = new SegmentedChoice { Options = [Strings.DictionaryBasic, Strings.DictionaryWikipedia] };
-        dictionary.SelectedIndex = settings.UseWikipediaDictionary ? 1 : 0;
-        dictionary.SelectedIndexChanged += (_, _) => Update(s => s with { UseWikipediaDictionary = dictionary.SelectedIndex == 1 });
-        AddCard(Strings.DictionaryChoice, Strings.DictionaryChoiceHint, dictionary);
-
         // Full backup (user decision 1.1): one file to move everything to another PC.
         AddSection(Strings.SectionBackup);
         var backup = new ThemedButton { Text = Strings.BackupButton };
@@ -370,6 +363,150 @@ internal sealed class SettingsWindow : Form
         };
         AddCard(string.Format(CultureInfo.CurrentCulture, Strings.StatsSummary, usage.Completions, usage.CharactersSaved),
             string.Format(CultureInfo.CurrentCulture, Strings.StatsSince, usage.Since.ToLocalTime().DateTime), reset);
+    }
+
+    // User decisions 2.0: Itmam follows the keyboard layout. Arabic and English have dictionaries, other
+    // alphabetic languages learn from typing (off until turned on), input-method languages stay silent.
+    private void BuildLanguagesPage()
+    {
+        var settings = _app.Settings;
+        AddTitle(Strings.NavLanguages);
+        AddText(Strings.LanguagesIntro, secondary: true);
+
+        // The interface language lives here too (user decision 2.0), moved from General.
+        AddSection(Strings.SectionLanguage);
+        var uiLanguage = new SegmentedChoice { Options = [Strings.LanguageArabic, Strings.LanguageEnglish] };
+        uiLanguage.SelectedIndex = settings.Language == UiLanguage.Arabic ? 0 : 1;
+        uiLanguage.SelectedIndexChanged += (_, _) => Update(s => s with { Language = uiLanguage.SelectedIndex == 0 ? UiLanguage.Arabic : UiLanguage.English });
+        AddCard(Strings.UiLanguage, null, uiLanguage);
+
+        AddSection(Strings.SectionKeyboardLanguages);
+        var installed = KeyboardLayouts.Installed()
+            .Select(layout => (Tag: LanguageRegistry.ForLayout(layout)?.Id ?? TagOf(layout), Language: LanguageRegistry.ForLayout(layout)))
+            .DistinctBy(l => l.Tag)
+            .ToList();
+        var notInstalled = settings.EnabledLanguages
+            .Where(tag => installed.All(l => l.Tag != tag))
+            .Select(tag => (Tag: tag, Language: (LanguageProfile?)LanguageRegistry.ForTag(tag)));
+        foreach (var (tag, language) in installed.Concat(notInstalled).OrderBy(l => l.Tag switch { "ar" => 0, "en" => 1, _ => 2 }).ThenBy(l => l.Tag, StringComparer.Ordinal))
+        {
+            var description = LanguageRegistry.Support(language) switch
+            {
+                LanguageSupport.Full => Strings.LanguageFull,
+                LanguageSupport.LearningOnly => Strings.LanguageLearningOnly,
+                _ => Strings.LanguageUnsupported,
+            };
+            if (installed.All(l => l.Tag != tag))
+            {
+                description += " " + Strings.LanguageNoKeyboard;
+            }
+
+            var toggle = new ToggleSwitch { Checked = language is not null && settings.EnabledLanguages.Contains(tag), Enabled = language is not null };
+            toggle.CheckedChanged += (_, _) => Update(s => s with
+            {
+                EnabledLanguages = toggle.Checked ? [.. s.EnabledLanguages, tag] : [.. s.EnabledLanguages.Where(l => l != tag)],
+            });
+            AddCard(LanguageName(tag), description, toggle);
+        }
+
+        // Two shipped Arabic dictionaries (user decision 1.1): the basic one, or the larger Wikipedia one.
+        AddSection(Strings.SectionDictionary);
+        var dictionary = new SegmentedChoice { Options = [Strings.DictionaryBasic, Strings.DictionaryWikipedia] };
+        dictionary.SelectedIndex = settings.UseWikipediaDictionary ? 1 : 0;
+        dictionary.SelectedIndexChanged += (_, _) => Update(s => s with { UseWikipediaDictionary = dictionary.SelectedIndex == 1 });
+        AddCard(Strings.DictionaryChoice, Strings.DictionaryChoiceHint, dictionary);
+
+        // The same choice for English (user decision 2.0).
+        AddSection(Strings.SectionEnglishDictionary);
+        var english = new SegmentedChoice { Options = [Strings.DictionaryBasic, Strings.DictionaryWikipedia] };
+        english.SelectedIndex = settings.UseEnglishWikipediaDictionary ? 1 : 0;
+        english.SelectedIndexChanged += (_, _) => Update(s => s with { UseEnglishWikipediaDictionary = english.SelectedIndex == 1 });
+        AddCard(Strings.DictionaryChoice, Strings.EnglishDictionaryChoiceHint, english);
+
+        // Windows' own suggestions for the physical keyboard would show a second bar.
+        AddSection(Strings.SectionTwoBars);
+        var open = new ThemedButton { Text = Strings.OpenButton };
+        open.Click += (_, _) =>
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo("ms-settings:typing") { UseShellExecute = true });
+            }
+            catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
+            {
+                ShowInfo(Strings.FileError);
+            }
+        };
+        AddCard(Strings.TwoBars, Strings.TwoBarsHint, open);
+    }
+
+    // The language of a layout Itmam does not support (Chinese …), as a tag for its name.
+    private static string TagOf(nint layout)
+    {
+        try
+        {
+            return CultureInfo.GetCultureInfo((int)(layout & 0xFFFF)).TwoLetterISOLanguageName;
+        }
+        catch (CultureNotFoundException)
+        {
+            return $"x{layout & 0x3FF:x2}";
+        }
+    }
+
+    // Arabic and English in the interface language; any other language by its own name («עברית», «Français»).
+    private static string LanguageName(string tag)
+    {
+        switch (tag)
+        {
+            case "ar":
+                return Strings.LanguageArabic;
+            case "en":
+                return Strings.LanguageEnglish;
+        }
+
+        try
+        {
+            var culture = CultureInfo.GetCultureInfo(tag);
+            var name = culture.NativeName;
+            return name.Length > 0 ? culture.TextInfo.ToUpper(name[0]) + name[1..] : tag;
+        }
+        catch (CultureNotFoundException)
+        {
+            return tag;
+        }
+    }
+
+    // The languages that have something to show in My words / My phrases: those with learned words or
+    // phrases, and those turned on that Itmam suggests in. Arabic first.
+    private List<LanguageProfile> ListLanguages() =>
+        [.. _app.Learning.Languages
+            .Concat(_app.Settings.EnabledLanguages.Select(LanguageRegistry.ForTag).Where(l => LanguageRegistry.Support(l) != LanguageSupport.Unsupported))
+            .DistinctBy(l => l.Id)
+            .OrderBy(l => l.Id switch { "ar" => 0, "en" => 1, _ => 2 })
+            .ThenBy(l => l.Id, StringComparer.Ordinal)];
+
+    // A choice of language at the top of a list, when there is more than one (rebuilds the page on change).
+    private void AddLanguageChoice()
+    {
+        var languages = ListLanguages();
+        if (!languages.Contains(_wordsLanguage))
+        {
+            _wordsLanguage = LanguageProfile.Arabic;
+        }
+
+        if (languages.Count < 2)
+        {
+            return;
+        }
+
+        var choice = new SegmentedChoice { Options = [.. languages.Select(l => LanguageName(l.Id))] };
+        choice.SelectedIndex = languages.IndexOf(_wordsLanguage);
+        choice.SelectedIndexChanged += (_, _) =>
+        {
+            _wordsLanguage = languages[choice.SelectedIndex];
+            BeginInvoke(RebuildPage);
+        };
+        AddCard(Strings.WordsLanguage, null, choice);
     }
 
     // Every change shows at once in the preview (and in the real bar).
@@ -794,6 +931,7 @@ internal sealed class SettingsWindow : Form
 
         AddSection(string.Empty);
         _wordsHeader = (Label)_pageControls[^1];
+        AddLanguageChoice();
 
         string[] sorts = [Strings.SortMostUsed, Strings.SortRecent, Strings.SortAlphabetical];
         var sort = new SegmentedChoice { Options = sorts };
@@ -834,7 +972,7 @@ internal sealed class SettingsWindow : Form
         {
             if (Confirm(Strings.ConfirmClearWords, null))
             {
-                _app.Learning.ClearAll();
+                _app.Learning.ClearAll(_wordsLanguage);
                 RefreshWords();
             }
         };
@@ -850,7 +988,7 @@ internal sealed class SettingsWindow : Form
             return;
         }
 
-        var all = _app.Learning.Snapshot();
+        var all = _app.Learning.Snapshot(_wordsLanguage);
         _wordsHeader.Text = string.Format(CultureInfo.CurrentCulture, Strings.SectionWordsList, all.Count);
         IEnumerable<StoredWord> words = all;
         if (_wordsFilter.Length > 0)
@@ -861,11 +999,26 @@ internal sealed class SettingsWindow : Form
         words = _wordsSort switch
         {
             1 => words.OrderByDescending(w => w.LastUsed),
-            2 => words.OrderBy(w => w.Word, StringComparer.Create(new CultureInfo("ar"), ignoreCase: false)),
+            2 => words.OrderBy(w => w.Word, StringComparer.Create(SortCulture(_wordsLanguage), ignoreCase: false)),
             _ => words.OrderByDescending(w => w.Count).ThenByDescending(w => w.LastUsed),
         };
         _wordList.Words = [.. words];
         UpdateWordButtons();
+    }
+
+    private string? CleanWord(string word) => _wordsLanguage.CleanWord(word);
+
+    // Alphabetical order of the language's own alphabet.
+    private static CultureInfo SortCulture(LanguageProfile language)
+    {
+        try
+        {
+            return CultureInfo.GetCultureInfo(language.Id);
+        }
+        catch (CultureNotFoundException)
+        {
+            return CultureInfo.InvariantCulture;
+        }
     }
 
     private void UpdateWordButtons()
@@ -889,7 +1042,7 @@ internal sealed class SettingsWindow : Form
     // Add: suggested at once (counted as used enough times). Block: never suggested, even from the dictionary.
     private void AddWord(bool blocked)
     {
-        var word = WordDialog.Ask(this, blocked ? Strings.BlockWord : Strings.AddWord, blocked ? Strings.BlockWordPrompt : Strings.AddWordPrompt, string.Empty, _palette, _mirrored);
+        var word = WordDialog.Ask(this, blocked ? Strings.BlockWord : Strings.AddWord, blocked ? Strings.BlockWordPrompt : Strings.AddWordPrompt, string.Empty, _palette, _mirrored, CleanWord);
         if (word is null || (blocked && !Confirm(Strings.ConfirmBlockWord, word)))
         {
             return;
@@ -897,11 +1050,11 @@ internal sealed class SettingsWindow : Form
 
         if (blocked)
         {
-            _app.Learning.SetBlocked(word, blocked: true);
+            _app.Learning.SetBlocked(word, blocked: true, _wordsLanguage);
         }
         else
         {
-            _app.Learning.AddManually(word, _app.Settings.MinUsesToSuggest);
+            _app.Learning.AddManually(word, _app.Settings.MinUsesToSuggest, _wordsLanguage);
         }
 
         RefreshWords();
@@ -914,10 +1067,10 @@ internal sealed class SettingsWindow : Form
             return;
         }
 
-        var word = WordDialog.Ask(this, Strings.EditWord, Strings.EditWordPrompt, selected.Word, _palette, _mirrored);
+        var word = WordDialog.Ask(this, Strings.EditWord, Strings.EditWordPrompt, selected.Word, _palette, _mirrored, CleanWord);
         if (word is not null && word != selected.Word)
         {
-            _app.Learning.Rename(selected.Word, word);
+            _app.Learning.Rename(selected.Word, word, _wordsLanguage);
             RefreshWords();
         }
     }
@@ -932,11 +1085,11 @@ internal sealed class SettingsWindow : Form
 
         if (selected.Blocked && selected.Count == 0)
         {
-            _app.Learning.Remove(selected.Word); // only existed to be blocked
+            _app.Learning.Remove(selected.Word, _wordsLanguage); // only existed to be blocked
         }
         else
         {
-            _app.Learning.SetBlocked(selected.Word, !selected.Blocked);
+            _app.Learning.SetBlocked(selected.Word, !selected.Blocked, _wordsLanguage);
         }
 
         RefreshWords();
@@ -946,7 +1099,7 @@ internal sealed class SettingsWindow : Form
     {
         if (_wordList?.SelectedWord is { } selected && Confirm(Strings.ConfirmDeleteWord, selected.Word))
         {
-            _app.Learning.Remove(selected.Word);
+            _app.Learning.Remove(selected.Word, _wordsLanguage);
             RefreshWords();
         }
     }
@@ -966,7 +1119,9 @@ internal sealed class SettingsWindow : Form
         menu.Show(_wordList, location);
     }
 
-    // The file is the user's choice: one word per line, "word<TAB>count", "!word" = blocked.
+    // The file is the user's choice (user decision 2.0): any text — the words of the chosen language are taken
+    // from it with their counts, all suggested at once — or a file exported from "My words" (one word per line,
+    // "word<TAB>count", "!word" = blocked), imported as such. Only words and counts are kept, never the text.
     private void ImportWords()
     {
         using var dialog = new OpenFileDialog { Filter = Strings.WordsFileFilter };
@@ -977,8 +1132,38 @@ internal sealed class SettingsWindow : Form
 
         try
         {
-            using var reader = new StreamReader(dialog.FileName, System.Text.Encoding.UTF8);
-            var result = _app.Learning.Import(reader);
+            if (new FileInfo(dialog.FileName).Length > TextWords.MaxBytes)
+            {
+                ShowInfo(Strings.ImportFileTooLarge);
+                return;
+            }
+
+            var text = TextWords.Decode(File.ReadAllBytes(dialog.FileName), _wordsLanguage);
+            ImportResult result;
+            if (TextWords.IsWordList(text))
+            {
+                // Words of other languages follow their own line; a plain word is suggested at once.
+                result = _app.Learning.Import(new StringReader(text), _wordsLanguage, _app.Settings.MinUsesToSuggest);
+            }
+            else
+            {
+                var words = TextWords.Count(text, _wordsLanguage);
+                if (words.Count == 0)
+                {
+                    ShowInfo(Strings.ImportTextNone);
+                    return;
+                }
+
+                var known = _app.Learning.Snapshot(_wordsLanguage).Select(w => w.Word).ToHashSet(StringComparer.Ordinal);
+                var message = string.Format(CultureInfo.CurrentCulture, Strings.ImportTextConfirm, words.Count, words.Keys.Count(w => !known.Contains(w)), LanguageName(_wordsLanguage.Id));
+                if (!Confirm(message, null))
+                {
+                    return;
+                }
+
+                result = _app.Learning.ImportCounts(words, _app.Settings.MinUsesToSuggest, _wordsLanguage);
+            }
+
             RefreshWords();
             ShowInfo(string.Format(CultureInfo.CurrentCulture, Strings.ImportDone, result.Added, result.Updated, result.Skipped));
         }
@@ -1156,13 +1341,13 @@ internal sealed class SettingsWindow : Form
         AddImportExportCard(
             Strings.PhrasesFileName,
             writer => UserListFiles.WritePhrases(writer, _app.Settings.MyPhrases,
-                _app.Learning.LearnedPhrases(all: true).Select(p => (p.Text, p.Count))),
+                _app.Learning.LearnedPhrases(all: true, _wordsLanguage).Select(p => (p.Text, p.Count))),
             reader =>
             {
-                // The learned phrases in the file go back to the learned list, with their counts.
+                // The learned phrases in the file go back to the learned list (of the language chosen below), with their counts.
                 var learned = new List<(string Text, int Count)>();
-                var mine = UserListFiles.ReadPhrases(reader, _app.Settings.MyPhrases, learned);
-                return mine with { Added = mine.Added + _app.Learning.ImportPhrases(learned) };
+                var mine = UserListFiles.ReadPhrases(reader, _app.Settings.MyPhrases, learned, _wordsLanguage);
+                return mine with { Added = mine.Added + _app.Learning.ImportPhrases(learned, _wordsLanguage) };
             },
             (s, merged) => s with { MyPhrases = merged },
             Strings.ImportExportPhrasesHint);
@@ -1203,8 +1388,9 @@ internal sealed class SettingsWindow : Form
     // or delete them all together with every sequence counted so far.
     private void BuildLearnedPhrases()
     {
-        var phrases = _app.Learning.LearnedPhrases(); // like the bar: not the parts of a longer learned phrase
+        var phrases = _app.Learning.LearnedPhrases(language: _wordsLanguage); // like the bar: not the parts of a longer learned phrase
         AddSection(string.Format(CultureInfo.CurrentCulture, Strings.SectionLearnedPhrases, phrases.Count));
+        AddLanguageChoice();
         if (phrases.Count == 0)
         {
             AddText(Strings.NoLearnedPhrases, secondary: true);
@@ -1228,7 +1414,7 @@ internal sealed class SettingsWindow : Form
             {
                 if (list.SelectedWord is { } selected && Confirm(Strings.ConfirmForgetPhrase, selected.Word, leftToRight: false))
                 {
-                    _app.Learning.ForgetPhrase(selected.Word);
+                    _app.Learning.ForgetPhrase(selected.Word, _wordsLanguage);
                     BeginInvoke(RebuildPage);
                 }
             }
@@ -1238,7 +1424,7 @@ internal sealed class SettingsWindow : Form
                 if (list.SelectedWord is { } selected)
                 {
                     Update(s => s with { MyPhrases = [.. s.MyPhrases.Append(selected.Word).Distinct()] });
-                    _app.Learning.ForgetPhrase(selected.Word);
+                    _app.Learning.ForgetPhrase(selected.Word, _wordsLanguage);
                     BeginInvoke(RebuildPage);
                 }
             };
@@ -1255,7 +1441,7 @@ internal sealed class SettingsWindow : Form
         {
             if (Confirm(Strings.ConfirmClearPhrases, null))
             {
-                _app.Learning.ClearPhrases();
+                _app.Learning.ClearPhrases(_wordsLanguage);
                 BeginInvoke(RebuildPage);
             }
         };
@@ -1266,7 +1452,7 @@ internal sealed class SettingsWindow : Form
     private void EditPhrase(string? existing)
     {
         var text = WordDialog.Ask(this, existing is null ? Strings.AddPhrase : Strings.EditPhrase, Strings.PhrasePrompt,
-            existing ?? string.Empty, _palette, _mirrored, PhraseIndex.Clean, Strings.NotAPhrase);
+            existing ?? string.Empty, _palette, _mirrored, PhraseIndex.CleanAny, Strings.NotAPhrase);
         if (text is null || text == existing)
         {
             return;
@@ -1474,8 +1660,8 @@ internal sealed class SettingsWindow : Form
         AddTitle(Strings.AppName);
         AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutVersion, AppVersion()), secondary: true);
         AddText(Strings.AboutTagline, secondary: false);
-        AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutDictionary, _app.Dictionary.Count), secondary: false);
-        AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutLearned, _app.UserWords.Count), secondary: false);
+        AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutDictionary, _app.LoadedDictionaries.Sum(d => d.Count)), secondary: false);
+        AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutLearned, _app.Learning.Languages.Sum(l => _app.Learning.Snapshot(l).Count)), secondary: false);
         AddLink(Strings.AboutWebsite, _app.Settings.Language == UiLanguage.Arabic ? WebsiteUrl : WebsiteUrlEnglish);
 
         AddSection(Strings.SectionDeveloper);
@@ -1487,7 +1673,7 @@ internal sealed class SettingsWindow : Form
         AddLink(Strings.AboutSourceCode, RepositoryUrl);
 
         AddSection(Strings.AboutSources);
-        foreach (var source in _app.Dictionary.Sources)
+        foreach (var source in _app.LoadedDictionaries.SelectMany(d => d.Sources).Distinct())
         {
             AddLink($"{source.Name} — {source.License}", source.Url);
         }

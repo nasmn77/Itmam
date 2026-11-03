@@ -106,7 +106,7 @@ internal sealed class DebugWindow : Form
         }
 
         _state.Text =
-            $"Layout: {(update.IsArabicLayout ? "Arabic" : "other (silent)")}  0x{update.Layout:X8}" +
+            $"Layout: {update.Language?.Id ?? "silent"}  0x{update.Layout:X8}" +
             (update.Silenced != SilenceReason.None ? $"   SILENT: {update.Silenced}" : string.Empty) + "\n" +
             $"Letters: {update.Letters}   Last: {update.Result.Outcome}   Commits: {_commits}   Learned: {_learned} (user words: {_learnedCount()})   Chain: {update.RecentWords?.Count ?? 0} words" +
             (update.IsDetached ? "   [paused: caret inside an unseen word]" : string.Empty) +
@@ -120,7 +120,7 @@ internal sealed class DebugWindow : Form
     }
 
     private void RenderState(BufferResult result) =>
-        Render(new PipelineUpdate(null, result, null, string.Empty, 0, false, 0, false), $"{DateTime.Now:HH:mm:ss.fff}  started");
+        Render(new PipelineUpdate(null, result, null, string.Empty, 0, null, 0, false), $"{DateTime.Now:HH:mm:ss.fff}  started");
 
     private void ShowHealth()
     {

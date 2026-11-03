@@ -1,5 +1,5 @@
 using System.Text;
-using Itmam.Core.Text;
+using Itmam.Core.Languages;
 
 namespace Itmam.Core.Input;
 
@@ -27,10 +27,11 @@ public readonly record struct BufferResult(BufferOutcome Outcome, string? Commit
 /// Tracks the word being typed (characters since the last boundary) from abstract input events.
 /// </summary>
 /// <remarks>
-/// Rules: Arabic letters append; tashkeel/tatweel append (inside a word) but are ignored for matching;
+/// Rules: letters of <see cref="Language"/> append; its ignorable marks (tashkeel/tatweel) append
+/// (inside a word) but are ignored for matching;
 /// whitespace, punctuation and digits at the start of a word commit; digits after a letter append, so a
-/// text shortcut such as «ع1» is seen whole (such a word is never learned); other letters (e.g. Latin)
-/// and Esc reset.
+/// text shortcut such as «ع1» is seen whole (such a word is never learned); other letters (e.g. Latin
+/// while the language is Arabic) and Esc reset.
 /// Events that may move the caret anywhere — Ctrl+Backspace, navigation, shortcuts, paste, focus,
 /// foreground, mouse and layout changes — discard the word without committing it and leave the
 /// buffer <see cref="IsDetached">detached</see>: the text before the caret is unknown until it is
@@ -55,6 +56,9 @@ public sealed class WordBuffer
     // characters): words finished before the context could be read are recovered from it.
     private readonly StringBuilder _blind = new(MaxLength);
     private bool _blindOverflow;
+
+    /// <summary>The language being typed. Set it only between words (the tracker resets the buffer first).</summary>
+    public LanguageProfile Language { get; set; } = LanguageProfile.Arabic;
 
     /// <summary>The word as typed, including tashkeel and tatweel.</summary>
     public string Text => _text.ToString();
@@ -105,12 +109,12 @@ public sealed class WordBuffer
     /// </summary>
     public BufferResult AcceptWord(string word, bool appendedSpace)
     {
-        var committed = ArabicText.StripIgnorable(word);
+        var committed = Language.StripIgnorable(word);
         Reset();
         if (!appendedSpace)
         {
             _text.Append(committed);
-            LetterCount = committed.Count(ArabicText.IsArabicLetter);
+            LetterCount = Language.CountLetters(committed);
         }
 
         return new BufferResult(BufferOutcome.Committed, committed);
@@ -123,7 +127,7 @@ public sealed class WordBuffer
         _detached = false;
         _ignoredLetters = 0;
         _text.Append(typed);
-        LetterCount = typed.Count(ArabicText.IsArabicLetter);
+        LetterCount = Language.CountLetters(typed);
         return new BufferResult(typed.Length == 0 ? BufferOutcome.Reset : BufferOutcome.Updated);
     }
 
@@ -156,8 +160,8 @@ public sealed class WordBuffer
     {
         RecoveredWords = [];
         var blind = _blind.ToString();
-        var first = blind.AsSpan().IndexOfAnyExcept(WordChars());
-        if (!_detached || _blindOverflow || first < 0 || !ArabicText.IsWordBoundary(blind[first]))
+        var first = IndexOfNonWordChar(blind);
+        if (!_detached || _blindOverflow || first < 0 || !Language.IsWordBoundary(blind[first]))
         {
             return BufferResult.None;
         }
@@ -189,9 +193,9 @@ public sealed class WordBuffer
 
         var recovered = Recover(textBeforeCaret, maxRead);
 
-        // Trailing run of Arabic letters and marks = the word the caret is in.
+        // Trailing run of letters and marks = the word the caret is in.
         var start = textBeforeCaret.Length;
-        while (start > 0 && (ArabicText.IsArabicLetter(textBeforeCaret[start - 1]) || ArabicText.IsIgnorable(textBeforeCaret[start - 1])))
+        while (start > 0 && Language.IsWordChar(textBeforeCaret[start - 1]))
         {
             start--;
         }
@@ -199,17 +203,17 @@ public sealed class WordBuffer
         var word = textBeforeCaret[start..];
         var before = start > 0 ? textBeforeCaret[start - 1] : '\0';
 
-        // Unusable: the word may continue beyond what was read, it is glued to a non-Arabic letter,
+        // Unusable: the word may continue beyond what was read, it is glued to a letter of another language,
         // or it is longer than a word can be.
         if ((start == 0 && textBeforeCaret.Length >= maxRead)
-            || (start > 0 && !ArabicText.IsWordBoundary(before))
+            || (start > 0 && !Language.IsWordBoundary(before))
             || word.Length > MaxLength)
         {
             return BufferResult.None;
         }
 
         // Leading marks without a letter are not part of a word.
-        while (!word.IsEmpty && !ArabicText.IsArabicLetter(word[0]))
+        while (!word.IsEmpty && !Language.IsLetter(word[0]))
         {
             word = word[1..];
         }
@@ -256,7 +260,7 @@ public sealed class WordBuffer
                 _blindOverflow = true;
             }
 
-            if (ArabicText.IsArabicLetter(c))
+            if (Language.IsLetter(c))
             {
                 _ignoredLetters++;
             }
@@ -264,14 +268,26 @@ public sealed class WordBuffer
             return BufferResult.None;
         }
 
-        if (ArabicText.IsWordBoundary(c))
+        // The apostrophe of «don't»: inside a word only (at its start it is not part of any word).
+        if (Language.IsInnerMark(c) && LetterCount > 0 && !_detached)
+        {
+            if (_text.Length >= MaxLength)
+            {
+                return Detach();
+            }
+
+            _text.Append(c);
+            return new BufferResult(BufferOutcome.Updated);
+        }
+
+        if (Language.IsWordBoundary(c))
         {
             return Commit();
         }
 
         if (_detached)
         {
-            if (ArabicText.IsArabicLetter(c))
+            if (Language.IsLetter(c))
             {
                 _ignoredLetters++;
             }
@@ -279,7 +295,7 @@ public sealed class WordBuffer
             return BufferResult.None;
         }
 
-        if (ArabicText.IsArabicLetter(c))
+        if (Language.IsLetter(c))
         {
             if (_text.Length >= MaxLength)
             {
@@ -291,7 +307,7 @@ public sealed class WordBuffer
             return new BufferResult(BufferOutcome.Updated);
         }
 
-        if (ArabicText.IsIgnorable(c))
+        if (Language.IsIgnorable(c))
         {
             if (LetterCount == 0 || _text.Length >= MaxLength)
             {
@@ -302,7 +318,7 @@ public sealed class WordBuffer
             return new BufferResult(BufferOutcome.Updated);
         }
 
-        // Any other character (Latin letter, unknown symbol) means this is not an Arabic word.
+        // Any other character (a letter of another script, an unknown symbol) means this is not a word.
         return Reset();
     }
 
@@ -317,7 +333,7 @@ public sealed class WordBuffer
         {
             if (_blind.Length > 0)
             {
-                if (ArabicText.IsArabicLetter(_blind[^1]))
+                if (Language.IsLetter(_blind[^1]))
                 {
                     _ignoredLetters--;
                 }
@@ -335,7 +351,7 @@ public sealed class WordBuffer
 
         var removed = _text[^1];
         _text.Length--;
-        if (ArabicText.IsArabicLetter(removed))
+        if (Language.IsLetter(removed))
         {
             LetterCount--;
         }
@@ -364,7 +380,7 @@ public sealed class WordBuffer
         ClearBlind();
         _text.Clear();
         _text.Append(word);
-        LetterCount = word.Count(ArabicText.IsArabicLetter);
+        LetterCount = Language.CountLetters(word);
         return new BufferResult(word.Length == 0 ? BufferOutcome.Reset : BufferOutcome.Updated);
     }
 
@@ -392,10 +408,10 @@ public sealed class WordBuffer
         }
 
         var start = context.Length - blind.Length;
-        var startsWord = start > 0 ? ArabicText.IsWordBoundary(context[start - 1]) : context.Length < maxRead;
+        var startsWord = start > 0 ? Language.IsWordBoundary(context[start - 1]) : context.Length < maxRead;
         if (!startsWord)
         {
-            var first = blind.AsSpan().IndexOfAnyExcept(WordChars());
+            var first = IndexOfNonWordChar(blind);
             if (first < 0)
             {
                 return [];
@@ -408,16 +424,16 @@ public sealed class WordBuffer
     }
 
     // Words ended by a boundary, and the word after the last boundary (the current word).
-    private static (IReadOnlyList<(string Word, bool EndedBySpace)> Words, string Current) Split(string typed)
+    private (IReadOnlyList<(string Word, bool EndedBySpace)> Words, string Current) Split(string typed)
     {
         var words = new List<(string, bool)>();
         var start = 0;
         for (var i = 0; i < typed.Length; i++)
         {
-            if (ArabicText.IsWordBoundary(typed[i]))
+            if (Language.IsWordBoundary(typed[i]))
             {
-                var word = ArabicText.StripIgnorable(typed.AsSpan(start, i - start));
-                if (ArabicText.IsArabicWord(word))
+                var word = Language.StripIgnorable(typed.AsSpan(start, i - start));
+                if (Language.IsWord(word))
                 {
                     words.Add((word, typed[i] == ' '));
                 }
@@ -427,16 +443,25 @@ public sealed class WordBuffer
         }
 
         var current = typed[start..];
-        return (words, current.All(c => ArabicText.IsArabicLetter(c) || ArabicText.IsIgnorable(c)) ? current : string.Empty);
+        return (words, current.All(Language.IsWordChar) ? current : string.Empty);
     }
 
     // Line breaks as one character, whatever the app reports.
     private static string Lines(string text) => text.Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n').Replace('\u00A0', ' ');
 
-    private static System.Buffers.SearchValues<char> WordChars() => WordCharSet;
+    // Index of the first character that is not a letter or mark of the language, or -1.
+    private int IndexOfNonWordChar(string text)
+    {
+        for (var i = 0; i < text.Length; i++)
+        {
+            if (!Language.IsWordChar(text[i]))
+            {
+                return i;
+            }
+        }
 
-    private static readonly System.Buffers.SearchValues<char> WordCharSet = System.Buffers.SearchValues.Create(
-        [.. Enumerable.Range(0x0600, 0x0100).Select(c => (char)c).Where(c => ArabicText.IsArabicLetter(c) || ArabicText.IsIgnorable(c))]);
+        return -1;
+    }
 
     private BufferResult Commit()
     {
@@ -445,7 +470,7 @@ public sealed class WordBuffer
             return Reset();
         }
 
-        var word = ArabicText.StripIgnorable(_text.ToString());
+        var word = Language.StripIgnorable(_text.ToString());
         _text.Clear();
         LetterCount = 0;
         return new BufferResult(BufferOutcome.Committed, word);

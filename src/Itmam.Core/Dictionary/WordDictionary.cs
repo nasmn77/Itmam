@@ -1,5 +1,5 @@
+using Itmam.Core.Languages;
 using Itmam.Core.Suggestions;
-using Itmam.Core.Text;
 
 namespace Itmam.Core.Dictionary;
 
@@ -34,7 +34,8 @@ public sealed class WordDictionary
         char[] displayChars,
         int[] displayOffsets,
         uint[] frequencies,
-        IReadOnlyList<DictionarySource> sources)
+        IReadOnlyList<DictionarySource> sources,
+        LanguageProfile language)
     {
         _keyChars = keyChars;
         _keyOffsets = keyOffsets;
@@ -42,6 +43,7 @@ public sealed class WordDictionary
         _displayOffsets = displayOffsets;
         _frequencies = frequencies;
         Sources = sources;
+        Language = language;
 
         _baseScores = new float[frequencies.Length];
         for (var i = 0; i < frequencies.Length; i++)
@@ -55,11 +57,14 @@ public sealed class WordDictionary
     /// <summary>Precomputed candidates for short prefixes with large ranges.</summary>
     internal PrefixCandidateCache Cache { get; }
 
-    public static WordDictionary Empty { get; } = new([], [0], [], [0], [], []);
+    public static WordDictionary Empty { get; } = new([], [0], [], [0], [], [], LanguageProfile.Arabic);
 
     public int Count => _frequencies.Length;
 
     public IReadOnlyList<DictionarySource> Sources { get; }
+
+    /// <summary>The language of the words: how keys are built from spellings.</summary>
+    public LanguageProfile Language { get; }
 
     public ReadOnlySpan<char> GetKey(int index) =>
         _keyChars.AsSpan(_keyOffsets[index], _keyOffsets[index + 1] - _keyOffsets[index]);
@@ -95,15 +100,18 @@ public sealed class WordDictionary
     /// left off its alef (ان for أن, انا for أنا, الى for إلى). Distinct words such as إن / أن or
     /// على / علي are unaffected because they do not differ only by a missing hamza.
     /// </param>
+    /// <param name="language">The language of the words (default Arabic).</param>
     public static WordDictionary Build(
         IEnumerable<WeightedWord> words,
         IReadOnlyList<DictionarySource>? sources = null,
-        bool dropBareAlefVariants = false)
+        bool dropBareAlefVariants = false,
+        LanguageProfile? language = null)
     {
+        language ??= LanguageProfile.Arabic;
         var spellings = new Dictionary<string, double>(StringComparer.Ordinal);
         foreach (var (word, perMillion) in words)
         {
-            var display = ArabicText.StripIgnorable(word);
+            var display = language.StripIgnorable(word);
             if (display.Length > 0 && perMillion > 0)
             {
                 spellings[display] = spellings.GetValueOrDefault(display) + perMillion;
@@ -111,7 +119,7 @@ public sealed class WordDictionary
         }
 
         var groups = spellings
-            .GroupBy(pair => ArabicNormalizer.Normalize(pair.Key), StringComparer.Ordinal)
+            .GroupBy(pair => language.Normalize(pair.Key), StringComparer.Ordinal)
             .OrderBy(group => group.Key, StringComparer.Ordinal);
 
         var builder = new Builder(spellings.Count);
@@ -140,7 +148,7 @@ public sealed class WordDictionary
             }
         }
 
-        return builder.ToDictionary(sources ?? []);
+        return builder.ToDictionary(sources ?? [], language);
     }
 
     // True when candidate equals spelling except that some أ/إ/آ in spelling are a bare ا in candidate.
@@ -180,8 +188,8 @@ public sealed class WordDictionary
     /// <summary>Index of the entry with exactly this original spelling (tashkeel ignored), or -1.</summary>
     public int IndexOfWord(ReadOnlySpan<char> word)
     {
-        var display = ArabicText.StripIgnorable(word);
-        var key = ArabicNormalizer.Normalize(display);
+        var display = Language.StripIgnorable(word);
+        var key = Language.Normalize(display);
         var index = IndexOfKey(key);
         if (index < 0)
         {
@@ -260,12 +268,13 @@ public sealed class WordDictionary
             _frequencies.Add(Math.Max(frequency, 1u));
         }
 
-        public WordDictionary ToDictionary(IReadOnlyList<DictionarySource> sources) => new(
+        public WordDictionary ToDictionary(IReadOnlyList<DictionarySource> sources, LanguageProfile language) => new(
             [.. _keyChars],
             [.. _keyOffsets],
             [.. _displayChars],
             [.. _displayOffsets],
             [.. _frequencies],
-            sources);
+            sources,
+            language);
     }
 }

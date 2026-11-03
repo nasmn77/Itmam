@@ -402,9 +402,17 @@ public sealed unsafe class InputHookService : IDisposable
         }
 
         var count = Translate(data, modifiers, layout);
-        if (!publish || count < 0)
+        if (!publish)
         {
-            return; // warm-up, or a dead key waiting for the next key
+            return; // warm-up
+        }
+
+        if (count < 0)
+        {
+            // A dead key (´ ^ ¨ …): the app combines it with the next key, which we cannot see, so the
+            // word is read again from the app afterwards.
+            Publish(InputEvent.Of(InputEventKind.DeadKey), layout);
+            return;
         }
 
         if (count == 0)

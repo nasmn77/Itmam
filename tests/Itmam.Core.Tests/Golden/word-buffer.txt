@@ -1,0 +1,66 @@
+---
+t:كتاب جميل	Updated [] text=جميل letters=4 detached=False blind=False recovered=
+t:.	Committed [جميل] text= letters=0 detached=False blind=False recovered=
+---
+t:ع1 	Committed [ع1] text= letters=0 detached=False blind=False recovered=
+t:1	None [] text= letters=0 detached=False blind=False recovered=
+t:كتاب1 	Committed [كتاب1] text= letters=0 detached=False blind=False recovered=
+---
+t:كَتـب	Updated [] text=كَتـب letters=3 detached=False blind=False recovered=
+bs	Updated [] text=كَتـ letters=2 detached=False blind=False recovered=
+bs	Updated [] text=كَت letters=2 detached=False blind=False recovered=
+t:ب،	Committed [كتب] text= letters=0 detached=False blind=False recovered=
+---
+t:ذهب الط	Updated [] text=الط letters=3 detached=False blind=False recovered=
+cbs	Reset [] text= letters=0 detached=True blind=False recovered=
+t:مدر	None [] text= letters=0 detached=True blind=False recovered=
+nav	None [] text= letters=0 detached=True blind=False recovered=
+t:سة	None [] text= letters=0 detached=True blind=False recovered=
+---
+t:abc	None [] text= letters=0 detached=False blind=False recovered=
+t:كتب	Updated [] text=كتب letters=3 detached=False blind=False recovered=
+t:x	Reset [] text= letters=0 detached=False blind=False recovered=
+t:يب	Updated [] text=يب letters=2 detached=False blind=False recovered=
+---
+t:مد	Updated [] text=مد letters=2 detached=False blind=False recovered=
+click	Reset [] text= letters=0 detached=True blind=False recovered=
+t:ر	None [] text= letters=0 detached=True blind=False recovered=
+ctx:ذهب الطالب إلى المدر	Updated [] text=المدر letters=5 detached=False blind=False recovered=
+t:سة 	Committed [المدرسة] text= letters=0 detached=False blind=False recovered=
+---
+bs	None [] text= letters=0 detached=True blind=False recovered=
+t:رسة جميلة	Updated [] text=جميلة letters=5 detached=False blind=False recovered=
+resumeBlind	None [] text=جميلة letters=5 detached=False blind=False recovered=
+---
+bs	None [] text= letters=0 detached=True blind=False recovered=
+resumeEmpty	Reset [] text= letters=0 detached=False blind=False recovered=
+t:قلم	Updated [] text=قلم letters=3 detached=False blind=False recovered=
+---
+t:قل	Updated [] text=قل letters=2 detached=False blind=False recovered=
+accept:قلم+	Committed [قلم] text= letters=0 detached=False blind=False recovered=
+bs	None [] text= letters=0 detached=True blind=False recovered=
+restore:قل	Updated [] text=قل letters=2 detached=False blind=False recovered=
+t:م؟	Committed [قلم] text= letters=0 detached=False blind=False recovered=
+---
+t:قل	Updated [] text=قل letters=2 detached=False blind=False recovered=
+esc	Reset [] text= letters=0 detached=False blind=False recovered=
+t:م	Updated [] text=م letters=1 detached=False blind=False recovered=
+dismiss	None [] text=م letters=1 detached=False blind=False recovered=
+t:ي	Updated [] text=مي letters=2 detached=False blind=False recovered=
+---
+t:سلام	Updated [] text=سلام letters=4 detached=False blind=False recovered=
+paste	Reset [] text= letters=0 detached=True blind=False recovered=
+t:عليكم	None [] text= letters=0 detached=True blind=False recovered=
+focus	None [] text= letters=0 detached=True blind=False recovered=
+t:و	None [] text= letters=0 detached=True blind=False recovered=
+layout	None [] text= letters=0 detached=True blind=False recovered=
+t:رحمة	None [] text= letters=0 detached=True blind=False recovered=
+shortcut	None [] text= letters=0 detached=True blind=False recovered=
+t:الله	None [] text= letters=0 detached=True blind=False recovered=
+---
+t:كتاب	Updated [] text=كتاب letters=4 detached=False blind=False recovered=
+sel	Reset [] text= letters=0 detached=True blind=False recovered=
+t:ب	None [] text= letters=0 detached=True blind=False recovered=
+reset	None [] text= letters=0 detached=False blind=False recovered=
+t:ﻻ	None [] text= letters=0 detached=False blind=False recovered=
+t:‏كتب\r	Committed [كتب] text= letters=0 detached=False blind=False recovered=

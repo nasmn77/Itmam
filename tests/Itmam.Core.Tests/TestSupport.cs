@@ -23,8 +23,18 @@ internal static class TestDictionaries
 
     public static string ShippedPhrasesPath => Path.Combine(RepositoryRoot, "data", "phrases.txt");
 
+    public static string ShippedCorrectionsPath => Path.Combine(RepositoryRoot, "data", "corrections.txt");
+
+    public static string EnglishDictionaryPath => Path.Combine(RepositoryRoot, "data", "itmam-en.dict");
+
+    public static string EnglishWikipediaDictionaryPath => Path.Combine(RepositoryRoot, "data", "itmam-en-wikipedia.dict");
+
+    public static string EnglishBlocklistPath => Path.Combine(RepositoryRoot, "data", "blocklist.en.txt");
+
+    public static string EnglishCorrectionsPath => Path.Combine(RepositoryRoot, "data", "corrections.en.txt");
+
     /// <summary>Found by walking up from the test output folder to the folder holding Itmam.sln.</summary>
-    private static string RepositoryRoot
+    internal static string RepositoryRoot
     {
         get
         {

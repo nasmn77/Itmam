@@ -42,6 +42,9 @@ public enum SilenceReason
     ElevatedApp,
     ExcludedApp,
     FullScreen,
+
+    /// <summary>An input method editor took a key (it composes the text itself).</summary>
+    InputMethod,
 }
 
 /// <summary>
@@ -114,7 +117,7 @@ public enum ProbeOutcome
 /// <param name="Probe">Outcome of a caret-context read, if this update is one.</param>
 /// <param name="Word">The current word as typed.</param>
 /// <param name="Letters">Letters in the current word.</param>
-/// <param name="IsArabicLayout">Arabic keyboard layout active.</param>
+/// <param name="Language">The language being typed and tracked, or null (unsupported or turned off).</param>
 /// <param name="Layout">The HKL.</param>
 /// <param name="IsDetached">Context unknown; nothing is tracked.</param>
 /// <param name="SuggestionsSuppressed">Esc hid the bar until the next letter, or a suggestion was just accepted.</param>
@@ -136,13 +139,17 @@ public enum ProbeOutcome
 /// Sequences of 2–5 words typed in a row that end with <paramref name="WordToLearn"/>, final with it
 /// (and dropped with it when the word is corrected at once), for phrase learning.
 /// </param>
+/// <param name="LearnLanguage">
+/// The language <paramref name="WordToLearn"/> and <paramref name="PhrasesToLearn"/> were typed in (the
+/// layout may have changed since).
+/// </param>
 public readonly record struct PipelineUpdate(
     InputRecord? Input,
     BufferResult Result,
     ProbeOutcome? Probe,
     string Word,
     int Letters,
-    bool IsArabicLayout,
+    Languages.LanguageProfile? Language,
     nint Layout,
     bool IsDetached,
     bool SuggestionsSuppressed = false,
@@ -150,7 +157,8 @@ public readonly record struct PipelineUpdate(
     string? WordToLearn = null,
     IReadOnlyList<string>? RecentWords = null,
     IReadOnlyList<string>? PhrasesToLearn = null,
-    UsageDelta? Usage = null);
+    UsageDelta? Usage = null,
+    Languages.LanguageProfile? LearnLanguage = null);
 
 /// <summary>A change to the statistics: completions and characters saved (negative when undone).</summary>
 public readonly record struct UsageDelta(int Completions, int Characters);
@@ -202,6 +210,7 @@ public sealed class InputPipeline(
     private bool _guardChecked;
     private string? _pendingWord;
     private string[]? _pendingPhrases;
+    private volatile Languages.LanguageProfile _pendingLanguage = Languages.LanguageProfile.Arabic;
 
     // Sequences finished by the event being processed (they become pending with its committed word).
     private List<string>? _finishedPhrases;
@@ -325,8 +334,9 @@ public sealed class InputPipeline(
                 _usage = null;
                 var wasDetached = Tracker.Buffer.IsDetached;
                 var result = Process(record);
+                var learnLanguage = _pendingLanguage;
                 var (wordToLearn, phrasesToLearn) = AdvancePendingWord(record.Input.Kind, result);
-                Raise(record, result, probe: null, wordToLearn, phrasesToLearn, _usage);
+                Raise(record, result, probe: null, wordToLearn, phrasesToLearn, _usage, learnLanguage);
 
                 // Keyboard selection or a silenced window: nothing to read.
                 if (record.Input.Kind == InputEventKind.Selection || _silence != SilenceReason.None)
@@ -342,14 +352,14 @@ public sealed class InputPipeline(
                 // brings a layout switch (the first Arabic letter in a new window, or after Alt+Shift):
                 // that one starts a read too, or the first word would get no suggestions.
                 var detachedNow = Tracker.Buffer.IsDetached && !wasDetached;
-                if (Tracker.Buffer.IsDetached && Tracker.IsArabicLayout && (record.Input.Kind != InputEventKind.Character || detachedNow))
+                if (Tracker.Buffer.IsDetached && Tracker.Language is not null && (record.Input.Kind != InputEventKind.Character || detachedNow))
                 {
                     probeDue = DateTime.UtcNow.Ticks + _options.ProbeDelay.Ticks;
                     retried = false;
                     detachedByBackspace = record.Input.Kind == InputEventKind.Backspace;
                     readsWhileTyping = 0;
                 }
-                else if (Tracker.Buffer.IsDetached && Tracker.IsArabicLayout && probeDue is null && readsWhileTyping < _options.ReadsWhileTyping)
+                else if (Tracker.Buffer.IsDetached && Tracker.Language is not null && probeDue is null && readsWhileTyping < _options.ReadsWhileTyping)
                 {
                     // Both reads failed and the user typed on: read again at the next pause in typing (the
                     // letters typed meanwhile are kept), as a last attempt each time.
@@ -377,6 +387,9 @@ public sealed class InputPipeline(
     /// <summary>The sequences ending with the pending word (see <see cref="TakePendingWord"/>).</summary>
     public IReadOnlyList<string>? TakePendingPhrases() => Interlocked.Exchange(ref _pendingPhrases, null);
 
+    /// <summary>The language the pending word was typed in.</summary>
+    public Languages.LanguageProfile PendingLanguage => _pendingLanguage;
+
     // Returns the word (and its sequences) that just became final, to learn, if any.
     private (string? Word, IReadOnlyList<string>? Phrases) AdvancePendingWord(InputEventKind kind, BufferResult result)
     {
@@ -403,6 +416,7 @@ public sealed class InputPipeline(
             phrases ??= TakePendingPhrases();
             _pendingWord = committed;
             _pendingPhrases = _finishedPhrases is { Count: > 0 } finished ? [.. finished] : null;
+            _pendingLanguage = Tracker.Buffer.Language;
         }
 
         return (final, phrases);
@@ -433,6 +447,12 @@ public sealed class InputPipeline(
             _guardChecked = true;
         }
 
+        // Kept until the next event that may change the context (focus, window, layout, click, arrows …).
+        if (kind == InputEventKind.InputMethod)
+        {
+            _silence = SilenceReason.InputMethod;
+        }
+
         if (_silence != SilenceReason.None)
         {
             // Password field, elevated or excluded app, full-screen game: track nothing at all.
@@ -459,6 +479,13 @@ public sealed class InputPipeline(
         }
 
         var result = Tracker.Process(record.Input, record.KeyboardLayout);
+        if (_recent.Language != Tracker.Buffer.Language)
+        {
+            // Words of another language never continue a phrase.
+            _recent.Clear();
+            _recent.Language = Tracker.Buffer.Language;
+        }
+
         TrackRecentWords(record.Input, result);
         if (result.Outcome is BufferOutcome.Committed or BufferOutcome.Reset || buffer.IsDetached || buffer.IsEmpty)
         {
@@ -505,7 +532,7 @@ public sealed class InputPipeline(
             }
         }
         else if (result.Outcome == BufferOutcome.Reset
-            || (input.Character != ' ' && Text.ArabicText.IsWordBoundary(input.Character)))
+            || (input.Character != ' ' && Tracker.Buffer.Language.IsWordBoundary(input.Character)))
         {
             // Also Enter or punctuation after a space (an accepted word ends with one): the chain stops.
             _recent.Clear();
@@ -707,7 +734,7 @@ public sealed class InputPipeline(
         {
             _finishedPhrases = null;
             CollectPhrases(word);
-            Raise(null, BufferResult.None, probe: null, word, _finishedPhrases is { Count: > 0 } phrases ? [.. phrases] : null);
+            Raise(null, BufferResult.None, probe: null, word, _finishedPhrases is { Count: > 0 } phrases ? [.. phrases] : null, learnLanguage: Tracker.Buffer.Language);
             if (endedBySpace)
             {
                 _recent.Push(word);
@@ -723,7 +750,14 @@ public sealed class InputPipeline(
 
     private bool HasPendingInput() => input.CanCount ? input.Count > 0 : input.TryPeek(out _);
 
-    private void Raise(InputRecord? record, BufferResult result, ProbeOutcome? probe, string? wordToLearn = null, IReadOnlyList<string>? phrasesToLearn = null, UsageDelta? usage = null)
+    private void Raise(
+        InputRecord? record,
+        BufferResult result,
+        ProbeOutcome? probe,
+        string? wordToLearn = null,
+        IReadOnlyList<string>? phrasesToLearn = null,
+        UsageDelta? usage = null,
+        Languages.LanguageProfile? learnLanguage = null)
     {
         var buffer = Tracker.Buffer;
         Updated?.Invoke(new PipelineUpdate(
@@ -732,7 +766,7 @@ public sealed class InputPipeline(
             probe,
             buffer.Text,
             buffer.LetterCount,
-            Tracker.IsArabicLayout,
+            Tracker.Language,
             Tracker.Layout,
             buffer.IsDetached,
             _suppression != Suppression.None,
@@ -740,6 +774,7 @@ public sealed class InputPipeline(
             wordToLearn,
             _recent.Snapshot,
             phrasesToLearn,
-            usage));
+            usage,
+            wordToLearn is not null || phrasesToLearn is not null ? learnLanguage ?? Tracker.Buffer.Language : null));
     }
 }

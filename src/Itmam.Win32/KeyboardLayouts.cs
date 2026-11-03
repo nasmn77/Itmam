@@ -1,5 +1,6 @@
 using Windows.Win32;
 using Windows.Win32.Foundation;
+using Windows.Win32.UI.Input.KeyboardAndMouse;
 using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace Itmam.Win32;
@@ -11,6 +12,24 @@ public static class KeyboardLayouts
     {
         var foreground = PInvoke.GetForegroundWindow();
         return foreground.IsNull ? 0 : (nint)PInvoke.GetKeyboardLayout(InputThreadOf(foreground)).Value;
+    }
+
+    /// <summary>The keyboard layouts (HKL) the user has installed (Windows input languages).</summary>
+    public static unsafe IReadOnlyList<nint> Installed()
+    {
+        var count = PInvoke.GetKeyboardLayoutList(0, null);
+        if (count <= 0)
+        {
+            return [];
+        }
+
+        var layouts = new HKL[count];
+        fixed (HKL* list = layouts)
+        {
+            count = PInvoke.GetKeyboardLayoutList(count, list);
+        }
+
+        return [.. layouts.Take(Math.Max(count, 0)).Select(layout => (nint)layout.Value)];
     }
 
     /// <summary>
@@ -32,15 +51,20 @@ public static class KeyboardLayouts
 }
 
 /// <summary>
-/// Per-keystroke layout lookup for the hook thread. The input thread of the foreground window is
-/// cached and recomputed only when the foreground window changes or focus moves; each keystroke
-/// then costs one GetForegroundWindow and one GetKeyboardLayout call. The layout itself is never
-/// cached, because switching it (Alt+Shift, Win+Space) changes no window and sends us no event.
+/// Per-keystroke layout lookup for the hook thread. The thread that owns the focused window is cached
+/// per (foreground window, focused window): each keystroke costs GetForegroundWindow, GetGUIThreadInfo
+/// and GetKeyboardLayout, and the thread is looked up again whenever the focused window changes. The
+/// focus is checked on every key because a focus event can arrive before the app has set its focus:
+/// the top-level window's thread was cached then, whose layout can stay Arabic after Alt+Shift, and
+/// English typing was translated as Arabic until the next window change (found in 2.0 testing). The
+/// layout itself is never cached, because switching it (Alt+Shift, Win+Space) sends us no event.
 /// Not thread-safe: used only on the hook thread.
 /// </summary>
 internal sealed class ForegroundLayoutCache
 {
     private HWND _foreground;
+    private uint _foregroundThread;
+    private HWND _focus;
     private uint _inputThread;
 
     public unsafe nint Current()
@@ -54,7 +78,16 @@ internal sealed class ForegroundLayoutCache
         if (foreground != _foreground)
         {
             _foreground = foreground;
-            _inputThread = KeyboardLayouts.InputThreadOf(foreground);
+            _foregroundThread = PInvoke.GetWindowThreadProcessId(foreground, null);
+            _inputThread = 0;
+        }
+
+        var info = new GUITHREADINFO { cbSize = (uint)sizeof(GUITHREADINFO) };
+        var focus = PInvoke.GetGUIThreadInfo(_foregroundThread, &info) ? info.hwndFocus : default;
+        if (_inputThread == 0 || focus != _focus)
+        {
+            _focus = focus;
+            _inputThread = focus.IsNull ? _foregroundThread : PInvoke.GetWindowThreadProcessId(focus, null);
         }
 
         return (nint)PInvoke.GetKeyboardLayout(_inputThread).Value;

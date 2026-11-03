@@ -15,7 +15,7 @@
   <data name="MenuDiagnostics" xml:space="preserve"><value>التشخيص</value></data>
   <data name="MenuExit" xml:space="preserve"><value>خروج</value></data>
   <data name="FirstRunTitle" xml:space="preserve"><value>إتمام يعمل</value></data>
-  <data name="FirstRunText" xml:space="preserve"><value>إتمام يقترح الكلمات العربية أثناء الكتابة. يعمل من منطقة الإشعارات: انقر أيقونته بالزر الأيمن للإعدادات.</value></data>
+  <data name="FirstRunText" xml:space="preserve"><value>يقترح إتمام الكلمات أثناء الكتابة، بالعربية والإنجليزية واللغات التي تفعّلها. يعمل في منطقة الإشعارات: انقر أيقونته بالزر الأيمن لفتح الإعدادات.</value></data>
   <data name="SettingsTitle" xml:space="preserve"><value>إعدادات إتمام</value></data>
   <data name="NavGeneral" xml:space="preserve"><value>عام</value></data>
   <data name="NavAbout" xml:space="preserve"><value>حول</value></data>
@@ -28,10 +28,10 @@
   <data name="AddSpace" xml:space="preserve"><value>إضافة مسافة بعد قبول الاقتراح</value></data>
   <data name="SectionLearning" xml:space="preserve"><value>التعلم</value></data>
   <data name="MinUses" xml:space="preserve"><value>مرات الاستخدام قبل اقتراح كلمة جديدة</value></data>
-  <data name="SectionLanguage" xml:space="preserve"><value>اللغة</value></data>
+  <data name="SectionLanguage" xml:space="preserve"><value>الواجهة</value></data>
   <data name="UiLanguage" xml:space="preserve"><value>لغة الواجهة</value></data>
   <data name="AboutVersion" xml:space="preserve"><value>الإصدار {0}</value></data>
-  <data name="AboutTagline" xml:space="preserve"><value>اقتراح الكلمات العربية أثناء الكتابة على لوحة المفاتيح.</value></data>
+  <data name="AboutTagline" xml:space="preserve"><value>اقتراح الكلمات أثناء الكتابة على لوحة المفاتيح الفعلية، بالعربية والإنجليزية ولغات أخرى.</value></data>
   <data name="AboutDictionary" xml:space="preserve"><value>القاموس: {0:N0} كلمة</value></data>
   <data name="AboutLearned" xml:space="preserve"><value>كلماتك: {0:N0}</value></data>
   <data name="AboutSources" xml:space="preserve"><value>المصادر</value></data>
@@ -128,11 +128,11 @@
   <data name="BlockWordPrompt" xml:space="preserve"><value>اكتب الكلمة التي لا تريد أن تُقترح أبدًا:</value></data>
   <data name="EditWord" xml:space="preserve"><value>تعديل كلمة</value></data>
   <data name="EditWordPrompt" xml:space="preserve"><value>صحّح الكتابة (يبقى عدد استعمالها كما هو):</value></data>
-  <data name="NotAnArabicWord" xml:space="preserve"><value>اكتب كلمة عربية واحدة بلا مسافات.</value></data>
+  <data name="NotAnArabicWord" xml:space="preserve"><value>اكتب كلمة واحدة من هذه اللغة، دون مسافات أو أرقام.</value></data>
   <data name="OkButton" xml:space="preserve"><value>موافق</value></data>
   <data name="CancelButton" xml:space="preserve"><value>إلغاء</value></data>
   <data name="ImportExport" xml:space="preserve"><value>الاستيراد والتصدير</value></data>
-  <data name="ImportExportHint" xml:space="preserve"><value>ملف نصي فيه كلمة في كل سطر، لنسخ كلماتك احتياطيًا أو نقلها إلى جهاز آخر.</value></data>
+  <data name="ImportExportHint" xml:space="preserve"><value>استورد الكلمات من أي ملف نصي (‎.txt)، أو من ملف صدّرته من هنا؛ وصدّر كلماتك لنسخها احتياطيًا أو نقلها إلى جهاز آخر.</value></data>
   <data name="ImportButton" xml:space="preserve"><value>استيراد…</value></data>
   <data name="ExportButton" xml:space="preserve"><value>تصدير…</value></data>
   <data name="WordsFileFilter" xml:space="preserve"><value>ملفات نصية (*.txt)|*.txt</value></data>
@@ -191,8 +191,8 @@
   <data name="AddPhrase" xml:space="preserve"><value>إضافة عبارة</value></data>
   <data name="AddPhraseHint" xml:space="preserve"><value>توقيعك، أو اسم جهة عملك، أو أي عبارة تكتبها كثيرًا. تُقترح قبل العبارات المضمّنة.</value></data>
   <data name="EditPhrase" xml:space="preserve"><value>تعديل عبارة</value></data>
-  <data name="PhrasePrompt" xml:space="preserve"><value>اكتب العبارة (كلمتان عربيتان أو أكثر):</value></data>
-  <data name="NotAPhrase" xml:space="preserve"><value>اكتب كلمتين عربيتين أو أكثر، دون أرقام أو حروف لاتينية.</value></data>
+  <data name="PhrasePrompt" xml:space="preserve"><value>اكتب العبارة (كلمتان أو أكثر):</value></data>
+  <data name="NotAPhrase" xml:space="preserve"><value>اكتب كلمتين أو أكثر، دون أرقام أو رموز.</value></data>
   <data name="ConfirmDeletePhrase" xml:space="preserve"><value>حذف «{0}» من عباراتك؟</value></data>
   <data name="LearnPhrases" xml:space="preserve"><value>تعلّم العبارات من كتابتي</value></data>
   <data name="LearnPhrasesHint" xml:space="preserve"><value>الكلمات التي تكتبها متتالية مرتين (من كلمتين إلى 5) تُقترح عبارة. تُحفظ على جهازك فقط، ولا يُتعلَّم شيء في حقول كلمات المرور ولا في التطبيقات المستثناة ولا أثناء إيقاف التعلّم. وما لم يتكرر يُحذف بعد 30 يومًا.</value></data>
@@ -208,12 +208,12 @@
   <data name="NavTextShortcuts" xml:space="preserve"><value>الاختصارات النصية</value></data>
   <data name="TextShortcutsIntro" xml:space="preserve"><value>اكتب رمزًا قصيرًا فيقترح الشريط عبارته أولًا، ويضعها Tab مكان الرمز. مثلًا «ع1» ← «السلام عليكم ورحمة الله وبركاته».</value></data>
   <data name="AddTextShortcut" xml:space="preserve"><value>إضافة اختصار</value></data>
-  <data name="AddTextShortcutHint" xml:space="preserve"><value>رمز من حروف عربية، ويمكن أن تأتي بعد أول حرف أرقام، والعبارة التي يضعها.</value></data>
+  <data name="AddTextShortcutHint" xml:space="preserve"><value>رمز من حروف أي لغة، تجوز الأرقام بعد حرفه الأول، والنص الذي يُدرجه.</value></data>
   <data name="EditTextShortcut" xml:space="preserve"><value>تعديل اختصار</value></data>
   <data name="SectionTextShortcuts" xml:space="preserve"><value>اختصاراتي ({0})</value></data>
-  <data name="TextShortcutKeyPrompt" xml:space="preserve"><value>الاختصار (مثل ع1):</value></data>
+  <data name="TextShortcutKeyPrompt" xml:space="preserve"><value>الاختصار (مثل ع1 أو brb):</value></data>
   <data name="TextShortcutTextPrompt" xml:space="preserve"><value>العبارة التي يضعها:</value></data>
-  <data name="NotATextShortcutKey" xml:space="preserve"><value>يجب أن يبدأ الاختصار بحرف عربي، وأن يتكون من حروف عربية وأرقام فقط، دون مسافات.</value></data>
+  <data name="NotATextShortcutKey" xml:space="preserve"><value>يجب أن يبدأ الاختصار بحرف، وأن يتكون من حروف وأرقام فقط، دون مسافات.</value></data>
   <data name="NotATextShortcutText" xml:space="preserve"><value>اكتب العبارة التي يضعها الاختصار.</value></data>
   <data name="ConfirmDeleteTextShortcut" xml:space="preserve"><value>حذف الاختصار «{0}»؟</value></data>
   <data name="ConfirmReplaceTextShortcut" xml:space="preserve"><value>الاختصار «{0}» موجود. استبدال عبارته؟</value></data>
@@ -273,7 +273,7 @@
   <data name="NotABackup" xml:space="preserve"><value>هذا الملف ليس نسخة احتياطية لإتمام.</value></data>
   <data name="ConfirmRestoreBackup" xml:space="preserve"><value>استبدال كل كلماتك وعباراتك واختصاراتك وعباراتك الطويلة وإعداداتك على هذا الجهاز بما في النسخة؟ لا يمكن التراجع عن ذلك.</value></data>
   <data name="RestoreDone" xml:space="preserve"><value>استُعيدت النسخة الاحتياطية.</value></data>
-  <data name="SectionDictionary" xml:space="preserve"><value>القاموس</value></data>
+  <data name="SectionDictionary" xml:space="preserve"><value>القاموس العربي</value></data>
   <data name="DictionaryChoice" xml:space="preserve"><value>القاموس المستعمل</value></data>
   <data name="DictionaryChoiceHint" xml:space="preserve"><value>«الأساسي»: أكثر من 500 ألف كلمة من لغة الاستعمال اليومي. «ويكيبيديا»: نحو 880 ألف كلمة، يضم القاموس الأساسي كاملًا ويضيف إليه مفردات ويكيبيديا العربية، فيحسّن الاقتراحات في الكتابة الرسمية والمصطلحات، ويستهلك ذاكرة أكثر قليلًا.</value></data>
   <data name="DictionaryBasic" xml:space="preserve"><value>الأساسي</value></data>
@@ -305,4 +305,20 @@
 هل تريد حفظ التعديل في العبارة؟
 نعم: يُحفظ ثم يُدرج.
 لا: يُدرج هذه المرة فقط.</value></data>
+  <data name="NavLanguages" xml:space="preserve"><value>اللغات</value></data>
+  <data name="LanguagesIntro" xml:space="preserve"><value>يتبع إتمام تخطيط لوحة المفاتيح، فيقترح بلغة ما تكتبه. فعّل اللغات التي تريده أن يساعدك فيها.</value></data>
+  <data name="SectionKeyboardLanguages" xml:space="preserve"><value>لغات لوحة المفاتيح في هذا الجهاز</value></data>
+  <data name="LanguageFull" xml:space="preserve"><value>قاموس كامل: كلمات وعبارات وأخطاء شائعة.</value></data>
+  <data name="LanguageLearningOnly" xml:space="preserve"><value>بلا قاموس: يقترح الكلمات والعبارات التي تكتبها بها، وعباراتك، واختصاراتك النصية.</value></data>
+  <data name="LanguageUnsupported" xml:space="preserve"><value>تُكتب بمحرّر إدخال أو دون مسافات بين الكلمات، فيصمت إتمام معها.</value></data>
+  <data name="LanguageNoKeyboard" xml:space="preserve"><value>لوحة مفاتيحها غير مثبتة في هذا الجهاز.</value></data>
+  <data name="SectionTwoBars" xml:space="preserve"><value>شريطا اقتراحات؟</value></data>
+  <data name="TwoBars" xml:space="preserve"><value>اقتراحات النص في Windows</value></data>
+  <data name="TwoBarsHint" xml:space="preserve"><value>إذا ظهر شريط Windows مع شريط إتمام، فأوقف «إظهار اقتراحات النص عند الكتابة على لوحة المفاتيح الفعلية» من إعدادات Windows ← الوقت واللغة ← الكتابة.</value></data>
+  <data name="WordsLanguage" xml:space="preserve"><value>اللغة</value></data>
+  <data name="SectionEnglishDictionary" xml:space="preserve"><value>القاموس الإنجليزي</value></data>
+  <data name="EnglishDictionaryChoiceHint" xml:space="preserve"><value>«الأساسي»: نحو 300 ألف كلمة من لغة الاستعمال اليومي. «ويكيبيديا»: نحو 600 ألف كلمة، يضم القاموس الأساسي كاملًا ويضيف إليه مفردات ويكيبيديا الإنجليزية، فيحسّن الاقتراحات في الكتابة الرسمية والمصطلحات، ويستهلك ذاكرة أكثر قليلًا.</value></data>
+  <data name="ImportTextConfirm" xml:space="preserve"><value>وُجد في الملف {0:N0} كلمة باللغة {2}، منها {1:N0} جديدة. إضافتها إلى «كلماتي»؟ تُقترح فورًا، ويمكنك حذف أي منها هنا.</value></data>
+  <data name="ImportTextNone" xml:space="preserve"><value>لم يُعثر في الملف على كلمات بهذه اللغة. اختر لغة القائمة في الأعلى ثم أعد الاستيراد.</value></data>
+  <data name="ImportFileTooLarge" xml:space="preserve"><value>الملف كبير جدًا (أكثر من 64 ميغابايت).</value></data>
 </root>

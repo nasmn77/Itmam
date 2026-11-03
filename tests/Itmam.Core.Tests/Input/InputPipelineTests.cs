@@ -17,10 +17,11 @@ public sealed class InputPipelineTests : IAsyncDisposable
     private readonly Task _run;
     private readonly FakeInjector _injector = new();
     private readonly FakeGuard _guard = new();
+    private readonly InputPipeline _pipeline;
 
     public InputPipelineTests()
     {
-        var pipeline = new InputPipeline(
+        var pipeline = _pipeline = new InputPipeline(
             _channel.Reader,
             _context,
             new InputPipelineOptions { ProbeDelay = TimeSpan.FromMilliseconds(10) },
@@ -207,6 +208,64 @@ public sealed class InputPipelineTests : IAsyncDisposable
         var probe = await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedWithWord);
         probe.Word.ShouldBe("مدر");
         probe.IsDetached.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task After_a_dead_key_the_word_is_read_from_the_app()
+    {
+        _pipeline.Tracker.EnabledLanguages = new HashSet<string> { "ar", "fr" };
+        const nint french = 0x040C040C;
+        void SendFrench(InputEvent input) => _channel.Writer.TryWrite(new InputRecord(input, french, Stopwatch.GetTimestamp()));
+        _context.Next = "";
+        SendFrench(InputEvent.Of(InputEventKind.FocusChanged));
+        await WaitForProbeAsync();
+        foreach (var c in "caf")
+        {
+            SendFrench(InputEvent.Char(c));
+        }
+
+        _context.Next = "café";
+        SendFrench(InputEvent.Of(InputEventKind.DeadKey));
+        SendFrench(InputEvent.Char('e')); // what the hook sees; the app wrote «é»
+
+        (await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedWithWord)).Word.ShouldBe("café");
+    }
+
+    [Fact]
+    public async Task An_input_method_key_silences_until_the_context_changes()
+    {
+        Type("كت");
+        Send(InputEvent.Of(InputEventKind.InputMethod));
+        Type("ب");
+
+        (await WaitForAsync(u => u.Input?.Input.Character == 'ب')).Silenced.ShouldBe(SilenceReason.InputMethod);
+
+        _context.Next = "";
+        Send(InputEvent.Of(InputEventKind.MouseClick));
+        (await WaitForAsync(u => u.Input?.Input.Kind == InputEventKind.MouseClick)).Silenced.ShouldBe(SilenceReason.None);
+    }
+
+    [Fact]
+    public async Task A_word_is_learned_in_the_language_it_was_typed_in()
+    {
+        const nint english = 0x04090409;
+        _pipeline.Tracker.EnabledLanguages = new HashSet<string> { "ar", "en" };
+        _context.Next = "";
+        _channel.Writer.TryWrite(new InputRecord(InputEvent.Of(InputEventKind.FocusChanged), english, Stopwatch.GetTimestamp()));
+        await WaitForProbeAsync();
+        foreach (var c in "hello there ")
+        {
+            _channel.Writer.TryWrite(new InputRecord(InputEvent.Char(c), english, Stopwatch.GetTimestamp()));
+        }
+
+        // Alt+Shift, then an Arabic letter: "there" (still pending) becomes final, and it is English.
+        Type("ك");
+
+        var learned = await WaitForAsync(u => u.WordToLearn == "there");
+        learned.LearnLanguage.ShouldNotBeNull().Id.ShouldBe("en");
+        learned.PhrasesToLearn.ShouldBe(["hello there"]);
+        learned.Language.ShouldBe(Itmam.Core.Languages.LanguageProfile.Arabic);
+        (await WaitForAsync(u => u.WordToLearn == "hello")).LearnLanguage.ShouldNotBeNull().Id.ShouldBe("en");
     }
 
     private async Task DrainEnglishAsync(nint english)

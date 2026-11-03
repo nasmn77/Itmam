@@ -27,13 +27,13 @@
 
 <main class="wrap doc">
   <h1 class="reveal">Privacy policy</h1>
-  <p class="effective reveal d1">Effective date: version 1.1 (October 29, 2026)</p>
+  <p class="effective reveal d1">Effective date: version 2.0 (November 2, 2026)</p>
 
   <p class="promise reveal d2"><strong>Itmam sends no data.</strong> It collects no usage statistics, uploads no crash reports, and everything it does with what you type stays on your device. Its only connection is asking Microsoft Store about updates, and it can be turned off (see "Update check" below).</p>
 
   <h2>What the app reads</h2>
   <ul>
-    <li><strong>Keystrokes</strong>, only while you type with an Arabic keyboard layout, to know the word you are typing and suggest completions. Typing in any other language (e.g. English) is not tracked.</li>
+    <li><strong>Keystrokes</strong>, only while you type in a language turned on in Settings (Arabic and English by default, others once you turn them on under "Languages"), to know the word you are typing and suggest completions. Typing in a language that is turned off, or with an input method editor (such as Chinese, Japanese or Korean), is not tracked.</li>
     <li><strong>Only the current word before the caret:</strong> when the caret moves into existing text (Backspace, a mouse click, arrow keys, or switching to another field or window), the app uses Windows UI Automation to read at most 49 characters before the caret so it can continue the word the caret is in. It keeps only that word, in memory, and discards the rest immediately.</li>
     <li><strong>The last words you typed in a row</strong> (8 at most), to complete common phrases such as «بسم الله الرحمن الرحيم». They stay in memory only and are forgotten at any boundary other than a space, any caret move or window change. What is kept from them is described under "Learned phrases" below.</li>
     <li><strong>The program file name</strong> of the app you type in (e.g. <code>notepad.exe</code>), to know whether it is an excluded app. This name is not stored.</li>
@@ -55,8 +55,8 @@
 
   <h2>What is stored on your device</h2>
   <ul>
-    <li><strong>Your words:</strong> for each word: the word itself, how many times you used it, when you last used it, and whether you blocked it. Nothing else: no sentences, not the app you typed in. Location: <code>%LOCALAPPDATA%\Itmam\user.db</code> (inside the app's private folder when installed from the Store).</li>
-    <li><strong>Learned phrases</strong> (from 1.1, on by default): sequences of 2 to 5 Arabic words you typed in a row, with how many times and when you last typed them, in the same file. A sequence typed twice is suggested as a phrase; one not repeated is deleted 30 days after it was last typed. The app and the text around it are not kept, and nothing is counted in the places listed under "Never learned". To turn it off: Settings → "My phrases" → "Learn phrases from my typing".</li>
+    <li><strong>Your words:</strong> for each word: the word itself, its language, how many times you used it, when you last used it, and whether you blocked it. Nothing else: no sentences, not the app you typed in. Location: <code>%LOCALAPPDATA%\Itmam\user.db</code> (inside the app's private folder when installed from the Store).</li>
+    <li><strong>Learned phrases</strong> (from 1.1, on by default): sequences of 2 to 5 words you typed in a row in one language, with their language, how many times and when you last typed them, in the same file. A sequence typed twice is suggested as a phrase; one not repeated is deleted 30 days after it was last typed. The app and the text around it are not kept, and nothing is counted in the places listed under "Never learned". To turn it off: Settings → "My phrases" → "Learn phrases from my typing".</li>
     <li><strong>Statistics:</strong> how many words and phrases Itmam completed, how many characters it typed for you, and since when. Numbers only, in <code>user.db</code>; reset them in Settings → "General".</li>
     <li><strong>Your settings:</strong> such as colors, shortcuts, the excluded apps list and the "My phrases", text shortcuts and long phrases you add yourself, in <code>%LOCALAPPDATA%\Itmam\settings.json</code>. They contain nothing you type in other apps, nor the values you type for long phrase variables (forgotten after inserting).</li>
     <li><strong>Never learned:</strong> words in password fields, excluded apps, apps running as administrator, full-screen games, blocked words and any sequence containing one, and any word you delete right after typing it.</li>
@@ -64,8 +64,9 @@
 
   <h2>Your control over your data</h2>
   <ul>
-    <li><strong>Delete:</strong> Settings → "My words": delete a word, "Delete all my words", or turn off "Learn new words". Settings → "My phrases": delete a learned phrase, "Delete learned phrases" (with everything counted so far), or stop learning them.</li>
+    <li><strong>Delete:</strong> Settings → "My words" (one language at a time): delete a word, "Delete all my words", or turn off "Learn new words". Settings → "My phrases": delete a learned phrase, "Delete learned phrases" (with everything counted so far), or stop learning them.</li>
     <li><strong>Export:</strong> your words are copied nowhere unless you choose "Export…" yourself; they are then written to the file you pick.</li>
+    <li><strong>Import:</strong> you can import words from any text file you choose yourself; only the words and how often they occur are kept, never the text.</li>
     <li><strong>Full backup:</strong> created only when you choose "Back up…" in Settings → "General", written to the file you pick and sent nowhere. It holds your words, phrases, shortcuts, long phrases, settings and statistics, so keep it where you keep private files.</li>
     <li><strong>Uninstall:</strong> removes the app and its files from your device.</li>
   </ul>

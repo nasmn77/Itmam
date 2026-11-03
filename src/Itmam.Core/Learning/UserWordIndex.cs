@@ -1,14 +1,14 @@
-using Itmam.Core.Text;
+using Itmam.Core.Languages;
 
 namespace Itmam.Core.Learning;
 
 /// <summary>A word the user typed, added or blocked. Only the word and its usage are stored.</summary>
 public sealed class UserWord
 {
-    internal UserWord(string word, int count, DateTimeOffset lastUsed, bool blocked)
+    internal UserWord(string word, string key, int count, DateTimeOffset lastUsed, bool blocked)
     {
         Word = word;
-        Key = ArabicNormalizer.Normalize(word);
+        Key = key;
         Count = count;
         LastUsed = lastUsed;
         IsBlocked = blocked;
@@ -31,7 +31,7 @@ public sealed class UserWord
 /// In-memory index of the user's personal words, searchable by normalized key prefix.
 /// Not thread-safe: owned by the suggestion worker thread. Persistence is handled by the caller.
 /// </summary>
-public sealed class UserWordIndex
+public sealed class UserWordIndex(LanguageProfile? language = null)
 {
     private static readonly Comparison<UserWord> ByKey = (a, b) =>
     {
@@ -42,18 +42,18 @@ public sealed class UserWordIndex
     private readonly Dictionary<string, UserWord> _byWord = new(StringComparer.Ordinal);
     private readonly List<UserWord> _sortedByKey = [];
 
+    /// <summary>The language of the words: what a word is and how its key is built.</summary>
+    public LanguageProfile Language { get; } = language ?? LanguageProfile.Arabic;
+
     public int Count => _byWord.Count;
 
     public IReadOnlyList<UserWord> All => _sortedByKey;
 
-    /// <summary>Strips tashkeel/tatweel; returns null unless the result is an Arabic word.</summary>
-    public static string? Clean(string word)
-    {
-        var cleaned = ArabicText.StripIgnorable(word);
-        return ArabicText.IsArabicWord(cleaned) ? cleaned : null;
-    }
+    /// <summary>Strips tashkeel/tatweel; returns null unless the result is a word of the language (default Arabic).</summary>
+    public static string? Clean(string word, LanguageProfile? language = null) =>
+        (language ?? LanguageProfile.Arabic).CleanWord(word);
 
-    public UserWord? Get(string word) => Clean(word) is { } cleaned ? _byWord.GetValueOrDefault(cleaned) : null;
+    public UserWord? Get(string word) => Language.CleanWord(word) is { } cleaned ? _byWord.GetValueOrDefault(cleaned) : null;
 
     public bool IsBlocked(ReadOnlySpan<char> word) =>
         _byWord.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(word, out var entry) && entry.IsBlocked;
@@ -61,7 +61,7 @@ public sealed class UserWordIndex
     /// <summary>Records one use of a committed or accepted word: adds it with count 1 or increments it.</summary>
     public UserWord? RecordUse(string word, DateTimeOffset when)
     {
-        if (Clean(word) is not { } cleaned)
+        if (Language.CleanWord(word) is not { } cleaned)
         {
             return null;
         }
@@ -73,24 +73,24 @@ public sealed class UserWordIndex
             return entry;
         }
 
-        return Insert(new UserWord(cleaned, 1, when, blocked: false));
+        return Insert(new UserWord(cleaned, Language.Normalize(cleaned), 1, when, blocked: false));
     }
 
     /// <summary>Adds or replaces a word with explicit values (manual add, import, loading from storage).</summary>
     public UserWord? Set(string word, int count, DateTimeOffset lastUsed, bool blocked = false)
     {
-        if (Clean(word) is not { } cleaned)
+        if (Language.CleanWord(word) is not { } cleaned)
         {
             return null;
         }
 
         Remove(cleaned);
-        return Insert(new UserWord(cleaned, Math.Max(0, count), lastUsed, blocked));
+        return Insert(new UserWord(cleaned, Language.Normalize(cleaned), Math.Max(0, count), lastUsed, blocked));
     }
 
     public UserWord? SetBlocked(string word, bool blocked, DateTimeOffset when)
     {
-        if (Clean(word) is not { } cleaned)
+        if (Language.CleanWord(word) is not { } cleaned)
         {
             return null;
         }
@@ -101,12 +101,12 @@ public sealed class UserWordIndex
             return entry;
         }
 
-        return Insert(new UserWord(cleaned, 0, when, blocked));
+        return Insert(new UserWord(cleaned, Language.Normalize(cleaned), 0, when, blocked));
     }
 
     public bool Remove(string word)
     {
-        if (Clean(word) is not { } cleaned || !_byWord.Remove(cleaned, out var entry))
+        if (Language.CleanWord(word) is not { } cleaned || !_byWord.Remove(cleaned, out var entry))
         {
             return false;
         }

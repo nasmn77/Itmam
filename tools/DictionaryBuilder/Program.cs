@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text;
 using Itmam.Core.Dictionary;
 using Itmam.Core.Dictionary.Building;
+using Itmam.Core.Languages;
 
 // Builds the shipped dictionary from local frequency lists. Never touches the network:
 // download the sources first with download-sources.ps1 (see data/README.md).
@@ -11,6 +12,9 @@ using Itmam.Core.Dictionary.Building;
 //                     [--weight frequencywords=1.0] [--min-count frequencywords=5]
 //                     [--blocklist data/blocklist.txt] [--max-words 600000] [--drop-bare-alef-variants]
 //                     --output data/itmam-ar.dict
+//
+//   DictionaryBuilder --language en --source frequencywords-en=data/raw/frequencywords-en_full.txt
+//                     --min-count frequencywords-en=5 --blocklist data/blocklist.en.txt --output data/itmam-en.dict
 
 // Attribution for every source the builder accepts; unknown source names are rejected so the
 // shipped file can never contain unattributed data.
@@ -24,6 +28,14 @@ var knownSources = new Dictionary<string, DictionarySource>(StringComparer.Ordin
         "Arabic Wikipedia articles by Wikipedia contributors",
         "CC-BY-SA-4.0",
         "https://dumps.wikimedia.org/arwiki/"),
+    ["wikipedia-en"] = new(
+        "English Wikipedia articles by Wikipedia contributors",
+        "CC-BY-SA-4.0",
+        "https://dumps.wikimedia.org/enwiki/"),
+    ["frequencywords-en"] = new(
+        "FrequencyWords (OpenSubtitles 2018) by Hermit Dave",
+        "CC-BY-SA-4.0",
+        "https://github.com/hermitdave/FrequencyWords"),
 };
 
 try
@@ -31,9 +43,15 @@ try
     var options = Options.Parse(args);
     if (options.Sources.Count == 0 || options.Output is null)
     {
-        Console.Error.WriteLine("Usage: DictionaryBuilder --source <name>=<path> [--weight <name>=<w>] [--min-count <name>=<n>] [--blocklist <path>] [--max-words <n>] [--drop-bare-alef-variants] --output <path>");
+        Console.Error.WriteLine("Usage: DictionaryBuilder [--language ar|en] --source <name>=<path> [--weight <name>=<w>] [--min-count <name>=<n>] [--blocklist <path>] [--max-words <n>] [--drop-bare-alef-variants] --output <path>");
         Console.Error.WriteLine($"Known sources: {string.Join(", ", knownSources.Keys)}");
         return 2;
+    }
+
+    var language = LanguageRegistry.ForTag(options.Language);
+    if (LanguageRegistry.Support(language) != LanguageSupport.Full)
+    {
+        throw new ArgumentException($"No dictionary rules for language '{options.Language}'.");
     }
 
     var stopwatch = Stopwatch.StartNew();
@@ -48,9 +66,10 @@ try
 
         var reader = new StreamReader(path, Encoding.UTF8);
         readers.Add(reader);
+        var words = FrequencyList.Read(reader);
         inputs.Add(new SourceInput(
             source,
-            FrequencyList.Read(reader),
+            language == LanguageProfile.English ? EnglishContractions.Rebuild(words) : words,
             options.Weights.GetValueOrDefault(name, 1.0),
             options.MinCounts.GetValueOrDefault(name, 1)));
     }
@@ -59,10 +78,10 @@ try
     if (options.Blocklist is { } blocklistPath)
     {
         using var reader = new StreamReader(blocklistPath, Encoding.UTF8);
-        blocklist = Blocklist.Read(reader);
+        blocklist = Blocklist.Read(reader, language);
     }
 
-    var (dictionary, stats) = DictionaryBuildPipeline.Build(inputs, blocklist, options.MaxWords, options.DropBareAlefVariants);
+    var (dictionary, stats) = DictionaryBuildPipeline.Build(inputs, blocklist, options.MaxWords, options.DropBareAlefVariants, language);
     readers.ForEach(r => r.Dispose());
 
     Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(options.Output))!);
@@ -95,6 +114,8 @@ internal sealed class Options
     public Dictionary<string, long> MinCounts { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     public string? Blocklist { get; private set; }
+
+    public string Language { get; private set; } = "ar";
 
     public string? Output { get; private set; }
 
@@ -130,6 +151,9 @@ internal sealed class Options
                     break;
                 case "--blocklist":
                     options.Blocklist = value;
+                    break;
+                case "--language":
+                    options.Language = value;
                     break;
                 case "--max-words":
                     options.MaxWords = int.Parse(value, CultureInfo.InvariantCulture);

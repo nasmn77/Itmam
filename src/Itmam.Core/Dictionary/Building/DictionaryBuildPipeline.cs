@@ -1,3 +1,5 @@
+using Itmam.Core.Languages;
+
 namespace Itmam.Core.Dictionary.Building;
 
 /// <summary>One input frequency list with its merge settings.</summary>
@@ -19,8 +21,10 @@ public static class DictionaryBuildPipeline
         IReadOnlyList<SourceInput> inputs,
         Blocklist blocklist,
         int? maxEntries = null,
-        bool dropBareAlefVariants = false)
+        bool dropBareAlefVariants = false,
+        LanguageProfile? language = null)
     {
+        language ??= LanguageProfile.Arabic;
         int tokens = 0, accepted = 0, rejected = 0, belowMin = 0, blocked = 0;
         var merged = new Dictionary<string, double>(StringComparer.Ordinal);
         var totalWeight = inputs.Sum(i => i.Weight);
@@ -39,7 +43,7 @@ public static class DictionaryBuildPipeline
                     continue;
                 }
 
-                if (!WordFilter.TryClean(token, out var word))
+                if (!WordFilter.TryClean(token, out var word, language))
                 {
                     rejected++;
                     continue;
@@ -71,22 +75,23 @@ public static class DictionaryBuildPipeline
         var dictionary = WordDictionary.Build(
             merged.Select(pair => new WeightedWord(pair.Key, pair.Value)),
             inputs.Select(i => i.Source).ToArray(),
-            dropBareAlefVariants);
+            dropBareAlefVariants,
+            language);
 
         if (maxEntries is { } max && dictionary.Count > max)
         {
-            dictionary = KeepMostFrequent(dictionary, max, dropBareAlefVariants);
+            dictionary = KeepMostFrequent(dictionary, max, dropBareAlefVariants, language);
         }
 
         return (dictionary, new BuildStatistics(tokens, accepted, rejected, belowMin, blocked, dictionary.Count));
     }
 
-    private static WordDictionary KeepMostFrequent(WordDictionary dictionary, int max, bool dropBareAlefVariants)
+    private static WordDictionary KeepMostFrequent(WordDictionary dictionary, int max, bool dropBareAlefVariants, LanguageProfile language)
     {
         var top = Enumerable.Range(0, dictionary.Count)
             .OrderByDescending(dictionary.GetFrequency)
             .Take(max)
             .Select(i => new WeightedWord(dictionary.GetDisplay(i).ToString(), FrequencyScale.ToPerMillion(dictionary.GetFrequency(i))));
-        return WordDictionary.Build(top, dictionary.Sources, dropBareAlefVariants);
+        return WordDictionary.Build(top, dictionary.Sources, dropBareAlefVariants, language);
     }
 }

@@ -1,0 +1,70 @@
+# Common English spelling mistakes that the dictionary cannot fix by itself (letters swapped, added or
+# missing, an apostrophe left out). Compiled by hand for Itmam; released under the MIT license like the code.
+# Format: wrong = right | another right. When the wrong form is also a real word, the real word is listed
+# too, so it stays one Tab away. Lines starting with # are comments.
+
+# Letters swapped or doubled
+teh = the
+adn = and
+taht = that
+waht = what
+thier = their
+recieve = receive
+recieved = received
+beleive = believe
+belive = believe
+freind = friend
+freinds = friends
+wierd = weird
+acheive = achieve
+seperate = separate
+seperately = separately
+definately = definitely
+definatly = definitely
+occured = occurred
+occuring = occurring
+untill = until
+wich = which
+becuase = because
+beacuse = because
+goverment = government
+tommorow = tomorrow
+tomorow = tomorrow
+accomodate = accommodate
+neccessary = necessary
+necesary = necessary
+begining = beginning
+calender = calendar
+existance = existence
+independant = independent
+occassion = occasion
+publically = publicly
+truely = truly
+arguement = argument
+embarass = embarrass
+foriegn = foreign
+noticable = noticeable
+alot = a lot
+
+# The apostrophe left out
+dont = don't
+doesnt = doesn't
+didnt = didn't
+isnt = isn't
+wasnt = wasn't
+arent = aren't
+werent = weren't
+havent = haven't
+hasnt = hasn't
+couldnt = couldn't
+wouldnt = wouldn't
+shouldnt = shouldn't
+cant = can't | cant
+wont = won't | wont
+im = I'm
+ive = I've
+youre = you're
+theyre = they're
+thats = that's
+whats = what's
+lets = let's | lets

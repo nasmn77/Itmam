@@ -1,4 +1,4 @@
-using Itmam.Core.Text;
+using Itmam.Core.Languages;
 
 namespace Itmam.Core.Dictionary.Building;
 
@@ -7,73 +7,51 @@ namespace Itmam.Core.Dictionary.Building;
 /// <c>#</c> are ignored.
 /// </summary>
 /// <remarks>
-/// Matching uses a loose key (the normalized form with ؤ/ئ treated as ء), so no spelling escapes
-/// because of tashkeel, alef, ya, ta marbuta or hamza seat. Forms with an attached clitic are also
-/// blocked, limited by word length to avoid false positives: words of 4+ letters with any clitic
-/// (و ف ب ك ل ال وال بال فال كال لل), 3-letter words only after the article forms (ال وال بال فال كال لل),
-/// and 2-letter words never (كس must not block ألكس or كسكس; خرا must not block فخرا).
+/// Matching uses the language's loose key (Arabic: the normalized form with ؤ/ئ treated as ء), so no
+/// spelling escapes because of tashkeel, alef, ya, ta marbuta or hamza seat. Forms with an attached
+/// clitic are also blocked, limited by word length to avoid false positives
+/// (<see cref="LanguageProfile.BlocklistStems"/>).
 /// </remarks>
 public sealed class Blocklist
 {
-    private static readonly string[] Clitics = ["وال", "بال", "فال", "كال", "لل", "ال", "و", "ف", "ب", "ك", "ل"];
-    private static readonly string[] ArticleClitics = ["وال", "بال", "فال", "كال", "لل", "ال"];
-
     private readonly HashSet<string> _keys;
+    private readonly LanguageProfile _language;
 
-    private Blocklist(HashSet<string> keys) => _keys = keys;
+    private Blocklist(HashSet<string> keys, LanguageProfile language) => (_keys, _language) = (keys, language);
 
-    public static Blocklist Empty { get; } = new([]);
+    public static Blocklist Empty { get; } = new([], LanguageProfile.Arabic);
 
     public int Count => _keys.Count;
 
-    public static Blocklist Read(TextReader reader)
+    public static Blocklist Read(TextReader reader, LanguageProfile? language = null)
     {
+        language ??= LanguageProfile.Arabic;
         var keys = new HashSet<string>(StringComparer.Ordinal);
         while (reader.ReadLine() is { } line)
         {
             var word = line.Trim();
             if (word.Length > 0 && word[0] != '#')
             {
-                keys.Add(LooseKey(word));
+                keys.Add(language.LooseKey(word));
             }
         }
 
-        return new Blocklist(keys);
+        return new Blocklist(keys, language);
     }
 
-    public static Blocklist Load(string path)
+    public static Blocklist Load(string path, LanguageProfile? language = null)
     {
         using var reader = new StreamReader(path, System.Text.Encoding.UTF8);
-        return Read(reader);
+        return Read(reader, language);
     }
 
     public bool IsBlocked(string word)
     {
-        var key = LooseKey(word);
-        if (_keys.Contains(key))
-        {
-            return true;
-        }
-
-        foreach (var clitic in Clitics)
-        {
-            if (key.Length <= clitic.Length || !key.StartsWith(clitic, StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            var stem = key[clitic.Length..];
-            var allowed = stem.Length >= 4 || (stem.Length == 3 && ArticleClitics.Contains(clitic));
-            if (allowed && _keys.Contains(stem))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        var key = _language.LooseKey(word);
+        return _keys.Contains(key) || _language.BlocklistStems(key).Any(_keys.Contains);
     }
 
-    /// <summary>Normalized form with every hamza seat (ؤ ئ) folded into ء.</summary>
-    public static string LooseKey(string word) =>
-        ArabicNormalizer.Normalize(word).Replace('ؤ', 'ء').Replace('ئ', 'ء');
+    /// <summary>The key a word is matched by (Arabic: normalized, every hamza seat ؤ ئ folded into ء).</summary>
+    public static string LooseKey(string word, LanguageProfile? language = null) =>
+        (language ?? LanguageProfile.Arabic).LooseKey(word);
 }

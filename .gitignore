@@ -71,3 +71,6 @@ Desktop.ini
 
 # MSIX build output (tools/Build-Package.ps1)
 artifacts/
+
+# Python caches (build tools)
+__pycache__/

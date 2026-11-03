@@ -1,4 +1,4 @@
-using Itmam.Core.Text;
+using Itmam.Core.Languages;
 
 namespace Itmam.Core.Dictionary.Building;
 
@@ -9,14 +9,16 @@ public static class WordFilter
     public const int MaxLength = 25;
 
     /// <summary>
-    /// Strips tashkeel/tatweel and accepts the result only if it is Arabic letters only (no mixed
-    /// scripts, digits or punctuation), 2–25 letters long and has no letter repeated 3+ times in a row.
+    /// Strips the ignorable marks (tashkeel/tatweel) and accepts the result only if it is letters of the
+    /// language only (no mixed scripts, digits or punctuation), 2–25 letters long and has no letter
+    /// repeated 3+ times in a row.
     /// </summary>
-    public static bool TryClean(string token, out string word)
+    public static bool TryClean(string token, out string word, LanguageProfile? language = null)
     {
-        word = ArabicText.StripIgnorable(token);
+        language ??= LanguageProfile.Arabic;
+        word = language.StripIgnorable(token);
         return word.Length is >= MinLength and <= MaxLength
-            && ArabicText.IsArabicWord(word)
+            && language.IsWord(word)
             && !HasTripleRepeat(word);
     }
 

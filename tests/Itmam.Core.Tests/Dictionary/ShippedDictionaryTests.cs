@@ -7,6 +7,7 @@ using Itmam.Core.Suggestions;
 namespace Itmam.Core.Tests.Dictionary;
 
 /// <summary>Size, quality and performance checks against the real shipped dictionary file.</summary>
+[Collection(TimingCollection.Name)]
 public class ShippedDictionaryTests(ITestOutputHelper output)
 {
     private static readonly Lazy<WordDictionary> Shipped = new(() => DictionaryFile.Load(TestDictionaries.ShippedDictionaryPath));

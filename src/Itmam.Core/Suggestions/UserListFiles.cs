@@ -26,8 +26,12 @@ public static class UserListFiles
         }
     }
 
-    /// <summary>"My phrases" merged with the file's; the file's learned phrases go to <paramref name="learned"/>.</summary>
-    public static ListImport<string> ReadPhrases(TextReader reader, IReadOnlyList<string> existing, List<(string Text, int Count)>? learned = null)
+    /// <summary>"My phrases" merged with the file's; the file's learned phrases (of <paramref name="language"/>) go to <paramref name="learned"/>.</summary>
+    public static ListImport<string> ReadPhrases(
+        TextReader reader,
+        IReadOnlyList<string> existing,
+        List<(string Text, int Count)>? learned = null,
+        Languages.LanguageProfile? language = null)
     {
         var merged = existing.ToList();
         var keys = existing.Select(PhraseKey).ToHashSet(StringComparer.Ordinal);
@@ -37,7 +41,7 @@ public static class UserListFiles
             if (line[0] == '*')
             {
                 var parts = line[1..].Split('\t', 2);
-                if (learned is not null && PhraseIndex.Clean(parts[0]) is { } text
+                if (learned is not null && PhraseIndex.Clean(parts[0], language) is { } text
                     && parts.Length == 2 && int.TryParse(parts[1], System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var count) && count > 0)
                 {
                     learned.Add((text, count));
@@ -47,7 +51,7 @@ public static class UserListFiles
                     skipped++;
                 }
             }
-            else if (PhraseIndex.Clean(line) is { } phrase && keys.Add(PhraseKey(phrase)))
+            else if (PhraseIndex.CleanAny(line) is { } phrase && keys.Add(PhraseKey(phrase)))
             {
                 merged.Add(phrase);
                 added++;
@@ -165,5 +169,5 @@ public static class UserListFiles
         }
     }
 
-    private static string PhraseKey(string phrase) => Learning.LearningService.PhraseKey(phrase);
+    private static string PhraseKey(string phrase) => Learning.LearningService.PhraseKey(phrase, Languages.LanguageRegistry.ForText(phrase));
 }

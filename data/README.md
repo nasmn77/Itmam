@@ -14,7 +14,7 @@
 |---|---|---|---|
 | `frequencywords` | [FrequencyWords](https://github.com/hermitdave/FrequencyWords) من Hermit Dave: عدد مرات ورود الكلمات في مدوّنة ترجمات OpenSubtitles لعام 2018 ([OPUS](https://opus.nlpl.eu/OpenSubtitles/corpus/version/OpenSubtitles))، الملف `content/2018/ar/ar_full.txt`. عربية المحادثة والاستعمال اليومي. | المحتوى: [CC-BY-SA-4.0](https://creativecommons.org/licenses/by-sa/4.0/) (الشيفرة: MIT) | الـ commit ‏`525f9b560de45753a5ea01069454e72e9aa541c6`، وبصمة SHA-256 ‏`EBB36AEAE78E609ADC552B32EC91FF2490E1170F8B244D22EEF9952D2096D610` |
 
-القاموس الثاني `itmam-ar-wikipedia.dict` (مضمَّن بجانب الأساسي، ويختاره المستخدم من الإعدادات ← «عام») يضيف المصدر:
+القاموس الثاني `itmam-ar-wikipedia.dict` (مضمَّن بجانب الأساسي، ويختاره المستخدم من الإعدادات ← «اللغات») يضيف المصدر:
 
 | الاسم | المصدر | الرخصة | التثبيت |
 |---|---|---|---|
@@ -84,6 +84,25 @@ dotnet run --project tools/DictionaryBuilder -c Release -- `
 - **لا يُحظر عمدًا:** كلمات من تلك القوائم عادية أو لها معنى شائع غير مسيء، أو من مفردات الطب أو القانون والدين أو الأخبار: أمك، أختك، نيك (غالبًا اسم Nick)، شاذ، قضيب، قواد، فرج، حلمه، خول، لبوة، مبادل، زق، بز، ثدي، شرج، بظر، احتلام، خنثى، جماع، شهوة، اغتصاب، لواط، سحاق، لعق، لحس، مص، تمص، بيضان.
 - **المطابقة:** بالصورة الموحَّدة مع توحيد مقاعد الهمزة (ؤ/ئ = ء)، فتُلتقط صور التشكيل والألف والياء والتاء المربوطة والهمزة كلها. وصور اللواصق: الكلمات من 4 حروف فأكثر مع أي لاصقة، والكلمات من 3 حروف بعد ال/وال/بال/فال/كال/لل فقط، والكلمات من حرفين لا تُطابق مع اللواصق أبدًا (فلا تحظر كس كلمتي ألكس وكسكس، ولا تحظر خرا كلمة فخرا).
 
+### القاموس الإنجليزي (من الإصدار 2.0)
+
+`itmam-en.dict` من القائمة الإنجليزية في المشروع نفسه وبالـ commit نفسه: الملف `content/2018/en/en_full.txt` (المصدر `frequencywords-en`، وبصمة SHA-256 ‏`7FEA67AB954E2C01DF6C608C9826E594CF36F8823B3243554F88245FB75DC506`)، برخصة CC-BY-SA-4.0، فالقاموس الناتج برخصة CC-BY-SA-4.0 أيضًا.
+
+```powershell
+dotnet run --project tools/DictionaryBuilder -c Release -- `
+    --language en `
+    --source frequencywords-en=data/raw/frequencywords-en_full.txt `
+    --min-count frequencywords-en=5 `
+    --blocklist data/blocklist.en.txt `
+    --output data/itmam-en.dict
+```
+
+- مقسّم المصدر يفصل الاختصارات عند الفاصلة العليا (`don` و`'t`، و`i` و`'m`)، فتعيد الأداة تركيبها (`EnglishContractions`): الجذر الذي لا يأتي إلا قبل `n't` (`don`، `isn`، `didn`…) يصبح اختصاره بتكراره نفسه؛ واللواحق الأخرى (`'m`، `'re`، `'ll`، `'ve`، `'d`، `'s`) تُوزَّع على الكلمات التي تقبلها بنسبة تكرار كل منها، وهذا **تقدير** لأن القائمة لا تذكر الكلمة التي سبقت اللاحقة؛ و`can't` و`won't` تتقاسمان ما بقي من `n't`. ويُكتب `i` بحرف كبير.
+- المفتاح بالأحرف الصغيرة وبلا علامات (`cafe` يجد `café`)، وتسقط الصور النادرة (`yöu`) بقاعدة الـ 5%. لا تُحفظ الكلمات ذات الحرف الواحد.
+- النتيجة: 298,335 كلمة، وملف 978 كيلوبايت، ونحو 13 ميغابايت في الذاكرة.
+- **قاموس ويكيبيديا الإنجليزي** `itmam-en-wikipedia.dict` (الافتراضي للإنجليزية، قرار المستخدم): يضيف نصوص مقالات [ويكيبيديا الإنجليزية](https://dumps.wikimedia.org/enwiki/) من ملف النسخ `enwiki-20261001-pages-articles-multistream.xml.bz2` (‏25.1 غيغابايت، بصمة SHA-1 ‏`992b5ca87b3404894f013e59a43efbb8b1bc012b`، مع ملف الفهرس)، برخصة CC-BY-SA-4.0. عدّتها الأداة `tools/DictionaryBuilder/wiki-counts-en.py` على عدة أنوية: تُحفظ حالة الأحرف (`London`، `NASA`) إلا الكلمة التي تبدأ بها الجملة، ولا تُحفظ صيغ الملكية (`London's`). ثم: `--source wikipedia-en=<wikipedia-en.txt> --min-count wikipedia-en=100 --weight frequencywords-en=2`. النتيجة 605,709 كلمة، وملف 2.7 ميغابايت، ونحو 27 ميغابايت في الذاكرة.
+- `phrases.en.txt` (172 عبارة) و`corrections.en.txt` كُتبتا يدويًا لإتمام برخصة MIT. و`blocklist.en.txt` مختارات من قائمة LDNOOBW الإنجليزية (CC-BY-4.0)، انظر ترويسة الملف.
+
 </div>
 
 ## English
@@ -97,7 +116,7 @@ and frequency comes from a real corpus listed below. Nothing here is invented.
 |---|---|---|---|
 | `frequencywords` | [FrequencyWords](https://github.com/hermitdave/FrequencyWords) by Hermit Dave: word counts from the OpenSubtitles 2018 corpus ([OPUS](https://opus.nlpl.eu/OpenSubtitles/corpus/version/OpenSubtitles)), file `content/2018/ar/ar_full.txt`. Conversational / everyday Arabic. | Content: [CC-BY-SA-4.0](https://creativecommons.org/licenses/by-sa/4.0/) (code: MIT) | commit `525f9b560de45753a5ea01069454e72e9aa541c6`, SHA-256 `EBB36AEAE78E609ADC552B32EC91FF2490E1170F8B244D22EEF9952D2096D610` |
 
-The second dictionary `itmam-ar-wikipedia.dict` (shipped next to the basic one; the user chooses it in Settings → General) adds:
+The second dictionary `itmam-ar-wikipedia.dict` (shipped next to the basic one; the user chooses it in Settings → Languages) adds:
 
 | Name | Source | License | Pinned |
 |---|---|---|---|
@@ -183,3 +202,35 @@ are welcome; rebuild the dictionary after editing it. Users can also block words
   ta marbuta and hamza variants are all caught. Clitic forms: 4+ letter words with any clitic,
   3-letter words only after ال/وال/بال/فال/كال/لل, 2-letter words never (so كس does not block ألكس
   or كسكس, and خرا does not block فخرا).
+
+### English dictionary (from 2.0)
+
+`itmam-en.dict` comes from the English list of the same project, same commit: `content/2018/en/en_full.txt` (source
+`frequencywords-en`, SHA-256 `7FEA67AB954E2C01DF6C608C9826E594CF36F8823B3243554F88245FB75DC506`), CC-BY-SA-4.0, so the
+resulting dictionary is CC-BY-SA-4.0 too.
+
+```powershell
+dotnet run --project tools/DictionaryBuilder -c Release -- `
+    --language en `
+    --source frequencywords-en=data/raw/frequencywords-en_full.txt `
+    --min-count frequencywords-en=5 `
+    --blocklist data/blocklist.en.txt `
+    --output data/itmam-en.dict
+```
+
+- The source's tokenizer splits contractions at the apostrophe (`don` and `'t`, `i` and `'m`), so the builder puts them
+  back together (`EnglishContractions`): a stem that only comes before `n't` (`don`, `isn`, `didn` …) becomes its
+  contraction with its own count; the other suffixes (`'m`, `'re`, `'ll`, `'ve`, `'d`, `'s`) are shared out between the
+  words that take them in proportion to their counts, which is an **estimate** (the list does not say which word each
+  suffix followed); `can't` and `won't` share what is left of `n't`. `i` is written `I`.
+- Keys are lower case without accents (`cafe` finds `café`); rare variants (`yöu`) fall to the 5% rule. Single letters
+  are not kept.
+- Result: 298,335 words, a 978 KB file, about 13 MB in memory.
+- **English Wikipedia dictionary** `itmam-en-wikipedia.dict` (the default for English, user decision): adds the article
+  text of [English Wikipedia](https://dumps.wikimedia.org/enwiki/) from `enwiki-20261001-pages-articles-multistream.xml.bz2`
+  (25.1 GB, SHA-1 `992b5ca87b3404894f013e59a43efbb8b1bc012b`, with its index file), CC-BY-SA-4.0. Counted by
+  `tools/DictionaryBuilder/wiki-counts-en.py` on several cores: case kept (`London`, `NASA`) except for the word starting a
+  sentence, possessives (`London's`) not kept. Then `--source wikipedia-en=<wikipedia-en.txt> --min-count wikipedia-en=100
+  --weight frequencywords-en=2`. Result: 605,709 words, a 2.7 MB file, about 27 MB in memory.
+- `phrases.en.txt` (172 phrases) and `corrections.en.txt` were written by hand for Itmam (MIT). `blocklist.en.txt` is a
+  selection from the LDNOOBW English list (CC-BY-4.0); see the file's header.

@@ -1,6 +1,6 @@
 using Itmam.Core.Dictionary;
+using Itmam.Core.Languages;
 using Itmam.Core.Learning;
-using Itmam.Core.Text;
 
 namespace Itmam.Core.Suggestions;
 
@@ -36,37 +36,41 @@ public sealed class SuggestionEngine(
     SuggestionOptions? options = null,
     TimeProvider? timeProvider = null)
 {
-    // Already normalized. Longest first; every matching clitic is tried and results are merged.
-    private static readonly string[] Clitics = ["وال", "بال", "فال", "كال", "لل", "ال", "و", "ف", "ب", "ك", "ل", "س"];
-
     private readonly TimeProvider _time = timeProvider ?? TimeProvider.System;
 
     public SuggestionOptions Options { get; set; } = options ?? new SuggestionOptions();
 
+    public WordDictionary Dictionary => dictionary;
+
+    public UserWordIndex UserWords => userWords;
+
+    /// <summary>The dictionary's language: its letters, matching keys and clitics.</summary>
+    public LanguageProfile Language => dictionary.Language;
+
     public IReadOnlyList<Suggestion> Suggest(string typed)
     {
-        var literal = ArabicText.StripIgnorable(typed);
-        if (literal.Length < Options.MinChars || !ArabicText.IsArabicWord(literal))
+        var literal = Language.StripIgnorable(typed);
+        if (literal.Length < Options.MinChars || !Language.IsWordPrefix(literal))
         {
             return [];
         }
 
-        var key = ArabicNormalizer.Normalize(literal);
+        var key = Language.Normalize(literal);
         var context = new Context(literal, _time.GetUtcNow());
 
-        Collect(context, literal, key, MatchKind.Literal, MatchKind.Normalized, attachedPrefix: "", skipStemsWithAl: false);
+        Collect(context, literal, key, MatchKind.Literal, MatchKind.Normalized, attachedPrefix: "", excludedStemStart: null);
 
         if (context.Results.Count < Options.MaxSuggestions)
         {
-            foreach (var variant in ArabicNormalizer.HamzaFallbackVariants(key))
+            foreach (var variant in Language.FallbackVariants(key))
             {
-                Collect(context, literal, variant, MatchKind.HamzaFallback, MatchKind.HamzaFallback, "", skipStemsWithAl: false);
+                Collect(context, literal, variant, MatchKind.HamzaFallback, MatchKind.HamzaFallback, "", excludedStemStart: null);
             }
         }
 
         if (Options.CliticAware && context.Results.Count < Options.MaxSuggestions)
         {
-            foreach (var clitic in Clitics)
+            foreach (var clitic in Language.Clitics)
             {
                 if (!key.StartsWith(clitic, StringComparison.Ordinal) || key.Length - clitic.Length < Options.MinStemChars)
                 {
@@ -81,14 +85,18 @@ public sealed class SuggestionEngine(
                     MatchKind.Clitic,
                     MatchKind.Clitic,
                     attachedPrefix: literal[..clitic.Length],
-                    skipStemsWithAl: clitic[^1] == 'ل');
+                    excludedStemStart: Language.ExcludedStemStart(clitic));
             }
         }
 
+        // In the case being typed; the same word in two cases (learned «Hello», dictionary «hello») once.
         return context.Results.Values
             .OrderBy(s => Tier(s.Kind))
             .ThenByDescending(s => s.Score)
             .ThenBy(s => s.Word, StringComparer.Ordinal)
+            .Select(s => s with { Word = Language.MatchCase(s.Word, literal) })
+            .Where(s => s.Word != literal)
+            .DistinctBy(s => Language.DisplayKey(s.Word), StringComparer.Ordinal)
             .Take(Options.MaxSuggestions)
             .ToArray();
     }
@@ -104,7 +112,7 @@ public sealed class SuggestionEngine(
         MatchKind literalKind,
         MatchKind otherKind,
         string attachedPrefix,
-        bool skipStemsWithAl)
+        string? excludedStemStart)
     {
         // 1. Best dictionary entries in the prefix range by (tier, base score + bonuses).
         var pool = new CandidatePool(Options.CandidatePoolSize);
@@ -126,7 +134,7 @@ public sealed class SuggestionEngine(
             if (!pool.WouldAccept(Tier(kind), score)
                 || pool.Contains(i)
                 || display.SequenceEqual(literalPrefix)
-                || (skipStemsWithAl && display.StartsWith("ال"))
+                || (excludedStemStart is not null && display.StartsWith(excludedStemStart))
                 || userWords.IsBlocked(display))
             {
                 return;
@@ -176,7 +184,7 @@ public sealed class SuggestionEngine(
         {
             if (user.IsBlocked
                 || user.Word == literalPrefix
-                || (skipStemsWithAl && user.Word.StartsWith("ال", StringComparison.Ordinal)))
+                || (excludedStemStart is not null && user.Word.StartsWith(excludedStemStart, StringComparison.Ordinal)))
             {
                 continue;
             }
