@@ -134,6 +134,9 @@ internal sealed class ItmamApp : IDisposable
     /// <summary>The Wikipedia dictionary is in use (else the basic one).</summary>
     public bool UsesWikipediaDictionary { get; private set; }
 
+    // Which English dictionary is loaded (null until English is first used).
+    private bool? _englishUsesWikipedia;
+
     private static string DictionaryPath(bool wikipedia) =>
         Path.Combine(AppContext.BaseDirectory, wikipedia ? "itmam-ar-wikipedia.dict" : "itmam-ar.dict");
 
@@ -150,6 +153,29 @@ internal sealed class ItmamApp : IDisposable
             _languages.AddOrUpdate(LanguageProfile.Arabic.Id, _ => throw new InvalidOperationException(), (_, arabic) => arabic with { Engine = Engine });
             Dictionary = dictionary;
             UsesWikipediaDictionary = wikipedia;
+        }
+
+        GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, blocking: true, compacting: true); // free the old one
+    }
+
+    // The English dictionary, Wikipedia or basic; the basic one when the Wikipedia file is missing.
+    private WordDictionary LoadEnglishDictionary(bool wikipedia)
+    {
+        var dictionary = wikipedia ? LoadDictionary("itmam-en-wikipedia.dict", LanguageProfile.English) : null;
+        _englishUsesWikipedia = wikipedia;
+        return dictionary is { Count: > 0 } ? dictionary : LoadDictionary("itmam-en.dict", LanguageProfile.English);
+    }
+
+    // Switches the English dictionary live, like UseDictionary (UI thread); only once English has been loaded.
+    private void UseEnglishDictionary(bool wikipedia)
+    {
+        var dictionary = LoadEnglishDictionary(wikipedia);
+        lock (Learning.SyncRoot)
+        {
+            _languages.AddOrUpdate(
+                LanguageProfile.English.Id,
+                _ => throw new InvalidOperationException(),
+                (_, english) => english with { Engine = new SuggestionEngine(dictionary, english.Engine.UserWords, english.Engine.Options) });
         }
 
         GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, blocking: true, compacting: true); // free the old one
@@ -386,6 +412,12 @@ internal sealed class ItmamApp : IDisposable
             UseDictionary(settings.UseWikipediaDictionary);
         }
 
+        if (_englishUsesWikipedia is { } englishWikipedia && englishWikipedia != settings.UseEnglishWikipediaDictionary
+            && _languages.ContainsKey(LanguageProfile.English.Id))
+        {
+            UseEnglishDictionary(settings.UseEnglishWikipediaDictionary);
+        }
+
         if (PausedUntil is null && Hooks.IsEnabled != settings.Enabled)
         {
             Hooks.IsEnabled = settings.Enabled;
@@ -418,7 +450,7 @@ internal sealed class ItmamApp : IDisposable
         _languages.GetOrAdd(language.Id, _ =>
         {
             var english = language == LanguageProfile.English;
-            var dictionary = english ? LoadDictionary("itmam-en.dict", language) : WordDictionary.Build([], language: language);
+            var dictionary = english ? LoadEnglishDictionary(Settings.UseEnglishWikipediaDictionary) : WordDictionary.Build([], language: language);
             var blocklist = english ? LoadBlocklist("blocklist.en.txt", language) : null;
             var corrections = english ? LoadCorrections(Path.Combine(AppContext.BaseDirectory, "corrections.en.txt"), language) : Corrections.Empty;
             if (english)

@@ -316,4 +316,6 @@
   <data name="TwoBars" xml:space="preserve"><value>اقتراحات النص في Windows</value></data>
   <data name="TwoBarsHint" xml:space="preserve"><value>إذا ظهر شريط Windows مع شريط إتمام، فأوقف «إظهار اقتراحات النص عند الكتابة على لوحة المفاتيح الفعلية» من إعدادات Windows ← الوقت واللغة ← الكتابة.</value></data>
   <data name="WordsLanguage" xml:space="preserve"><value>اللغة</value></data>
+  <data name="SectionEnglishDictionary" xml:space="preserve"><value>القاموس الإنجليزي</value></data>
+  <data name="EnglishDictionaryChoiceHint" xml:space="preserve"><value>«الأساسي»: نحو 300 ألف كلمة من لغة الاستعمال اليومي. «ويكيبيديا»: نحو 600 ألف كلمة، يضم القاموس الأساسي كاملًا ويضيف إليه مفردات ويكيبيديا الإنجليزية، فيحسّن الاقتراحات في الكتابة الرسمية والمصطلحات، ويستهلك ذاكرة أكثر قليلًا.</value></data>
 </root>

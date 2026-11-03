@@ -415,6 +415,13 @@ internal sealed class SettingsWindow : Form
         dictionary.SelectedIndexChanged += (_, _) => Update(s => s with { UseWikipediaDictionary = dictionary.SelectedIndex == 1 });
         AddCard(Strings.DictionaryChoice, Strings.DictionaryChoiceHint, dictionary);
 
+        // The same choice for English (user decision 2.0).
+        AddSection(Strings.SectionEnglishDictionary);
+        var english = new SegmentedChoice { Options = [Strings.DictionaryBasic, Strings.DictionaryWikipedia] };
+        english.SelectedIndex = settings.UseEnglishWikipediaDictionary ? 1 : 0;
+        english.SelectedIndexChanged += (_, _) => Update(s => s with { UseEnglishWikipediaDictionary = english.SelectedIndex == 1 });
+        AddCard(Strings.DictionaryChoice, Strings.EnglishDictionaryChoiceHint, english);
+
         // Windows' own suggestions for the physical keyboard would show a second bar.
         AddSection(Strings.SectionTwoBars);
         var open = new ThemedButton { Text = Strings.OpenButton };

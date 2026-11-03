@@ -42,6 +42,8 @@ public sealed class SuggestionEngine(
 
     public WordDictionary Dictionary => dictionary;
 
+    public UserWordIndex UserWords => userWords;
+
     /// <summary>The dictionary's language: its letters, matching keys and clitics.</summary>
     public LanguageProfile Language => dictionary.Language;
 

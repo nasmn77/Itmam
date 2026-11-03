@@ -35,6 +35,7 @@
     <None Include="..\..\data\phrases.txt" Link="phrases.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\data\corrections.txt" Link="corrections.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\data\itmam-en.dict" Link="itmam-en.dict" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\data\itmam-en-wikipedia.dict" Link="itmam-en-wikipedia.dict" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\data\blocklist.en.txt" Link="blocklist.en.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\data\corrections.en.txt" Link="corrections.en.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\data\phrases.en.txt" Link="phrases.en.txt" CopyToOutputDirectory="PreserveNewest" />

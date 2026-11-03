@@ -316,4 +316,6 @@ No: insert it this time only.</value></data>
   <data name="TwoBars" xml:space="preserve"><value>Windows text suggestions</value></data>
   <data name="TwoBarsHint" xml:space="preserve"><value>If Windows shows its own bar as well, turn off "Show text suggestions when typing on the physical keyboard" in Windows Settings → Time &amp; language → Typing.</value></data>
   <data name="WordsLanguage" xml:space="preserve"><value>Language</value></data>
+  <data name="SectionEnglishDictionary" xml:space="preserve"><value>English dictionary</value></data>
+  <data name="EnglishDictionaryChoiceHint" xml:space="preserve"><value>"Basic": about 300,000 words of everyday English. "Wikipedia": about 600,000 words: the whole basic dictionary plus the vocabulary of English Wikipedia, for better suggestions in formal writing and terms; uses a little more memory.</value></data>
 </root>

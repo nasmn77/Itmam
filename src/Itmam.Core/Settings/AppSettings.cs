@@ -41,6 +41,12 @@ public sealed record AppSettings
     public bool UseWikipediaDictionary { get; init; } = true;
 
     /// <summary>
+    /// English: the Wikipedia dictionary (data/itmam-en-wikipedia.dict, the basic one plus English Wikipedia's
+    /// vocabulary) instead of the basic one; the default, like Arabic (user decision 2.0).
+    /// </summary>
+    public bool UseEnglishWikipediaDictionary { get; init; } = true;
+
+    /// <summary>
     /// Tags of the languages Itmam suggests in (2.0): Arabic and English by default; any other alphabetic
     /// language (learning only) once the user turns it on.
     /// </summary>

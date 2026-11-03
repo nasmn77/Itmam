@@ -27,6 +27,8 @@ internal static class TestDictionaries
 
     public static string EnglishDictionaryPath => Path.Combine(RepositoryRoot, "data", "itmam-en.dict");
 
+    public static string EnglishWikipediaDictionaryPath => Path.Combine(RepositoryRoot, "data", "itmam-en-wikipedia.dict");
+
     public static string EnglishBlocklistPath => Path.Combine(RepositoryRoot, "data", "blocklist.en.txt");
 
     public static string EnglishCorrectionsPath => Path.Combine(RepositoryRoot, "data", "corrections.en.txt");
