@@ -1627,7 +1627,7 @@ internal sealed class SettingsWindow : Form
         AddTitle(Strings.AppName);
         AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutVersion, AppVersion()), secondary: true);
         AddText(Strings.AboutTagline, secondary: false);
-        AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutDictionary, _app.Dictionary.Count), secondary: false);
+        AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutDictionary, _app.LoadedDictionaries.Sum(d => d.Count)), secondary: false);
         AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutLearned, _app.Learning.Languages.Sum(l => _app.Learning.Snapshot(l).Count)), secondary: false);
         AddLink(Strings.AboutWebsite, _app.Settings.Language == UiLanguage.Arabic ? WebsiteUrl : WebsiteUrlEnglish);
 

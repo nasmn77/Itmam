@@ -45,9 +45,6 @@ internal sealed class ItmamApp : IDisposable
         _settingsStore = new SettingsStore(Path.Combine(DataFolder, "settings.json"));
         Settings = _settingsStore.Load();
 
-        // Two dictionaries are shipped; the setting chooses one (user decision 1.1).
-        UsesWikipediaDictionary = Settings.UseWikipediaDictionary;
-        Dictionary = DictionaryFile.Load(DictionaryPath(UsesWikipediaDictionary));
         var blocklist = Blocklist.Load(Path.Combine(AppContext.BaseDirectory, "blocklist.txt"));
         ShippedPhrases = LoadPhrases(Path.Combine(AppContext.BaseDirectory, "phrases.txt"));
         _shippedPhrases[LanguageProfile.Arabic.Id] = ShippedPhrases;
@@ -60,7 +57,6 @@ internal sealed class ItmamApp : IDisposable
         Learning.Load();
         Learning.LearnedPhrasesChanged += UpdatePhrases;
 
-        Engine = new SuggestionEngine(Dictionary, UserWords);
         ExcludedApps = new ExcludedApps(Settings.ExcludedApps);
         var popupState = new PopupState();
 
@@ -78,7 +74,6 @@ internal sealed class ItmamApp : IDisposable
         Popup.SuggestionClicked += (index, word) => Hooks.Post(InputEvent.Accept(index, word));
         Popup.SuggestionMenuRequested += ShowSuggestionMenu;
         _caret = new CaretLocator(UiAutomation);
-        _languages[LanguageProfile.Arabic.Id] = new LanguageSuggestions(Engine, PhraseIndex.Empty, _corrections);
         Suggestions = new SuggestionController(SuggestionsFor, _caret, Popup, () => Hooks.IsEnabled, Learning.SyncRoot);
 
         // Learning first, so a just-forgotten word is gone before the bar is recomputed. Same thread as the engine.
@@ -86,14 +81,7 @@ internal sealed class ItmamApp : IDisposable
         Pipeline.Updated += OnPipelineUpdated;
         Pipeline.Updated += Suggestions.OnPipelineUpdated;
 
-        Apply(Settings);
-
-        // English has a dictionary too: loaded now when it is on, so the first English word is not slower
-        // (otherwise on first use).
-        if (Settings.EnabledLanguages.Contains(LanguageProfile.English.Id))
-        {
-            SuggestionsFor(LanguageProfile.English);
-        }
+        Apply(Settings); // loads the dictionaries of the languages that are on
 
         // Loading leaves tens of MB of temporary buffers: compact once now, before any typing, then
         // avoid blocking full (gen2) collections — a GC pauses the hook thread too.
@@ -129,56 +117,62 @@ internal sealed class ItmamApp : IDisposable
 
     public bool IsEnabled => Hooks.IsEnabled;
 
-    public WordDictionary Dictionary { get; private set; }
+    // The options every language's engine uses (Settings: number of suggestions, letters, uses).
+    private SuggestionOptions _engineOptions = new();
 
-    /// <summary>The Wikipedia dictionary is in use (else the basic one).</summary>
-    public bool UsesWikipediaDictionary { get; private set; }
+    // Which dictionary each language with two of them has loaded: true = Wikipedia (user decisions 1.1, 2.0).
+    private readonly ConcurrentDictionary<string, bool> _usesWikipedia = new(StringComparer.Ordinal);
 
-    // Which English dictionary is loaded (null until English is first used).
-    private bool? _englishUsesWikipedia;
-
-    private static string DictionaryPath(bool wikipedia) =>
-        Path.Combine(AppContext.BaseDirectory, wikipedia ? "itmam-ar-wikipedia.dict" : "itmam-ar.dict");
+    // The Arabic or English dictionary, Wikipedia or basic; the basic one when the Wikipedia file is missing.
+    private WordDictionary LoadShippedDictionary(LanguageProfile language, bool wikipedia)
+    {
+        var (basic, large) = language == LanguageProfile.English
+            ? ("itmam-en.dict", "itmam-en-wikipedia.dict")
+            : ("itmam-ar.dict", "itmam-ar-wikipedia.dict");
+        var dictionary = wikipedia ? LoadDictionary(large, language) : null;
+        _usesWikipedia[language.Id] = wikipedia;
+        return dictionary is { Count: > 0 } ? dictionary : LoadDictionary(basic, language);
+    }
 
     /// <summary>
-    /// Switches between the basic and the Wikipedia dictionary. Live: the next keystroke already uses
-    /// it. UI thread.
+    /// Switches a loaded language between its basic and Wikipedia dictionary. Live: the next keystroke
+    /// already uses it. UI thread.
     /// </summary>
-    private void UseDictionary(bool wikipedia)
+    private void UseDictionary(LanguageProfile language, bool wikipedia)
     {
-        var dictionary = DictionaryFile.Load(DictionaryPath(wikipedia));
+        var dictionary = LoadShippedDictionary(language, wikipedia);
         lock (Learning.SyncRoot)
         {
-            Engine = new SuggestionEngine(dictionary, UserWords, Engine.Options);
-            _languages.AddOrUpdate(LanguageProfile.Arabic.Id, _ => throw new InvalidOperationException(), (_, arabic) => arabic with { Engine = Engine });
-            Dictionary = dictionary;
-            UsesWikipediaDictionary = wikipedia;
+            if (_languages.TryGetValue(language.Id, out var loaded))
+            {
+                _languages[language.Id] = loaded with { Engine = new SuggestionEngine(dictionary, loaded.Engine.UserWords, _engineOptions) };
+            }
         }
-
-        GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, blocking: true, compacting: true); // free the old one
     }
 
-    // The English dictionary, Wikipedia or basic; the basic one when the Wikipedia file is missing.
-    private WordDictionary LoadEnglishDictionary(bool wikipedia)
+    // User decision 2.0: a language turned off leaves memory at once, and comes back as soon as it is turned on
+    // again (loaded now, not at its first word). UI thread. Returns true when something was unloaded.
+    private bool LoadEnabledLanguages(IReadOnlySet<string> enabled)
     {
-        var dictionary = wikipedia ? LoadDictionary("itmam-en-wikipedia.dict", LanguageProfile.English) : null;
-        _englishUsesWikipedia = wikipedia;
-        return dictionary is { Count: > 0 } ? dictionary : LoadDictionary("itmam-en.dict", LanguageProfile.English);
-    }
-
-    // Switches the English dictionary live, like UseDictionary (UI thread); only once English has been loaded.
-    private void UseEnglishDictionary(bool wikipedia)
-    {
-        var dictionary = LoadEnglishDictionary(wikipedia);
+        var unloaded = false;
         lock (Learning.SyncRoot)
         {
-            _languages.AddOrUpdate(
-                LanguageProfile.English.Id,
-                _ => throw new InvalidOperationException(),
-                (_, english) => english with { Engine = new SuggestionEngine(dictionary, english.Engine.UserWords, english.Engine.Options) });
+            foreach (var id in _languages.Keys.Where(id => !enabled.Contains(id)).ToArray())
+            {
+                unloaded |= _languages.TryRemove(id, out _);
+                _usesWikipedia.TryRemove(id, out _);
+            }
         }
 
-        GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, blocking: true, compacting: true); // free the old one
+        foreach (var language in new[] { LanguageProfile.Arabic, LanguageProfile.English })
+        {
+            if (enabled.Contains(language.Id))
+            {
+                SuggestionsFor(language);
+            }
+        }
+
+        return unloaded;
     }
 
     /// <summary>The Arabic user words (the other languages' are in <see cref="Learning"/>).</summary>
@@ -188,12 +182,12 @@ internal sealed class ItmamApp : IDisposable
 
     public SqliteUserWordStore Store { get; }
 
-    /// <summary>The dictionaries loaded so far (Arabic, and English once it is on), for the About page.</summary>
+    /// <summary>The dictionaries of the languages that are on (Arabic, English), for the About page.</summary>
     public IReadOnlyList<WordDictionary> LoadedDictionaries =>
         [.. _languages.Values.Select(l => l.Engine.Dictionary).Where(d => d.Count > 0)];
 
-    /// <summary>The Arabic engine.</summary>
-    public SuggestionEngine Engine { get; private set; }
+    /// <summary>The Arabic engine (loaded if Arabic is off): the Debug bar demo.</summary>
+    public SuggestionEngine Engine => SuggestionsFor(LanguageProfile.Arabic).Engine;
 
     /// <summary>Fixed Arabic expressions shipped in data/phrases.txt (the user's own come from the settings).</summary>
     public PhraseIndex ShippedPhrases { get; }
@@ -407,15 +401,28 @@ internal sealed class ItmamApp : IDisposable
     private void Apply(AppSettings settings)
     {
         Hooks.Hotkeys = settings.Hotkeys;
-        if (settings.UseWikipediaDictionary != UsesWikipediaDictionary)
+        var enabled = settings.EnabledLanguages.ToHashSet(StringComparer.Ordinal);
+        Pipeline.Tracker.EnabledLanguages = enabled; // first: a language turned off is not typed into its unloaded engine
+        _engineOptions = _engineOptions with
         {
-            UseDictionary(settings.UseWikipediaDictionary);
+            MaxSuggestions = settings.MaxSuggestions,
+            MinChars = settings.MinLetters,
+            MinUsesToSuggest = settings.MinUsesToSuggest,
+        };
+
+        var freed = LoadEnabledLanguages(enabled);
+        foreach (var (language, wikipedia) in new[] { (LanguageProfile.Arabic, settings.UseWikipediaDictionary), (LanguageProfile.English, settings.UseEnglishWikipediaDictionary) })
+        {
+            if (_usesWikipedia.TryGetValue(language.Id, out var loaded) && loaded != wikipedia)
+            {
+                UseDictionary(language, wikipedia);
+                freed = true;
+            }
         }
 
-        if (_englishUsesWikipedia is { } englishWikipedia && englishWikipedia != settings.UseEnglishWikipediaDictionary
-            && _languages.ContainsKey(LanguageProfile.English.Id))
+        if (freed)
         {
-            UseEnglishDictionary(settings.UseEnglishWikipediaDictionary);
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, blocking: true, compacting: true); // give the memory back now
         }
 
         if (PausedUntil is null && Hooks.IsEnabled != settings.Enabled)
@@ -423,18 +430,11 @@ internal sealed class ItmamApp : IDisposable
             Hooks.IsEnabled = settings.Enabled;
         }
 
-        var options = Engine.Options with
-        {
-            MaxSuggestions = settings.MaxSuggestions,
-            MinChars = settings.MinLetters,
-            MinUsesToSuggest = settings.MinUsesToSuggest,
-        };
         foreach (var language in _languages.Values)
         {
-            language.Engine.Options = options;
+            language.Engine.Options = _engineOptions;
         }
 
-        Pipeline.Tracker.EnabledLanguages = settings.EnabledLanguages.ToHashSet(StringComparer.Ordinal);
         Pipeline.Options = Pipeline.Options with { AppendSpaceOnAccept = settings.AddSpaceAfterAccept };
         Learning.IsPaused = settings.LearningPaused;
         Learning.LearnsPhrases = settings.LearnPhrases;
@@ -444,13 +444,20 @@ internal sealed class ItmamApp : IDisposable
         Suggestions.Shortcuts = new TextShortcuts(settings.TextShortcuts);
     }
 
-    // What a language suggests from, built the first time it is typed (pipeline thread). English has its
-    // shipped dictionary, blocklist and common mistakes; the other languages only the user's words.
+    // What a language suggests from: Arabic and English are loaded when they are turned on (UI thread), the
+    // other languages the first time they are typed (pipeline thread). Arabic and English have their shipped
+    // dictionary, blocklist and common mistakes; the other languages only the user's words.
     private LanguageSuggestions SuggestionsFor(LanguageProfile language) =>
         _languages.GetOrAdd(language.Id, _ =>
         {
+            if (language == LanguageProfile.Arabic)
+            {
+                var arabic = LoadShippedDictionary(language, Settings.UseWikipediaDictionary);
+                return new LanguageSuggestions(new SuggestionEngine(arabic, UserWords, _engineOptions), Phrases(language, Settings), _corrections);
+            }
+
             var english = language == LanguageProfile.English;
-            var dictionary = english ? LoadEnglishDictionary(Settings.UseEnglishWikipediaDictionary) : WordDictionary.Build([], language: language);
+            var dictionary = english ? LoadShippedDictionary(language, Settings.UseEnglishWikipediaDictionary) : WordDictionary.Build([], language: language);
             var blocklist = english ? LoadBlocklist("blocklist.en.txt", language) : null;
             var corrections = english ? LoadCorrections(Path.Combine(AppContext.BaseDirectory, "corrections.en.txt"), language) : Corrections.Empty;
             if (english)
@@ -458,7 +465,7 @@ internal sealed class ItmamApp : IDisposable
                 _shippedPhrases[language.Id] = LoadPhrases(Path.Combine(AppContext.BaseDirectory, "phrases.en.txt"), language);
             }
 
-            var engine = new SuggestionEngine(dictionary, Learning.IndexFor(language, blocklist), Engine.Options);
+            var engine = new SuggestionEngine(dictionary, Learning.IndexFor(language, blocklist), _engineOptions);
             return new LanguageSuggestions(engine, Phrases(language, Settings), corrections);
         });
 
