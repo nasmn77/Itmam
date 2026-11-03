@@ -151,28 +151,30 @@ internal sealed class ItmamApp : IDisposable
     }
 
     // User decision 2.0: a language turned off leaves memory at once, and comes back as soon as it is turned on
-    // again (loaded now, not at its first word). UI thread. Returns true when something was unloaded.
+    // again (loaded now, not at its first word). UI thread. Returns true when a dictionary was unloaded or loaded:
+    // loading leaves large temporary buffers (decompression, building) that a compacting collection gives back.
     private bool LoadEnabledLanguages(IReadOnlySet<string> enabled)
     {
-        var unloaded = false;
+        var changed = false;
         lock (Learning.SyncRoot)
         {
             foreach (var id in _languages.Keys.Where(id => !enabled.Contains(id)).ToArray())
             {
-                unloaded |= _languages.TryRemove(id, out _);
+                changed |= _languages.TryRemove(id, out _);
                 _usesWikipedia.TryRemove(id, out _);
             }
         }
 
         foreach (var language in new[] { LanguageProfile.Arabic, LanguageProfile.English })
         {
-            if (enabled.Contains(language.Id))
+            if (enabled.Contains(language.Id) && !_languages.ContainsKey(language.Id))
             {
                 SuggestionsFor(language);
+                changed = true;
             }
         }
 
-        return unloaded;
+        return changed;
     }
 
     /// <summary>The Arabic user words (the other languages' are in <see cref="Learning"/>).</summary>
