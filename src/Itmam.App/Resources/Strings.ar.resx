@@ -28,7 +28,7 @@
   <data name="AddSpace" xml:space="preserve"><value>إضافة مسافة بعد قبول الاقتراح</value></data>
   <data name="SectionLearning" xml:space="preserve"><value>التعلم</value></data>
   <data name="MinUses" xml:space="preserve"><value>مرات الاستخدام قبل اقتراح كلمة جديدة</value></data>
-  <data name="SectionLanguage" xml:space="preserve"><value>اللغة</value></data>
+  <data name="SectionLanguage" xml:space="preserve"><value>الواجهة</value></data>
   <data name="UiLanguage" xml:space="preserve"><value>لغة الواجهة</value></data>
   <data name="AboutVersion" xml:space="preserve"><value>الإصدار {0}</value></data>
   <data name="AboutTagline" xml:space="preserve"><value>اقتراح الكلمات أثناء الكتابة على لوحة المفاتيح الفعلية، بالعربية والإنجليزية ولغات أخرى.</value></data>

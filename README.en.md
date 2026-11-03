@@ -48,8 +48,8 @@ Shortcuts can be changed in Settings → "Keyboard shortcuts".
 
 Click the Itmam icon next to the clock (right or left button) and choose "Settings":
 
-- **General:** start with Windows, number of suggestions, letters before they appear, interface language.
-- **Languages:** the keyboard languages on your PC and what Itmam does with each, turning them on or off, and the Arabic
+- **General:** start with Windows, number of suggestions, letters before they appear.
+- **Languages:** the interface language, the keyboard languages on your PC and what Itmam does with each, turning them on or off, and the Arabic
   and English dictionaries (basic or Wikipedia).
 - **Appearance:** theme, bar, text and selection colors, opacity, text size, with a live preview.
 - **Shortcuts:** record a new shortcut by pressing it; shortcuts that would break typing or Windows shortcuts are refused.

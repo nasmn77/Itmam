@@ -28,7 +28,7 @@
   <data name="AddSpace" xml:space="preserve"><value>Add a space after accepting a suggestion</value></data>
   <data name="SectionLearning" xml:space="preserve"><value>Learning</value></data>
   <data name="MinUses" xml:space="preserve"><value>Uses before a new word is suggested</value></data>
-  <data name="SectionLanguage" xml:space="preserve"><value>Language</value></data>
+  <data name="SectionLanguage" xml:space="preserve"><value>Interface</value></data>
   <data name="UiLanguage" xml:space="preserve"><value>Interface language</value></data>
   <data name="AboutVersion" xml:space="preserve"><value>Version {0}</value></data>
   <data name="AboutTagline" xml:space="preserve"><value>Word suggestions as you type on the physical keyboard, in Arabic, English and other languages.</value></data>

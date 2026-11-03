@@ -341,12 +341,6 @@ internal sealed class SettingsWindow : Form
         uses.SelectedIndexChanged += (_, _) => Update(s => s with { MinUsesToSuggest = uses.SelectedIndex + 1 });
         AddCard(Strings.MinUses, null, uses);
 
-        AddSection(Strings.SectionLanguage);
-        var language = new SegmentedChoice { Options = [Strings.LanguageArabic, Strings.LanguageEnglish] };
-        language.SelectedIndex = settings.Language == UiLanguage.Arabic ? 0 : 1;
-        language.SelectedIndexChanged += (_, _) => Update(s => s with { Language = language.SelectedIndex == 0 ? UiLanguage.Arabic : UiLanguage.English });
-        AddCard(Strings.UiLanguage, null, language);
-
         // Full backup (user decision 1.1): one file to move everything to another PC.
         AddSection(Strings.SectionBackup);
         var backup = new ThemedButton { Text = Strings.BackupButton };
@@ -378,6 +372,13 @@ internal sealed class SettingsWindow : Form
         var settings = _app.Settings;
         AddTitle(Strings.NavLanguages);
         AddText(Strings.LanguagesIntro, secondary: true);
+
+        // The interface language lives here too (user decision 2.0), moved from General.
+        AddSection(Strings.SectionLanguage);
+        var uiLanguage = new SegmentedChoice { Options = [Strings.LanguageArabic, Strings.LanguageEnglish] };
+        uiLanguage.SelectedIndex = settings.Language == UiLanguage.Arabic ? 0 : 1;
+        uiLanguage.SelectedIndexChanged += (_, _) => Update(s => s with { Language = uiLanguage.SelectedIndex == 0 ? UiLanguage.Arabic : UiLanguage.English });
+        AddCard(Strings.UiLanguage, null, uiLanguage);
 
         AddSection(Strings.SectionKeyboardLanguages);
         var installed = KeyboardLayouts.Installed()
