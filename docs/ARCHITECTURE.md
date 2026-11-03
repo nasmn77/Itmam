@@ -201,7 +201,7 @@
 | تعلّم فقط | أي لغة أبجدية أخرى (`LearningOnlyLanguage`: حروف Unicode، والعلامات غير المتباعدة يُتسامح فيها، وحالة الأحرف تُطوى) | ما كتبه المستخدم بها من كلمات وعبارات، و«عباراتي»، والاختصارات النصية |
 | غير مدعوم | محرّرات الإدخال (الصينية، اليابانية، الكورية…)، واللغات بلا مسافات (التايلاندية…)، والهندية وما شابهها | لا شيء: يصمت |
 
-`LanguageRegistry` يحوّل HKL أو LANGID إلى ملف شخصي (الوسم من `CultureInfo`، والاتجاه من `TextInfo.IsRightToLeft`، وملف واحد لكل لغة). `PipelineUpdate.Language` لغة ما يُكتب، و`LearnLanguage` لغة الكلمة التي صارت نهائية (قد يتغير التخطيط بينهما). `ItmamApp.SuggestionsFor` يبني لكل لغة محركها وعباراتها عند أول استعمال (الإنجليزية عند البدء إن كانت مفعّلة: `data/itmam-en.dict`). اتجاه الشريط وجهة المؤشر يتبعان اللغة. `LearningService` يحفظ لكل لغة فهرسها وعباراتها وقائمة حظرها تحت قفل واحد؛ والتصدير يضع كلمات اللغات الأخرى بعد سطر `# language: <tag>`؛ والنسخة الاحتياطية بالصيغة 2 تضيف `learned-phrases-<tag>.txt`. الإنجليزية: الفاصلة العليا داخل الكلمة (`IsInnerMark`)، والاقتراح بحالة أحرف ما يُكتب (`MatchCase`). ملف القاموس بالصيغة 2 يحفظ وسم اللغة لغير العربية؛ ملفات العربية بقيت بالصيغة 1.
+`LanguageRegistry` يحوّل HKL أو LANGID إلى ملف شخصي (الوسم من `CultureInfo`، والاتجاه من `TextInfo.IsRightToLeft`، وملف واحد لكل لغة). `PipelineUpdate.Language` لغة ما يُكتب، و`LearnLanguage` لغة الكلمة التي صارت نهائية (قد يتغير التخطيط بينهما). `ItmamApp.SuggestionsFor` يبني لكل لغة محركها وعباراتها عند أول استعمال (الإنجليزية عند البدء إن كانت مفعّلة: `data/itmam-en-wikipedia.dict` افتراضيًا أو `data/itmam-en.dict`، يُبدَّل بينهما فورًا). اتجاه الشريط وجهة المؤشر يتبعان اللغة. `LearningService` يحفظ لكل لغة فهرسها وعباراتها وقائمة حظرها تحت قفل واحد؛ والتصدير يضع كلمات اللغات الأخرى بعد سطر `# language: <tag>`؛ والنسخة الاحتياطية بالصيغة 2 تضيف `learned-phrases-<tag>.txt`. الإنجليزية: الفاصلة العليا داخل الكلمة (`IsInnerMark`)، والاقتراح بحالة أحرف ما يُكتب (`MatchCase`). ملف القاموس بالصيغة 2 يحفظ وسم اللغة لغير العربية؛ ملفات العربية بقيت بالصيغة 1.
 
 ### أين يصمت إتمام
 
@@ -578,7 +578,7 @@ golden snapshots (`tests/Itmam.Core.Tests/Golden`) prove the Arabic results did 
 `TextInfo.IsRightToLeft`, one profile per language). `PipelineUpdate.Language` is the language being
 typed; `LearnLanguage` the language of the word that became final (the layout may have changed in
 between). `ItmamApp.SuggestionsFor` builds each language's engine and phrases on first use (English
-at start-up when it is on: `data/itmam-en.dict`). The bar's direction and caret side follow the
+at start-up when it is on: `data/itmam-en-wikipedia.dict` by default or `data/itmam-en.dict`, switched live). The bar's direction and caret side follow the
 language. `LearningService` keeps an index, phrases and blocklist per language under one lock; the
 export puts other languages' words after a `# language: <tag>` line; full backup format 2 adds
 `learned-phrases-<tag>.txt`. English: the apostrophe inside a word (`IsInnerMark`), suggestions in

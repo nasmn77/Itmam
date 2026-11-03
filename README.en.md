@@ -21,7 +21,8 @@ Website: https://nasmn77.github.io/Itmam/en/ · Repository: https://github.com/n
 - **Learns your phrases:** words you type in a row twice are then suggested as a whole phrase (can be turned off).
 - **Completes a word from the middle:** go back into a word with a click or Backspace and it continues from the caret.
 - **Several languages (from 2.0):** it follows your keyboard layout and suggests in the language you are typing.
-  Arabic and English have a full dictionary (about 300,000 English words, with `don't`, `I'm` and letter case:
+  Arabic and English have a full dictionary (English: about 600,000 words from film subtitles and English Wikipedia, or
+  the basic one of about 300,000; with `don't`, `I'm` and letter case:
   «Lon» → «London»). Any other alphabetic language (Hebrew, French, Russian …) can be turned on in Settings →
   Languages: Itmam then learns its words and phrases from your typing. It stays silent with Chinese, Japanese and Korean.
 - **Silent where it should be:** password fields, excluded apps (such as terminals and remote desktop) and full-screen games.
@@ -49,7 +50,7 @@ Click the Itmam icon next to the clock (right or left button) and choose "Settin
 
 - **General:** start with Windows, number of suggestions, letters before they appear, interface language.
 - **Languages:** the keyboard languages on your PC and what Itmam does with each, turning them on or off, and the Arabic
-  dictionary (basic or Wikipedia).
+  and English dictionaries (basic or Wikipedia).
 - **Appearance:** theme, bar, text and selection colors, opacity, text size, with a live preview.
 - **Shortcuts:** record a new shortcut by pressing it; shortcuts that would break typing or Windows shortcuts are refused.
 - **Excluded apps:** programs where Itmam stays completely silent.
@@ -111,7 +112,7 @@ How it works and how the code is organized: [docs/ARCHITECTURE.md](docs/ARCHITEC
 ## License and sources
 
 - Source code: [MIT](LICENSE).
-- The Arabic (`data/itmam-ar.dict`) and English (`data/itmam-en.dict`) dictionaries are derived from the [FrequencyWords](https://github.com/hermitdave/FrequencyWords) word frequency lists (built from OpenSubtitles subtitles) and are licensed [CC-BY-SA-4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+- The Arabic (`data/itmam-ar*.dict`) and English (`data/itmam-en*.dict`) dictionaries are derived from the [FrequencyWords](https://github.com/hermitdave/FrequencyWords) word frequency lists (built from OpenSubtitles subtitles), and the Wikipedia ones from Arabic and English Wikipedia text too, and are licensed [CC-BY-SA-4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 - All components and their licenses: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Developer

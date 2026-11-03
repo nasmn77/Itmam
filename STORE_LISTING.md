@@ -14,7 +14,7 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 
 إتمام يقترح عليك الكلمات أثناء الكتابة بلوحة المفاتيح في أي برنامج على Windows، بالعربية والإنجليزية ولغات أخرى، مثل اقتراحات الهاتف: شريط صغير فوق المؤشر فيه أقرب الكلمات لما بدأت كتابته، تختار منها بضغطة Tab.
 
-يعمل في المفكرة وWord والمتصفحات ومعظم البرامج، من قاموس عربي فيه نحو 880 ألف كلمة وقاموس إنجليزي بنحو 300 ألف، ويتعلّم كلماتك أنت فيقدّم ما تستعمله أكثر، وبأي لغة أبجدية أخرى تفعّلها.
+يعمل في المفكرة وWord والمتصفحات ومعظم البرامج، من قاموس عربي فيه نحو 880 ألف كلمة وقاموس إنجليزي بنحو 600 ألف، ويتعلّم كلماتك أنت فيقدّم ما تستعمله أكثر، وبأي لغة أبجدية أخرى تفعّلها.
 
 ويوفّر عليك الكتابة المتكررة: يكمل العبارات المعروفة، ويحوّل اختصاراتك إلى نصوص كاملة، ويدرج ردودًا طويلة من عدة أسطر، مثل ردود الدعم الفني، بضغطة اختصار.
 
@@ -47,7 +47,7 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 **ما الجديد في 2.0:**
 
 - عدة لغات: يتبع إتمام تخطيط لوحة المفاتيح، فيقترح بلغة ما تكتبه.
-- قاموس إنجليزي بنحو 300 ألف كلمة، مع الاختصارات (don't، I'm) وحالة الأحرف، وعبارات وأخطاء شائعة.
+- قاموس إنجليزي بنحو 600 ألف كلمة من ترجمات الأفلام وويكيبيديا الإنجليزية (أو الأساسي الأخف)، مع الاختصارات (don't، I'm) وحالة الأحرف، وعبارات وأخطاء شائعة.
 - أي لغة أبجدية أخرى (العبرية، الفرنسية، الروسية…) تفعّلها فيتعلّم كلماتها وعباراتها من كتابتك.
 - صفحة «اللغات» في الإعدادات، واختيار اللغة في «كلماتي» و«عباراتي».
 - الاختصارات النصية و«عباراتي» بأي لغة.
@@ -103,7 +103,7 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 
 Itmam suggests words as you type on your keyboard, in any Windows app, in Arabic, English and other languages, like the suggestions on a phone: a small bar above the caret shows the closest words to what you started typing, and Tab inserts the one you want.
 
-It works in Notepad, Word, browsers and most apps, with an Arabic dictionary of about 880,000 words and an English one of about 300,000, and learns your own words so the ones you use most come first, in any other alphabetic language you turn on too.
+It works in Notepad, Word, browsers and most apps, with an Arabic dictionary of about 880,000 words and an English one of about 600,000, and learns your own words so the ones you use most come first, in any other alphabetic language you turn on too.
 
 It also saves you repeated typing: it completes well-known phrases, turns your shortcuts into full text, and inserts long replies of several lines, such as support answers, with one shortcut.
 
@@ -136,7 +136,7 @@ Your privacy first. Itmam sends no data: no statistics, no crash reports. Its on
 **What's new in 2.0:**
 
 - Several languages: Itmam follows your keyboard layout and suggests in the language you are typing.
-- An English dictionary of about 300,000 words, with contractions (don't, I'm), letter case, phrases and common mistakes.
+- An English dictionary of about 600,000 words from film subtitles and English Wikipedia (or the lighter basic one), with contractions (don't, I'm), letter case, phrases and common mistakes.
 - Any other alphabetic language (Hebrew, French, Russian …) you turn on: Itmam learns its words and phrases from your typing.
 - A "Languages" page in Settings, and a language choice in "My words" and "My phrases".
 - Text shortcuts and "My phrases" in any language.

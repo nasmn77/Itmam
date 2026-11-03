@@ -100,6 +100,7 @@ dotnet run --project tools/DictionaryBuilder -c Release -- `
 - مقسّم المصدر يفصل الاختصارات عند الفاصلة العليا (`don` و`'t`، و`i` و`'m`)، فتعيد الأداة تركيبها (`EnglishContractions`): الجذر الذي لا يأتي إلا قبل `n't` (`don`، `isn`، `didn`…) يصبح اختصاره بتكراره نفسه؛ واللواحق الأخرى (`'m`، `'re`، `'ll`، `'ve`، `'d`، `'s`) تُوزَّع على الكلمات التي تقبلها بنسبة تكرار كل منها، وهذا **تقدير** لأن القائمة لا تذكر الكلمة التي سبقت اللاحقة؛ و`can't` و`won't` تتقاسمان ما بقي من `n't`. ويُكتب `i` بحرف كبير.
 - المفتاح بالأحرف الصغيرة وبلا علامات (`cafe` يجد `café`)، وتسقط الصور النادرة (`yöu`) بقاعدة الـ 5%. لا تُحفظ الكلمات ذات الحرف الواحد.
 - النتيجة: 298,335 كلمة، وملف 978 كيلوبايت، ونحو 13 ميغابايت في الذاكرة.
+- **قاموس ويكيبيديا الإنجليزي** `itmam-en-wikipedia.dict` (الافتراضي للإنجليزية، قرار المستخدم): يضيف نصوص مقالات [ويكيبيديا الإنجليزية](https://dumps.wikimedia.org/enwiki/) من ملف النسخ `enwiki-20261001-pages-articles-multistream.xml.bz2` (‏25.1 غيغابايت، بصمة SHA-1 ‏`992b5ca87b3404894f013e59a43efbb8b1bc012b`، مع ملف الفهرس)، برخصة CC-BY-SA-4.0. عدّتها الأداة `tools/DictionaryBuilder/wiki-counts-en.py` على عدة أنوية: تُحفظ حالة الأحرف (`London`، `NASA`) إلا الكلمة التي تبدأ بها الجملة، ولا تُحفظ صيغ الملكية (`London's`). ثم: `--source wikipedia-en=<wikipedia-en.txt> --min-count wikipedia-en=100 --weight frequencywords-en=2`. النتيجة 605,709 كلمة، وملف 2.7 ميغابايت، ونحو 27 ميغابايت في الذاكرة.
 - `phrases.en.txt` (172 عبارة) و`corrections.en.txt` كُتبتا يدويًا لإتمام برخصة MIT. و`blocklist.en.txt` مختارات من قائمة LDNOOBW الإنجليزية (CC-BY-4.0)، انظر ترويسة الملف.
 
 </div>
@@ -225,5 +226,11 @@ dotnet run --project tools/DictionaryBuilder -c Release -- `
 - Keys are lower case without accents (`cafe` finds `café`); rare variants (`yöu`) fall to the 5% rule. Single letters
   are not kept.
 - Result: 298,335 words, a 978 KB file, about 13 MB in memory.
+- **English Wikipedia dictionary** `itmam-en-wikipedia.dict` (the default for English, user decision): adds the article
+  text of [English Wikipedia](https://dumps.wikimedia.org/enwiki/) from `enwiki-20261001-pages-articles-multistream.xml.bz2`
+  (25.1 GB, SHA-1 `992b5ca87b3404894f013e59a43efbb8b1bc012b`, with its index file), CC-BY-SA-4.0. Counted by
+  `tools/DictionaryBuilder/wiki-counts-en.py` on several cores: case kept (`London`, `NASA`) except for the word starting a
+  sentence, possessives (`London's`) not kept. Then `--source wikipedia-en=<wikipedia-en.txt> --min-count wikipedia-en=100
+  --weight frequencywords-en=2`. Result: 605,709 words, a 2.7 MB file, about 27 MB in memory.
 - `phrases.en.txt` (172 phrases) and `corrections.en.txt` were written by hand for Itmam (MIT). `blocklist.en.txt` is a
   selection from the LDNOOBW English list (CC-BY-4.0); see the file's header.

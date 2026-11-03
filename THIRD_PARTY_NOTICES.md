@@ -34,6 +34,14 @@
 
 ملف القاموس `data/itmam-en.dict` مُعدَّل عن هذه المادة، ولذلك رخصته **CC-BY-SA-4.0**.
 
+#### ويكيبيديا الإنجليزية (القاموس الإنجليزي الثاني `data/itmam-en-wikipedia.dict`، من الإصدار 2.0)
+
+- المصدر: نصوص مقالات ويكيبيديا الإنجليزية من ملف النسخ العام (https://dumps.wikimedia.org/enwiki/، نسخة 2026-10-01)، من تأليف محرري ويكيبيديا.
+- الرخصة: المشاع الإبداعي، نسب المصنف – الترخيص بالمثل 4.0 الدولية (CC-BY-SA-4.0).
+- التعديلات: عُدّت الكلمات في نص المقالات بعد حذف القوالب والمراجع والجداول والوسوم (الأداة `tools/DictionaryBuilder/wiki-counts-en.py`)، دون صيغ الملكية، ثم دُمجت مع تكرارات FrequencyWords الإنجليزية.
+
+يُضمَّن بجانب القاموس الإنجليزي الأساسي وهو الافتراضي، ويختار المستخدم أحدهما من الإعدادات ← «اللغات». رخصته **CC-BY-SA-4.0**.
+
 #### مصادر قائمة الحظر (`data/blocklist.txt`)
 
 يحتوي `data/blocklist.txt` على مختارات راجعها المطوّر يدويًا من القائمتين التاليتين:
@@ -107,6 +115,17 @@ adapted from this material and FrequencyWords, so it is licensed under **CC-BY-S
 
 The dictionary file `data/itmam-en.dict` is an adaptation of this material and is therefore licensed under
 **CC-BY-SA-4.0**.
+
+#### English Wikipedia (second English dictionary `data/itmam-en-wikipedia.dict`, from 2.0)
+
+- Source: the text of English Wikipedia articles from the public dumps (https://dumps.wikimedia.org/enwiki/, dump of
+  2026-10-01), by Wikipedia contributors.
+- License: Creative Commons Attribution-ShareAlike 4.0 International (CC-BY-SA-4.0).
+- Changes made: words counted in the article text after removing templates, references, tables and tags
+  (`tools/DictionaryBuilder/wiki-counts-en.py`), possessives left out, then merged with the English FrequencyWords counts.
+
+It ships next to the basic English dictionary and is the default; the user chooses one in Settings → Languages. It is
+licensed under **CC-BY-SA-4.0**.
 
 #### Blocklist sources (`data/blocklist.txt`)
 
