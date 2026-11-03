@@ -51,6 +51,7 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 - أي لغة أبجدية أخرى (العبرية، الفرنسية، الروسية…) تفعّلها فيتعلّم كلماتها وعباراتها من كتابتك.
 - صفحة «اللغات» في الإعدادات، واختيار اللغة في «كلماتي» و«عباراتي».
 - الاختصارات النصية و«عباراتي» بأي لغة.
+- استيراد كلماتك من أي ملف نصي: يستخرج إتمام كلمات اللغة منه وتُقترح فورًا.
 - يصمت مع محرّرات الإدخال (الصينية، اليابانية، الكورية).
 
 **ما الجديد في 1.3:**
@@ -140,6 +141,7 @@ Your privacy first. Itmam sends no data: no statistics, no crash reports. Its on
 - Any other alphabetic language (Hebrew, French, Russian …) you turn on: Itmam learns its words and phrases from your typing.
 - A "Languages" page in Settings, and a language choice in "My words" and "My phrases".
 - Text shortcuts and "My phrases" in any language.
+- Import your words from any text file: Itmam takes the language's words from it and suggests them at once.
 - Silent with input method editors (Chinese, Japanese, Korean).
 
 **What's new in 1.3:**

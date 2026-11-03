@@ -1118,7 +1118,9 @@ internal sealed class SettingsWindow : Form
         menu.Show(_wordList, location);
     }
 
-    // The file is the user's choice: one word per line, "word<TAB>count", "!word" = blocked.
+    // The file is the user's choice (user decision 2.0): any text — the words of the chosen language are taken
+    // from it with their counts, all suggested at once — or a file exported from "My words" (one word per line,
+    // "word<TAB>count", "!word" = blocked), imported as such. Only words and counts are kept, never the text.
     private void ImportWords()
     {
         using var dialog = new OpenFileDialog { Filter = Strings.WordsFileFilter };
@@ -1129,8 +1131,38 @@ internal sealed class SettingsWindow : Form
 
         try
         {
-            using var reader = new StreamReader(dialog.FileName, System.Text.Encoding.UTF8);
-            var result = _app.Learning.Import(reader, _wordsLanguage); // words of other languages follow their own line
+            if (new FileInfo(dialog.FileName).Length > TextWords.MaxBytes)
+            {
+                ShowInfo(Strings.ImportFileTooLarge);
+                return;
+            }
+
+            var text = TextWords.Decode(File.ReadAllBytes(dialog.FileName), _wordsLanguage);
+            ImportResult result;
+            if (TextWords.IsWordList(text))
+            {
+                // Words of other languages follow their own line; a plain word is suggested at once.
+                result = _app.Learning.Import(new StringReader(text), _wordsLanguage, _app.Settings.MinUsesToSuggest);
+            }
+            else
+            {
+                var words = TextWords.Count(text, _wordsLanguage);
+                if (words.Count == 0)
+                {
+                    ShowInfo(Strings.ImportTextNone);
+                    return;
+                }
+
+                var known = _app.Learning.Snapshot(_wordsLanguage).Select(w => w.Word).ToHashSet(StringComparer.Ordinal);
+                var message = string.Format(CultureInfo.CurrentCulture, Strings.ImportTextConfirm, words.Count, words.Keys.Count(w => !known.Contains(w)), LanguageName(_wordsLanguage.Id));
+                if (!Confirm(message, null))
+                {
+                    return;
+                }
+
+                result = _app.Learning.ImportCounts(words, _app.Settings.MinUsesToSuggest, _wordsLanguage);
+            }
+
             RefreshWords();
             ShowInfo(string.Format(CultureInfo.CurrentCulture, Strings.ImportDone, result.Added, result.Updated, result.Skipped));
         }

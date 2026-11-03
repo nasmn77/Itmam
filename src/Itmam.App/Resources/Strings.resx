@@ -132,7 +132,7 @@
   <data name="OkButton" xml:space="preserve"><value>OK</value></data>
   <data name="CancelButton" xml:space="preserve"><value>Cancel</value></data>
   <data name="ImportExport" xml:space="preserve"><value>Import and export</value></data>
-  <data name="ImportExportHint" xml:space="preserve"><value>A text file with one word per line, to back up your words or move them to another PC.</value></data>
+  <data name="ImportExportHint" xml:space="preserve"><value>Import the words of any text file (.txt), or a file exported from here; export to back up your words or move them to another PC.</value></data>
   <data name="ImportButton" xml:space="preserve"><value>Import…</value></data>
   <data name="ExportButton" xml:space="preserve"><value>Export…</value></data>
   <data name="WordsFileFilter" xml:space="preserve"><value>Text files (*.txt)|*.txt</value></data>
@@ -318,4 +318,7 @@ No: insert it this time only.</value></data>
   <data name="WordsLanguage" xml:space="preserve"><value>Language</value></data>
   <data name="SectionEnglishDictionary" xml:space="preserve"><value>English dictionary</value></data>
   <data name="EnglishDictionaryChoiceHint" xml:space="preserve"><value>"Basic": about 300,000 words of everyday English. "Wikipedia": about 600,000 words: the whole basic dictionary plus the vocabulary of English Wikipedia, for better suggestions in formal writing and terms; uses a little more memory.</value></data>
+  <data name="ImportTextConfirm" xml:space="preserve"><value>The file has {0:N0} {2} words, {1:N0} of them new. Add them to "My words"? They are suggested at once; you can delete any of them here.</value></data>
+  <data name="ImportTextNone" xml:space="preserve"><value>No words of this language were found in the file. Choose the list's language above, then import again.</value></data>
+  <data name="ImportFileTooLarge" xml:space="preserve"><value>The file is too large (more than 64 MB).</value></data>
 </root>

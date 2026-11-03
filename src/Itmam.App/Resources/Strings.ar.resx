@@ -132,7 +132,7 @@
   <data name="OkButton" xml:space="preserve"><value>موافق</value></data>
   <data name="CancelButton" xml:space="preserve"><value>إلغاء</value></data>
   <data name="ImportExport" xml:space="preserve"><value>الاستيراد والتصدير</value></data>
-  <data name="ImportExportHint" xml:space="preserve"><value>ملف نصي فيه كلمة في كل سطر، لنسخ كلماتك احتياطيًا أو نقلها إلى جهاز آخر.</value></data>
+  <data name="ImportExportHint" xml:space="preserve"><value>استورد الكلمات من أي ملف نصي (‎.txt)، أو من ملف صدّرته من هنا؛ وصدّر كلماتك لنسخها احتياطيًا أو نقلها إلى جهاز آخر.</value></data>
   <data name="ImportButton" xml:space="preserve"><value>استيراد…</value></data>
   <data name="ExportButton" xml:space="preserve"><value>تصدير…</value></data>
   <data name="WordsFileFilter" xml:space="preserve"><value>ملفات نصية (*.txt)|*.txt</value></data>
@@ -318,4 +318,7 @@
   <data name="WordsLanguage" xml:space="preserve"><value>اللغة</value></data>
   <data name="SectionEnglishDictionary" xml:space="preserve"><value>القاموس الإنجليزي</value></data>
   <data name="EnglishDictionaryChoiceHint" xml:space="preserve"><value>«الأساسي»: نحو 300 ألف كلمة من لغة الاستعمال اليومي. «ويكيبيديا»: نحو 600 ألف كلمة، يضم القاموس الأساسي كاملًا ويضيف إليه مفردات ويكيبيديا الإنجليزية، فيحسّن الاقتراحات في الكتابة الرسمية والمصطلحات، ويستهلك ذاكرة أكثر قليلًا.</value></data>
+  <data name="ImportTextConfirm" xml:space="preserve"><value>وُجد في الملف {0:N0} كلمة باللغة {2}، منها {1:N0} جديدة. إضافتها إلى «كلماتي»؟ تُقترح فورًا، ويمكنك حذف أي منها هنا.</value></data>
+  <data name="ImportTextNone" xml:space="preserve"><value>لم يُعثر في الملف على كلمات بهذه اللغة. اختر لغة القائمة في الأعلى ثم أعد الاستيراد.</value></data>
+  <data name="ImportFileTooLarge" xml:space="preserve"><value>الملف كبير جدًا (أكثر من 64 ميغابايت).</value></data>
 </root>

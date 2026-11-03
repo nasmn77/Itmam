@@ -384,10 +384,11 @@ public sealed partial class LearningService : IDisposable
     }
 
     /// <summary>
-    /// Reads the <see cref="Export"/> format (a plain word list works too: count 1). Counts are merged by
-    /// maximum. Words before any <c># language:</c> line belong to <paramref name="language"/>.
+    /// Reads the <see cref="Export"/> format (a plain word list works too: each word gets
+    /// <paramref name="plainCount"/> uses). Counts are merged by maximum. Words before any <c># language:</c>
+    /// line belong to <paramref name="language"/>.
     /// </summary>
-    public ImportResult Import(TextReader reader, LanguageProfile? language = null)
+    public ImportResult Import(TextReader reader, LanguageProfile? language = null, int plainCount = 1)
     {
         int added = 0, updated = 0, skipped = 0;
         var now = _time.GetUtcNow();
@@ -410,7 +411,7 @@ public sealed partial class LearningService : IDisposable
 
                 var blocked = line[0] == '!';
                 var parts = (blocked ? line[1..] : line).Split(['\t', ' '], 2, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                var count = blocked ? 0 : 1; // a blocked word was not used, only blocked
+                var count = blocked ? 0 : plainCount; // a blocked word was not used, only blocked
                 if (parts.Length == 0
                     || state.Language.CleanWord(parts[0]) is not { } clean
                     || (parts.Length == 2 && (!int.TryParse(parts[1], NumberStyles.None, CultureInfo.InvariantCulture, out count) || count < 1)))
@@ -422,6 +423,49 @@ public sealed partial class LearningService : IDisposable
                 var existing = state.Index.Get(clean);
                 state.Index.Set(clean, Math.Max(count, existing?.Count ?? 0), existing?.LastUsed ?? now, blocked || (existing?.IsBlocked ?? false));
                 MarkChanged(state, clean);
+                if (existing is null)
+                {
+                    added++;
+                }
+                else
+                {
+                    updated++;
+                }
+            }
+        }
+
+        return new ImportResult(added, updated, skipped);
+    }
+
+    /// <summary>
+    /// Words found in a text the user chose to import (<see cref="TextWords.Count"/>), with how often each occurs:
+    /// every one is kept with at least <paramref name="minCount"/> uses, so it is suggested at once (user decision
+    /// 2.0). Words on the blocklist are skipped, as when typing; a word the user blocked stays blocked.
+    /// </summary>
+    public ImportResult ImportCounts(IReadOnlyDictionary<string, int> words, int minCount, LanguageProfile? language = null)
+    {
+        int added = 0, updated = 0, skipped = 0;
+        var now = _time.GetUtcNow();
+        lock (_lock)
+        {
+            var state = State(language);
+            foreach (var (word, occurrences) in words)
+            {
+                var existing = state.Index.Get(word);
+                if (existing is null && state.Blocklist.IsBlocked(word))
+                {
+                    skipped++;
+                    continue;
+                }
+
+                var entry = state.Index.Set(word, Math.Max(Math.Max(occurrences, minCount), existing?.Count ?? 0), existing?.LastUsed ?? now, existing?.IsBlocked ?? false);
+                if (entry is null)
+                {
+                    skipped++;
+                    continue;
+                }
+
+                MarkChanged(state, entry.Word);
                 if (existing is null)
                 {
                     added++;
