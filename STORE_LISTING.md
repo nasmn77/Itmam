@@ -51,6 +51,7 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 - خيار مكان العبارات في الشريط: في بدايته أو في نهايته بعد الكلمات.
 - «العبارات الطويلة» صار اسمها «النصوص الطويلة»، وترتّبها بسحب بطاقاتها في الإعدادات.
 - زر «إضافة نص…» في قائمة النصوص الطويلة نفسها، دون فتح الإعدادات.
+- صفحة «اللغات» لا تُظهر لغة حُذفت من Windows، و«كلماتي» و«عباراتي» لا تعرضان لغة ليس لها ما يُعرض.
 
 **ما الجديد في 2.0:**
 
@@ -149,6 +150,7 @@ Your privacy first. Itmam sends no data: no statistics, no crash reports. Its on
 - Choose where phrases show in the bar: at its start or at its end, after the words.
 - "Long phrases" are now "Long texts", and you put them in order by dragging their cards in Settings.
 - An "Add a text…" button in the long texts list itself, without opening Settings.
+- The Languages page no longer shows a language removed from Windows, and "My words" and "My phrases" no longer offer a language with nothing to show.
 
 **What's new in 2.0:**
 
