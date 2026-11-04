@@ -44,6 +44,14 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 
 **كلمات البحث** (7 على الأكثر): اتمام · اكمال الكلمات · اقتراح الكلمات · لوحة المفاتيح العربية · الكتابة بالعربي · التنبؤ بالنص · الكتابة التنبؤية
 
+**ما الجديد في 2.1:**
+
+- اختيار اقتراح والمؤشر في وسط كلمة يستبدل الكلمة كلها.
+- لا يظهر الشريط بعد النقر على نص لا يُكتب فيه، مثل القوائم المنسدلة ونصوص صفحات الويب.
+- خيار مكان العبارات في الشريط: في بدايته أو في نهايته بعد الكلمات.
+- «العبارات الطويلة» صار اسمها «النصوص الطويلة»، وترتّبها بسحب بطاقاتها في الإعدادات.
+- زر «إضافة نص…» في قائمة النصوص الطويلة نفسها، دون فتح الإعدادات.
+
 **ما الجديد في 2.0:**
 
 - عدة لغات: يتبع إتمام تخطيط لوحة المفاتيح، فيقترح بلغة ما تكتبه.
@@ -133,6 +141,14 @@ Your privacy first. Itmam sends no data: no statistics, no crash reports. Its on
 - Arabic and English interface; open source (MIT)
 
 **Search terms** (7 max): Arabic keyboard · Arabic word prediction · Arabic autocomplete · predictive text · word suggestions · Arabic typing · اتمام
+
+**What's new in 2.1:**
+
+- Picking a suggestion with the caret inside a word replaces the whole word.
+- No bar after clicking text that cannot be edited, such as drop-down lists and web page text.
+- Choose where phrases show in the bar: at its start or at its end, after the words.
+- "Long phrases" are now "Long texts", and you put them in order by dragging their cards in Settings.
+- An "Add a text…" button in the long texts list itself, without opening Settings.
 
 **What's new in 2.0:**
 
@@ -224,7 +240,9 @@ Paste into Partner Center → Submission options → Notes for certification.
 >
 > **Why runFullTrust and a global keyboard hook.** Word prediction must see the keys typed in other apps, which is only
 > possible with a low-level keyboard hook (`SetWindowsHookEx(WH_KEYBOARD_LL)`) in a full-trust desktop process;
-> inserting the chosen word uses `SendInput`; the caret position and the word around it are read with UI Automation.
+> inserting the chosen word uses `SendInput`; the caret position and the word around it are read with UI Automation
+> (at most 49 characters before the caret and 30 after it, never from password fields or read-only text; only the
+> current word is kept, in memory).
 > - Keys are tracked only while the foreground window uses a layout of a language turned on (Arabic and English by
 >   default); never with input method editors (Chinese, Japanese, Korean).
 > - Nothing typed is logged or sent anywhere; the app has no network capability. Its only online request is the
