@@ -13,7 +13,7 @@
 ### ما الذي يقرؤه التطبيق
 
 - **ضغطات لوحة المفاتيح** أثناء الكتابة بلغة مفعّلة في الإعدادات فقط (العربية والإنجليزية افتراضيًا، وغيرهما إذا فعّلتها من «اللغات»)، لمعرفة الكلمة التي تكتبها الآن واقتراح إكمالها. الكتابة بلغة غير مفعّلة، أو بمحرّر إدخال (مثل الصينية واليابانية والكورية)، لا تُتتبع.
-- **الكلمة الحالية قبل المؤشر فقط:** عندما ينتقل المؤشر إلى نص موجود (Backspace، أو نقرة بالفأرة، أو الأسهم، أو الانتقال إلى حقل أو نافذة أخرى)، يقرأ التطبيق عبر خدمة UI Automation في Windows ما لا يزيد عن 49 حرفًا قبل المؤشر، ليكمل الكلمة التي يقف فيها المؤشر. يحتفظ في الذاكرة بهذه الكلمة وحدها ويتجاهل الباقي فورًا.
+- **الكلمة الحالية قبل المؤشر فقط:** عندما ينتقل المؤشر إلى نص موجود (Backspace، أو نقرة بالفأرة، أو الأسهم، أو الانتقال إلى حقل أو نافذة أخرى)، يقرأ التطبيق عبر خدمة UI Automation في Windows ما لا يزيد عن 49 حرفًا قبل المؤشر و30 حرفًا بعده، ليكمل الكلمة التي يقف فيها المؤشر (أو يستبدلها كاملة إن كان المؤشر في وسطها). يحتفظ في الذاكرة بهذه الكلمة وحدها ويتجاهل الباقي فورًا.
 - **آخر الكلمات التي كتبتها متتالية** (8 كلمات على الأكثر)، لإكمال العبارات المتلازمة مثل «بسم الله الرحمن الرحيم». تبقى في الذاكرة فقط، وتُنسى عند أي علامة غير المسافة أو عند تحريك المؤشر أو تغيير النافذة. وما يُحفظ منها موصوف في «العبارات المتعلَّمة» أدناه.
 - **اسم ملف البرنامج** الذي تكتب فيه (مثل `notepad.exe`)، لمعرفة هل هو من التطبيقات المستثناة. لا يُحفظ هذا الاسم.
 
@@ -65,7 +65,7 @@
 ### What the app reads
 
 - **Keystrokes**, only while you type in a language turned on in Settings (Arabic and English by default, others once you turn them on under "Languages"), to know the word you are typing and suggest completions. Typing in a language that is turned off, or with an input method editor (such as Chinese, Japanese or Korean), is not tracked.
-- **Only the current word before the caret:** when the caret moves into existing text (Backspace, a mouse click, arrow keys, or switching to another field or window), the app uses Windows UI Automation to read at most 49 characters before the caret so it can continue the word the caret is in. It keeps only that word, in memory, and discards the rest immediately.
+- **Only the current word before the caret:** when the caret moves into existing text (Backspace, a mouse click, arrow keys, or switching to another field or window), the app uses Windows UI Automation to read at most 49 characters before the caret and 30 after it so it can continue the word the caret is in (or replace all of it when the caret is inside it). It keeps only that word, in memory, and discards the rest immediately.
 - **The last words you typed in a row** (8 at most), to complete common phrases such as «بسم الله الرحمن الرحيم». They stay in memory only and are forgotten at any boundary other than a space, any caret move or window change. What is kept from them is described under "Learned phrases" below.
 - **The program file name** of the app you type in (e.g. `notepad.exe`), to know whether it is an excluded app. This name is not stored.
 

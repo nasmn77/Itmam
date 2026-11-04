@@ -133,7 +133,7 @@
  KEYEVENTF_UNICODE (+ space). Injected events carry LLKHF_INJECTED, so our hook ignores them.
 ```
 
-المسافات: قراءة سياق المؤشر تعيد أيضًا الحرف الواحد الذي بعد المؤشر. يبقى صحيحًا أثناء الكتابة (النص يُدرج قبله) ويصبح مجهولًا عند تحرّك المؤشر. عند القبول، تُستبدل المسافة التالية (Delete ثم الكلمة والمسافة) فلا تتكرر مسافتان، ولا توضع مسافة قبل علامة ترقيم تالية، وفي غير ذلك تُضاف مسافة.
+المسافات: قراءة سياق المؤشر تعيد أيضًا ما لا يزيد عن 30 حرفًا بعد المؤشر (لا يتجاوز نهاية الحقل)، ولا يُحتفظ منها إلا بعدد حروف الكلمة التي بعد المؤشر وبالحرف الذي يليها. يبقى ذلك صحيحًا أثناء الكتابة (النص يُدرج قبله) ويصبح مجهولًا عند تحرّك المؤشر. عند القبول، تُستبدل المسافة التالية (Delete ثم الكلمة والمسافة) فلا تتكرر مسافتان، ولا توضع مسافة قبل علامة ترقيم تالية، وفي غير ذلك تُضاف مسافة. وإذا كان المؤشر في وسط كلمة (قرار المستخدم بعد 2.0) تُحذف بقيتها أيضًا (`DeleteForward`) وتُكتب الكلمة المقبولة بلا مسافة، فتصبح «محم|د» «محمود»؛ وإذا انتهت الكلمة قبل بقيتها (مسافة كُتبت داخلها) أو ملأت الثلاثين حرفًا كلها فلا تُحذف.
 
 الكلمة في `AcceptSuggestion` مأخوذة من لقطة الشريط التي رآها الخطاف، فتُدرج الكلمة الظاهرة على الشاشة بالضبط. ينشر خيط الواجهة `PopupState` مع كل إظهار وإخفاء، ويقرؤه الخطاف دون قفل. النقر على كلمة في الشريط يرسل الحدث نفسه، والنقرات داخل حدود الشريط لا تُعدّ حركة مؤشر. وأثناء الإيقاف (Ctrl+Alt افتراضيًا) لا تنشر الخطافات شيئًا ولا تبتلع شيئًا، إلا اختصار التشغيل إن كان بمفتاح.
 
@@ -438,10 +438,14 @@ increase; numbers dominated by Chrome finishing start-up). Large pages build lar
  KEYEVENTF_UNICODE (+ space). Injected events carry LLKHF_INJECTED, so our hook ignores them.
 ```
 
-Spaces: the caret-context read also returns the one character after the caret. It stays valid
-while typing (text is inserted before it) and becomes unknown when the caret moves. On accept,
-a following space is replaced (Delete, then word + space) so there are never two spaces, following
-punctuation gets no space before it, and otherwise a space is appended.
+Spaces: the caret-context read also returns at most 30 characters after the caret (never past the
+end of the field); only the length of the word after the caret and the character after it are kept.
+They stay valid while typing (text is inserted before them) and become unknown when the caret moves.
+On accept, a following space is replaced (Delete, then word + space) so there are never two spaces,
+following punctuation gets no space before it, and otherwise a space is appended. When the caret is
+inside a word (user decision after 2.0) the rest of it is deleted too (`DeleteForward`) and the
+accepted word is typed without a space, so «محم|د» becomes «محمود»; not when the word was ended
+before its rest (a space typed inside it) or it fills all 30 characters.
 
 The word in `AcceptSuggestion` is captured from the bar snapshot the hook saw, so exactly the
 word on screen is inserted. `PopupState` is published by the UI thread on every show/hide and

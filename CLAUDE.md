@@ -79,6 +79,11 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
   caret at the click point in non-editable text). `UiaCaretContextSource` now checks `UIA_IsReadOnlyAttributeId` at the
   caret: true → `CaretContextStatus.ReadOnly` → `SilenceReason.ReadOnlyText` until the context changes; mixed/unsupported/
   error = editable. Verified by the user with the Debug build in Chrome, Edge and Firefox on a local test page.
+  Then (user decision 2026-11-04): accepting with the caret inside a word replaces the WHOLE word and adds no space
+  («محم|د» → «محمود»): the context read also returns ≤ 30 chars after the caret (`CaretContext.TextAfter`, clamped to the
+  field end), the pipeline keeps only the count of the word's letters after the caret + the next char
+  (`_wordAfterCaret`, `DeleteForward`; no undo then). Privacy policy (docs + site, ar/en) says «و30 حرفًا بعده»;
+  its effective date still says 2.0 — update it with the release.
 - **Phase 7** merged into main. `src/Itmam.Package` (.wapproj, x64 + ARM64 bundle),
   identity from Partner Center product **9P08F7KGRJB0** (`NasserAlmadi.563063310BE3D`, `CN=9260B530-9E02-440E-8E99-B74323B1CE93`,
   PublisherDisplayName "Nasser Almadi"; reserved names «إتمام» + "Itmam"; a separate draft product «اتمام» without hamza

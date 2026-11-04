@@ -70,8 +70,15 @@ public interface IInputGuard
 /// <param name="Status">Whether text was read.</param>
 /// <param name="Text">Characters before the caret.</param>
 /// <param name="CharAfter">The character after the caret, '\0' at the end of the text, null if not read.</param>
-public readonly record struct CaretContext(CaretContextStatus Status, string Text = "", char? CharAfter = null)
+/// <param name="TextAfter">
+/// Up to <see cref="MaxTextAfter"/> characters after the caret (empty at the end of the text), null if not read:
+/// only the rest of the word the caret is in is used (accepting replaces the whole word), the rest is discarded.
+/// </param>
+public readonly record struct CaretContext(CaretContextStatus Status, string Text = "", char? CharAfter = null, string? TextAfter = null)
 {
+    /// <summary>The most characters read after the caret (a word longer than this is not replaced).</summary>
+    public const int MaxTextAfter = 30;
+
     public static CaretContext Unavailable => new(CaretContextStatus.Unavailable);
 
     public static CaretContext Selection => new(CaretContextStatus.Selection);
@@ -81,6 +88,10 @@ public readonly record struct CaretContext(CaretContextStatus Status, string Tex
     public static CaretContext ReadOnly => new(CaretContextStatus.ReadOnly);
 
     public static CaretContext Of(string text, char? charAfter = null) => new(CaretContextStatus.Text, text, charAfter);
+
+    /// <summary>Text read on both sides of the caret.</summary>
+    public static CaretContext Around(string text, string textAfter) =>
+        new(CaretContextStatus.Text, text, textAfter.Length > 0 ? textAfter[0] : '\0', textAfter);
 }
 
 /// <summary>Types an edit into the focused app (SendInput in production). Returns false if it failed.</summary>
@@ -242,6 +253,11 @@ public sealed class InputPipeline(
     // The character after the caret, read with the caret context ('\0' = end of text, null = unknown).
     // Typing, Backspace and accepting insert/delete before it, so it stays valid until the caret moves.
     private char? _charAfterCaret;
+
+    // The caret is inside a word: its letters after the caret (a count only), deleted when a suggestion is
+    // accepted so the whole word is replaced, and the character after that word ('\0' = end, null = unknown).
+    private int _wordAfterCaret;
+    private char? _charAfterWord;
 
     // The words typed in a row just before the current one, for phrase suggestions (memory only).
     private readonly RecentWords _recent = new();
@@ -471,6 +487,7 @@ public sealed class InputPipeline(
             _recent.Clear();
             _suppression = Suppression.None;
             _charAfterCaret = null;
+            _wordAfterCaret = 0;
             return BufferResult.None;
         }
 
@@ -486,6 +503,7 @@ public sealed class InputPipeline(
         if (contextMayChange)
         {
             _charAfterCaret = null; // the caret may have moved: what follows it is unknown
+            _wordAfterCaret = 0;
             _contextFromPaste = kind == InputEventKind.Paste;
         }
 
@@ -498,6 +516,11 @@ public sealed class InputPipeline(
         }
 
         TrackRecentWords(record.Input, result);
+        if (result.Outcome is BufferOutcome.Committed or BufferOutcome.Reset || buffer.IsDetached)
+        {
+            _wordAfterCaret = 0; // the word was ended before the rest of it (e.g. a space typed inside it)
+        }
+
         if (result.Outcome is BufferOutcome.Committed or BufferOutcome.Reset || buffer.IsDetached || buffer.IsEmpty)
         {
             _suppression = Suppression.None;
@@ -561,11 +584,20 @@ public sealed class InputPipeline(
         }
 
         var typed = buffer.Text;
-        var edit = TextEdit.Compute(typed, word, _options.AppendSpaceOnAccept, _charAfterCaret);
+        // Inside a word: the rest of it is deleted too, and no space is added (user decision after 2.0).
+        var edit = _wordAfterCaret > 0
+            ? TextEdit.Compute(typed, word) with { DeleteForward = _wordAfterCaret }
+            : TextEdit.Compute(typed, word, _options.AppendSpaceOnAccept, _charAfterCaret);
         var recentBefore = _recent.Save();
         if (!injector.Send(edit))
         {
             return BufferResult.None;
+        }
+
+        if (_wordAfterCaret > 0)
+        {
+            _wordAfterCaret = 0;
+            _charAfterCaret = _charAfterWord;
         }
 
         // Statistics: the characters typed for the user, less the key that accepted the suggestion.
@@ -631,6 +663,29 @@ public sealed class InputPipeline(
         {
             (_finishedPhrases ??= []).Add(sequence);
         }
+    }
+
+    // The letters of the current word after the caret, and the character after them. Only counted: the text
+    // itself is not kept. A word that fills everything read may go on further: it is not replaced.
+    private static (int Letters, char? Next) WordAfter(string? textAfter, Languages.LanguageProfile language)
+    {
+        if (string.IsNullOrEmpty(textAfter))
+        {
+            return (0, null);
+        }
+
+        var letters = 0;
+        while (letters < textAfter.Length && !language.IsWordBoundary(textAfter[letters]))
+        {
+            letters++;
+        }
+
+        if (letters == textAfter.Length)
+        {
+            return letters < CaretContext.MaxTextAfter ? (letters, '\0') : (0, null);
+        }
+
+        return (letters, textAfter[letters]);
     }
 
     /// <param name="isRetry">This is the last attempt (after an Unavailable one).</param>
@@ -720,6 +775,9 @@ public sealed class InputPipeline(
             }
 
             _charAfterCaret = caret.CharAfter;
+            (_wordAfterCaret, _charAfterWord) = result.Outcome is BufferOutcome.Updated or BufferOutcome.Reset
+                ? WordAfter(caret.TextAfter, Tracker.Buffer.Language)
+                : (0, null);
             LearnRecoveredWords();
             if (result.Outcome is BufferOutcome.Updated or BufferOutcome.Reset && !_contextFromPaste)
             {
