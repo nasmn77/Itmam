@@ -66,7 +66,8 @@ internal static class Program
                     new("إغلاق التذكرة", "تم حل المشكلة وإغلاق التذكرة.\nلا تتردد في التواصل معنا.\nمع التحية"),
                 ];
             using var picker = new SettingsUi.LongPhrasePicker(samples, 0, new SendInputInjector(), SettingsUi.SettingsPalette.For(ThemeChoice.System),
-                !english, new Rectangle(Screen.PrimaryScreen!.WorkingArea.Width / 2, 200, 2, 20));
+                !english, new Rectangle(Screen.PrimaryScreen!.WorkingArea.Width / 2, 200, 2, 20),
+                addNew: _ => null); // shows the "add" button; nothing is saved here
             if (args.Contains("fill"))
             {
                 picker.Shown += (_, _) => picker.DemoFill(1, english ? ["Ahmed", "48213"] : ["أحمد", "48213"]);

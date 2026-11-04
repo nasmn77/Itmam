@@ -58,6 +58,7 @@ Click the Itmam icon next to the clock (right or left button) and choose "Settin
 - **My phrases:** turn phrase suggestions and phrase learning on or off, "My phrases" (with import and export), and the learned phrases (delete, move to "My phrases", delete all).
 - **Text shortcuts:** add a shortcut («ع1») and its text, edit, delete, import and export.
 - **Long texts:** add a text with its name and content (up to 4,000 characters, several lines), "Insert variable…", edit, delete, reorder by dragging, import and export. Texts can also be added from the shortcut's list itself.
+- **Phrases in the bar** (My phrases page): at its start or at its end, after the words.
 - **Updates:** the version, and checking for an update through Microsoft Store.
 
 ## The icon next to the clock
