@@ -6,7 +6,7 @@
 
 ## العربية
 
-**تاريخ السريان:** الإصدار 2.0 (2 نوفمبر 2026)
+**تاريخ السريان:** الإصدار 2.1 (4 نوفمبر 2026)
 
 **لا يرسل إتمام أي بيانات.** لا يجمع إحصاءات استخدام، ولا يرفع تقارير الأعطال، وكل ما يفعله بما تكتبه يبقى على جهازك. والاتصال الوحيد سؤال متجر Microsoft عن التحديثات، ويمكن إيقافه (انظر «التحقق من التحديثات» أدناه).
 
@@ -58,7 +58,7 @@
 
 ## English
 
-**Effective date:** version 2.0 (November 2, 2026)
+**Effective date:** version 2.1 (November 4, 2026)
 
 **Itmam sends no data.** It collects no usage statistics, uploads no crash reports, and everything it does with what you type stays on your device. Its only connection is asking Microsoft Store about updates, and it can be turned off (see "Update check" below).
 
