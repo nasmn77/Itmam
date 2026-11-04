@@ -251,7 +251,8 @@ internal sealed class TrayApplication : ApplicationContext
         _longPhrases?.Close();
         var settings = _app.Settings;
         _longPhrases = new LongPhrasePicker(settings.LongPhrases, target, _app.Injector, SettingsPalette.For(settings.Theme),
-            settings.Language == UiLanguage.Arabic, near, chars => _app.Learning.RecordUsage(1, chars), SaveLongPhraseText, AddLongPhrase);
+            settings.Language == UiLanguage.Arabic, near, chars => _app.Learning.RecordUsage(1, chars), SaveLongPhraseText, AddLongPhrase,
+            settings.LongTextsWindow, SaveLongTextsWindow);
         _longPhrases.FormClosed += (_, _) => _longPhrases = null;
         _longPhrases.Show();
     }
@@ -285,6 +286,15 @@ internal sealed class TrayApplication : ApplicationContext
 
         _app.UpdateSettings(settings with { LongPhrases = all });
         return (all, added);
+    }
+
+    // The list's size as the user left it, for next time (after 2.1).
+    private void SaveLongTextsWindow(WindowSize size)
+    {
+        if (_app.Settings.LongTextsWindow != size)
+        {
+            _app.UpdateSettings(_app.Settings with { LongTextsWindow = size });
+        }
     }
 
     // "Save the edit" in the long phrases list (1.3): the phrase keeps its name and place.

@@ -1,5 +1,6 @@
 using Itmam.App.Resources;
 using Itmam.Core.Input;
+using Itmam.Core.Settings;
 using Itmam.Core.Suggestions;
 using Itmam.Win32;
 
@@ -45,6 +46,8 @@ internal sealed class LongPhrasePicker : Form
     private readonly Action<int>? _inserted;
     private readonly Action<LongPhrase, string>? _saveEdit;
     private readonly Func<IWin32Window, (IReadOnlyList<LongPhrase> All, LongPhrase Added)?>? _addNew;
+    private readonly WindowSize? _savedSize;
+    private readonly Action<WindowSize>? _sizeChosen;
     private readonly System.Windows.Forms.Timer _keysWatch = new() { Interval = 30 };
     private IReadOnlyList<LongPhrase> _all;
     private IReadOnlyList<LongPhrase> _shown;
@@ -73,13 +76,18 @@ internal sealed class LongPhrasePicker : Form
     /// Asks for a new long text and saves it (Settings): returns every long text and the one added, or null
     /// if cancelled. Without it there is no "add" button.
     /// </param>
+    /// <param name="savedSize">The size the user left the window at last time, or null for the default.</param>
+    /// <param name="sizeChosen">Called on closing with the size the user chose (resized or maximized).</param>
     public LongPhrasePicker(IReadOnlyList<LongPhrase> phrases, nint target, ITextInjector injector, SettingsPalette palette, bool rtl, Rectangle near,
         Action<int>? inserted = null, Action<LongPhrase, string>? saveEdit = null,
-        Func<IWin32Window, (IReadOnlyList<LongPhrase> All, LongPhrase Added)?>? addNew = null)
+        Func<IWin32Window, (IReadOnlyList<LongPhrase> All, LongPhrase Added)?>? addNew = null,
+        WindowSize? savedSize = null, Action<WindowSize>? sizeChosen = null)
     {
         _inserted = inserted;
         _saveEdit = saveEdit;
         _addNew = addNew;
+        _savedSize = savedSize;
+        _sizeChosen = sizeChosen;
         _palette = palette;
         _near = near;
         _all = phrases;
@@ -149,12 +157,14 @@ internal sealed class LongPhrasePicker : Form
             WindowChrome.SetDarkScrollbars(_list.Handle, palette.IsDark);
             WindowChrome.SetDarkScrollbars(_text.Handle, palette.IsDark);
             WindowChrome.SetDarkScrollbars(_fields.Handle, palette.IsDark);
-            MinimumSize = SizeFromClientSize(new Size(Px(420), Px(360)));
+            MinimumSize = SizeFromClientSize(new Size(Px(WindowSize.MinWidth), Px(WindowSize.MinHeight)));
+            RestoreSavedSize();
             LayOutList();
             Filter();
             _laidOut = true;
         };
         ResizeBegin += (_, _) => _sizeAtResizeStart = Size;
+        FormClosing += (_, _) => ReportChosenSize();
         ResizeEnd += (_, _) => _userSized |= Size != _sizeAtResizeStart; // not a plain move
         Shown += (_, _) =>
         {
@@ -321,6 +331,42 @@ internal sealed class LongPhrasePicker : Form
     {
         SizeWindow(Px(560));
         ArrangeList();
+    }
+
+    // The size the user left the window at last time (user decision after 2.1), within the screen, centred.
+    private void RestoreSavedSize()
+    {
+        if (_savedSize is not { } saved)
+        {
+            return;
+        }
+
+        var area = Screen.FromRectangle(_near).WorkingArea;
+        var frame = Size - ClientSize;
+        ClientSize = new Size(Math.Min(Px(saved.Width), area.Width - frame.Width), Math.Min(Px(saved.Height), area.Height - frame.Height));
+        Location = new Point(area.Left + Math.Max(0, (area.Width - Width) / 2), area.Top + Math.Max(0, (area.Height - Height) / 2));
+        _userSized = true;
+        if (saved.Maximized)
+        {
+            WindowState = FormWindowState.Maximized;
+        }
+    }
+
+    // Only a size the user chose is remembered; the normal size is kept when the window is maximized.
+    private void ReportChosenSize()
+    {
+        if (!_userSized || _sizeChosen is null || WindowState == FormWindowState.Minimized)
+        {
+            return;
+        }
+
+        var maximized = WindowState == FormWindowState.Maximized;
+        var normal = maximized ? RestoreBounds.Size - (Size - ClientSize) : ClientSize;
+        var scale = DeviceDpi / 96f;
+        _sizeChosen(new WindowSize(
+            Math.Max(WindowSize.MinWidth, (int)Math.Round(normal.Width / scale)),
+            Math.Max(WindowSize.MinHeight, (int)Math.Round(normal.Height / scale)),
+            maximized));
     }
 
     // At the window's current size: the list takes two fifths of the height left, the text the rest.

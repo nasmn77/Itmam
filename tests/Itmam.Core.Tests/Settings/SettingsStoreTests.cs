@@ -89,6 +89,18 @@ public sealed class SettingsStoreTests : IDisposable
     }
 
     [Fact]
+    public void The_long_texts_window_size_is_kept_and_a_damaged_one_dropped()
+    {
+        var store = new SettingsStore(SettingsPath);
+        store.Save(new AppSettings { LongTextsWindow = new WindowSize(900, 700, Maximized: true) });
+        new SettingsStore(SettingsPath).Load().LongTextsWindow.ShouldBe(new WindowSize(900, 700, true));
+
+        File.WriteAllText(SettingsPath, """{ "LongTextsWindow": { "Width": 0, "Height": 700 } }""");
+        new SettingsStore(SettingsPath).Load().LongTextsWindow.ShouldBeNull();
+        new AppSettings().LongTextsWindow.ShouldBeNull(); // the default size
+    }
+
+    [Fact]
     public void Languages_default_to_arabic_and_english_and_are_cleaned()
     {
         Directory.CreateDirectory(_directory);

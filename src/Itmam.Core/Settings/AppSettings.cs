@@ -88,6 +88,12 @@ public sealed record AppSettings
     /// <summary>Long phrases (support replies), chosen by name from a list (user decision 1.1).</summary>
     public IReadOnlyList<Suggestions.LongPhrase> LongPhrases { get; init; } = [];
 
+    /// <summary>
+    /// The long texts list's size as the user left it (resized or maximized), restored when it opens next;
+    /// null = the default size (user decision after 2.1). The window is still centred on the screen.
+    /// </summary>
+    public WindowSize? LongTextsWindow { get; init; }
+
     public UiLanguage Language { get; init; } = UiLanguage.Arabic;
 
     /// <summary>Suggestions shown (1–5).</summary>
@@ -161,6 +167,9 @@ public sealed record AppSettings
                 : null)
             .OfType<Suggestions.LongPhrase>()
             .DistinctBy(p => p.Name)],
+        LongTextsWindow = LongTextsWindow is { Width: >= WindowSize.MinWidth and <= WindowSize.MaxSide, Height: >= WindowSize.MinHeight and <= WindowSize.MaxSide }
+            ? LongTextsWindow
+            : null,
     };
 
     private static IReadOnlyList<string> ExcludedAppsDefaults() => [.. Input.ExcludedApps.Defaults];
