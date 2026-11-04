@@ -1,5 +1,6 @@
 using Itmam.App.Resources;
 using Itmam.Core.Input;
+using Itmam.Core.Settings;
 using Itmam.Core.Suggestions;
 using Itmam.Win32;
 
@@ -45,6 +46,8 @@ internal sealed class LongPhrasePicker : Form
     private readonly Action<int>? _inserted;
     private readonly Action<LongPhrase, string>? _saveEdit;
     private readonly Func<IWin32Window, (IReadOnlyList<LongPhrase> All, LongPhrase Added)?>? _addNew;
+    private readonly WindowSize? _savedSize;
+    private readonly Action<WindowSize>? _sizeChosen;
     private readonly System.Windows.Forms.Timer _keysWatch = new() { Interval = 30 };
     private IReadOnlyList<LongPhrase> _all;
     private IReadOnlyList<LongPhrase> _shown;
@@ -54,6 +57,11 @@ internal sealed class LongPhrasePicker : Form
     private bool _asking;        // a question is open: losing the focus to it must not close the list
     private bool _inserting;
     private long _keysUpAt;
+    private bool _laidOut;       // the first layout is done: resizing lays the controls out again
+    private bool _userSized;     // resized or maximized by the user: that size is kept from then on
+    private Size _sizeAtResizeStart;
+    private int _fillFieldsHeight; // every field's row, while filling
+    private int _fillTextWanted;   // the height the reply needs, while filling
     private int _focusRetries;
 
     /// <param name="phrases">The user's long phrases.</param>
@@ -68,13 +76,18 @@ internal sealed class LongPhrasePicker : Form
     /// Asks for a new long text and saves it (Settings): returns every long text and the one added, or null
     /// if cancelled. Without it there is no "add" button.
     /// </param>
+    /// <param name="savedSize">The size the user left the window at last time, or null for the default.</param>
+    /// <param name="sizeChosen">Called on closing with the size the user chose (resized or maximized).</param>
     public LongPhrasePicker(IReadOnlyList<LongPhrase> phrases, nint target, ITextInjector injector, SettingsPalette palette, bool rtl, Rectangle near,
         Action<int>? inserted = null, Action<LongPhrase, string>? saveEdit = null,
-        Func<IWin32Window, (IReadOnlyList<LongPhrase> All, LongPhrase Added)?>? addNew = null)
+        Func<IWin32Window, (IReadOnlyList<LongPhrase> All, LongPhrase Added)?>? addNew = null,
+        WindowSize? savedSize = null, Action<WindowSize>? sizeChosen = null)
     {
         _inserted = inserted;
         _saveEdit = saveEdit;
         _addNew = addNew;
+        _savedSize = savedSize;
+        _sizeChosen = sizeChosen;
         _palette = palette;
         _near = near;
         _all = phrases;
@@ -83,7 +96,11 @@ internal sealed class LongPhrasePicker : Form
         _injector = injector;
 
         Text = Strings.LongPhrasesTitle;
-        FormBorderStyle = FormBorderStyle.FixedToolWindow;
+        // Resizable, with a maximize button (user decision after 2.1); the layout follows the size.
+        FormBorderStyle = FormBorderStyle.Sizable;
+        MaximizeBox = true;
+        MinimizeBox = false;
+        ShowIcon = false;
         ShowInTaskbar = false;
         TopMost = true;
         KeyPreview = true;
@@ -140,9 +157,15 @@ internal sealed class LongPhrasePicker : Form
             WindowChrome.SetDarkScrollbars(_list.Handle, palette.IsDark);
             WindowChrome.SetDarkScrollbars(_text.Handle, palette.IsDark);
             WindowChrome.SetDarkScrollbars(_fields.Handle, palette.IsDark);
+            MinimumSize = SizeFromClientSize(new Size(Px(WindowSize.MinWidth), Px(WindowSize.MinHeight)));
+            RestoreSavedSize();
             LayOutList();
             Filter();
+            _laidOut = true;
         };
+        ResizeBegin += (_, _) => _sizeAtResizeStart = Size;
+        FormClosing += (_, _) => ReportChosenSize();
+        ResizeEnd += (_, _) => _userSized |= Size != _sizeAtResizeStart; // not a plain move
         Shown += (_, _) =>
         {
             PopupWindows.BringToFront(Handle);
@@ -292,6 +315,11 @@ internal sealed class LongPhrasePicker : Form
     // decision 1.3: like the fields, so the window does not jump when they open).
     private void SizeWindow(int clientHeight)
     {
+        if (_userSized || WindowState != FormWindowState.Normal)
+        {
+            return; // the size the user chose stays
+        }
+
         var area = Screen.FromRectangle(_near).WorkingArea;
         var frame = Size - ClientSize;
         ClientSize = new Size(Math.Min(Px(640), area.Width - frame.Width - Px(32)), Math.Min(clientHeight, area.Height - frame.Height - Px(16)));
@@ -302,12 +330,121 @@ internal sealed class LongPhrasePicker : Form
     private void LayOutList()
     {
         SizeWindow(Px(560));
+        ArrangeList();
+    }
+
+    // The size the user left the window at last time (user decision after 2.1), within the screen, centred.
+    private void RestoreSavedSize()
+    {
+        if (_savedSize is not { } saved)
+        {
+            return;
+        }
+
+        var area = Screen.FromRectangle(_near).WorkingArea;
+        var frame = Size - ClientSize;
+        ClientSize = new Size(Math.Min(Px(saved.Width), area.Width - frame.Width), Math.Min(Px(saved.Height), area.Height - frame.Height));
+        Location = new Point(area.Left + Math.Max(0, (area.Width - Width) / 2), area.Top + Math.Max(0, (area.Height - Height) / 2));
+        _userSized = true;
+        if (saved.Maximized)
+        {
+            WindowState = FormWindowState.Maximized;
+        }
+    }
+
+    // Only a size the user chose is remembered; the normal size is kept when the window is maximized.
+    private void ReportChosenSize()
+    {
+        if (!_userSized || _sizeChosen is null || WindowState == FormWindowState.Minimized)
+        {
+            return;
+        }
+
+        var maximized = WindowState == FormWindowState.Maximized;
+        var normal = maximized ? RestoreBounds.Size - (Size - ClientSize) : ClientSize;
+        var scale = DeviceDpi / 96f;
+        _sizeChosen(new WindowSize(
+            Math.Max(WindowSize.MinWidth, (int)Math.Round(normal.Width / scale)),
+            Math.Max(WindowSize.MinHeight, (int)Math.Round(normal.Height / scale)),
+            maximized));
+    }
+
+    // At the window's current size: the list takes two fifths of the height left, the text the rest.
+    private void ArrangeList()
+    {
         var margin = Px(12);
         var width = ClientSize.Width - 2 * margin;
         _search.Bounds = new Rectangle(margin, margin, width, Px(30));
-        _list.Bounds = new Rectangle(margin, Px(50), width, Px(170));
+        var buttonsTop = ClientSize.Height - margin - _insertButton.Height;
+        var free = buttonsTop - Px(12) - Px(50) - Px(8) - Px(24) - Px(4);
+        _list.Bounds = new Rectangle(margin, Px(50), width, Math.Max(Px(80), free * 2 / 5));
         _textLabel.Bounds = new Rectangle(margin, _list.Bottom + Px(8), width, Px(24));
         LayOutBottom(_textLabel.Bottom + Px(4), margin, width);
+        FitScrollBars();
+    }
+
+    // Fields first, but the reply keeps at least half the room it needs (up to half the room there is).
+    private void ArrangeFill()
+    {
+        var margin = Px(12);
+        var width = ClientSize.Width - 2 * margin;
+        var top = Px(50);
+        var rowHeight = Px(62);
+        var buttonsRow = Px(12) + _insertButton.Height;
+        var room = ClientSize.Height - top - Px(8) - buttonsRow - margin;
+        var shownFields = Math.Clamp(room - Math.Min(_fillTextWanted, room / 2), Math.Min(rowHeight, _fillFieldsHeight), _fillFieldsHeight);
+        _fillHint.Bounds = new Rectangle(margin, margin, width, Px(30));
+        _fields.Bounds = new Rectangle(margin, top, width, shownFields);
+        var rowWidth = shownFields < _fillFieldsHeight ? width - SystemInformation.VerticalScrollBarWidth : width;
+        foreach (Control row in _fields.Controls)
+        {
+            row.Width = rowWidth;
+        }
+
+        LayOutBottom(top + shownFields + Px(8), margin, width);
+        FitScrollBars();
+    }
+
+    protected override void OnResize(EventArgs e)
+    {
+        base.OnResize(e);
+        if (!_laidOut || WindowState == FormWindowState.Minimized)
+        {
+            return;
+        }
+
+        if (WindowState == FormWindowState.Maximized)
+        {
+            _userSized = true;
+        }
+
+        if (_filling is null)
+        {
+            ArrangeList();
+        }
+        else
+        {
+            ArrangeFill();
+        }
+    }
+
+    // The text box shows a scroll bar only when its text is taller than it (after a resize too).
+    private void FitScrollBars()
+    {
+        var height = TextRenderer.MeasureText(_text.Text, _text.Font, new Size(Math.Max(1, _text.ClientSize.Width - SystemInformation.VerticalScrollBarWidth), int.MaxValue),
+            TextFormatFlags.WordBreak | TextFormatFlags.TextBoxControl).Height;
+        var scrollBars = height > _text.ClientSize.Height ? ScrollBars.Vertical : ScrollBars.None;
+        if (_text.ScrollBars != scrollBars)
+        {
+            var caret = _text.SelectionStart;
+            _text.ScrollBars = scrollBars;
+            if (_text.IsHandleCreated)
+            {
+                WindowChrome.SetDarkScrollbars(_text.Handle, _palette.IsDark); // the handle is recreated
+            }
+
+            _text.SelectionStart = caret;
+        }
     }
 
     // The text box fills what the buttons leave.
@@ -434,6 +571,8 @@ internal sealed class LongPhrasePicker : Form
         var shownFields = Math.Clamp(room - Math.Min(textWanted, room / 2), rowHeight, fieldsHeight);
         var textHeight = Math.Max(Px(80), Math.Min(textWanted, room - shownFields));
         SizeWindow(top + shownFields + Px(8) + textHeight + buttonsRow + margin);
+        _fillFieldsHeight = fieldsHeight;
+        _fillTextWanted = textWanted;
 
         _fields.SuspendLayout();
         _fields.Controls.Clear();
@@ -459,9 +598,8 @@ internal sealed class LongPhrasePicker : Form
         }
 
         _fields.ResumeLayout();
-        _fillHint.Bounds = new Rectangle(margin, margin, width, Px(30));
         _fillHint.Text = string.Format(System.Globalization.CultureInfo.CurrentCulture, Strings.LongPhraseFillHint, phrase.Name);
-        LayOutBottom(top + shownFields + Px(8), margin, width);
+        ArrangeFill(); // at the window's size (the user's, if they chose one)
         _text.ReadOnly = false;
         _text.TabIndex = _boxes.Count;
         _insertButton.TabIndex = _boxes.Count + 1;
