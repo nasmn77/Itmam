@@ -96,6 +96,18 @@ public sealed class MultiLanguageLearningTests : IDisposable
     }
 
     [Fact]
+    public void A_language_with_only_phrases_not_learned_yet_has_nothing_to_show()
+    {
+        var learning = Start();
+        learning.LearnPhrases(["בוקר טוב"], Hebrew); // typed once: counted, not learned
+        learning.Languages.Select(l => l.Id).ShouldBe(["ar", "he"]); // kept by backups
+        learning.LanguagesWithLearned.Select(l => l.Id).ShouldBe(["ar"]);
+
+        learning.LearnPhrases(["בוקר טוב"], Hebrew);
+        learning.LanguagesWithLearned.Select(l => l.Id).ShouldBe(["ar", "he"]);
+    }
+
+    [Fact]
     public void Each_language_learns_and_reloads_its_own_words_and_phrases()
     {
         var learning = Start();
