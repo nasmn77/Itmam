@@ -156,14 +156,31 @@ internal sealed class SuggestionController : IDisposable
     /// <summary>The user's text shortcuts («ع1» → its text).</summary>
     public TextShortcuts Shortcuts { get; set; } = TextShortcuts.Empty;
 
+    /// <summary>Phrases after the dictionary words (setting <c>PhrasesLast</c>).</summary>
+    public bool PhrasesLast { get; set; }
+
     // A text shortcut typed exactly comes first, then a phrase the user is typing (Tab inserts the whole
     // rest of it), then dictionary words. Phrases can show the bar right after a space, before any
-    // letter: the next word of «بسم …»; shortcuts show whatever the minimum letters setting.
+    // letter: the next word of «بسم …»; shortcuts show whatever the minimum letters setting. With
+    // PhrasesLast the same suggestions are shown, the phrases moved after the words.
     private IReadOnlyList<string> Suggest(LanguageSuggestions language, PipelineUpdate update, Dictionary<string, string> sources)
+    {
+        var suggestions = SuggestInOrder(language, update, sources, out var phraseSuggestions);
+        if (!PhrasesLast || phraseSuggestions.Count == 0)
+        {
+            return suggestions;
+        }
+
+        var phrases = phraseSuggestions.ToHashSet(StringComparer.Ordinal);
+        return [.. suggestions.Where(s => !phrases.Contains(s)), .. suggestions.Where(phrases.Contains)];
+    }
+
+    private IReadOnlyList<string> SuggestInOrder(LanguageSuggestions language, PipelineUpdate update, Dictionary<string, string> sources, out IReadOnlyList<string> phraseSuggestions)
     {
         var engine = language.Engine;
         var max = engine.Options.MaxSuggestions;
         IReadOnlyList<string> phrases = language.Phrases.Suggest(update.RecentWords ?? [], update.Word, max, sources);
+        phraseSuggestions = phrases;
         // A known mistake typed exactly: its corrections first (after the user's own shortcut).
         if (language.Corrections.Find(update.Word) is { Count: > 0 } fixes)
         {

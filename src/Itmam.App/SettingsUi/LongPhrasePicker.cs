@@ -36,6 +36,7 @@ internal sealed class LongPhrasePicker : Form
     private readonly Panel _fields = new() { AutoScroll = true, Visible = false };
     private readonly ThemedButton _insertButton = new();
     private readonly ThemedButton _cancelButton = new();
+    private readonly ThemedButton _addButton = new();
     private readonly List<(string Name, TextBox Box)> _boxes = [];
     private readonly SettingsPalette _palette;
     private readonly Rectangle _near;
@@ -43,6 +44,7 @@ internal sealed class LongPhrasePicker : Form
     private readonly ITextInjector _injector;
     private readonly Action<int>? _inserted;
     private readonly Action<LongPhrase, string>? _saveEdit;
+    private readonly Func<IWin32Window, (IReadOnlyList<LongPhrase> All, LongPhrase Added)?>? _addNew;
     private readonly System.Windows.Forms.Timer _keysWatch = new() { Interval = 30 };
     private IReadOnlyList<LongPhrase> _all;
     private IReadOnlyList<LongPhrase> _shown;
@@ -62,11 +64,17 @@ internal sealed class LongPhrasePicker : Form
     /// <param name="near">Where the user is typing (the caret, or the mouse pointer): picks the screen.</param>
     /// <param name="inserted">Called with the length of the inserted text (statistics).</param>
     /// <param name="saveEdit">Saves an edited text in the phrase (Settings), when the user says so.</param>
+    /// <param name="addNew">
+    /// Asks for a new long text and saves it (Settings): returns every long text and the one added, or null
+    /// if cancelled. Without it there is no "add" button.
+    /// </param>
     public LongPhrasePicker(IReadOnlyList<LongPhrase> phrases, nint target, ITextInjector injector, SettingsPalette palette, bool rtl, Rectangle near,
-        Action<int>? inserted = null, Action<LongPhrase, string>? saveEdit = null)
+        Action<int>? inserted = null, Action<LongPhrase, string>? saveEdit = null,
+        Func<IWin32Window, (IReadOnlyList<LongPhrase> All, LongPhrase Added)?>? addNew = null)
     {
         _inserted = inserted;
         _saveEdit = saveEdit;
+        _addNew = addNew;
         _palette = palette;
         _near = near;
         _all = phrases;
@@ -104,12 +112,15 @@ internal sealed class LongPhrasePicker : Form
         _list.SelectedIndexChanged += (_, _) => ShowText();
         _list.DoubleClick += (_, _) => InsertSelected();
         _text.TextChanged += (_, _) => TextEdited();
-        _insertButton.Palette = _cancelButton.Palette = palette;
+        _insertButton.Palette = _cancelButton.Palette = _addButton.Palette = palette;
         _insertButton.Text = Strings.InsertButton;
         _cancelButton.Text = Strings.CancelButton;
+        _addButton.Text = Strings.AddLongPhraseShort;
+        _addButton.Visible = addNew is not null;
         _insertButton.Click += (_, _) => InsertSelected();
         _cancelButton.Click += (_, _) => Cancel();
-        Controls.AddRange([_search, _list, _fillHint, _fields, _textLabel, _text, _insertButton, _cancelButton]);
+        _addButton.Click += (_, _) => AddNew();
+        Controls.AddRange([_search, _list, _fillHint, _fields, _textLabel, _text, _addButton, _insertButton, _cancelButton]);
 
         // Shown at once, keys still held (user decision). Some apps (the new Notepad) take the focus back
         // when the shortcut's keys go up: until shortly after that, losing the focus does not close it.
@@ -185,6 +196,9 @@ internal sealed class LongPhrasePicker : Form
             case Keys.Enter when _cancelButton.Focused:
                 Cancel();
                 break;
+            case Keys.Enter when _addButton.Focused:
+                AddNew();
+                break;
             case Keys.Enter when _filling is not null && !e.Control && _boxes.FindIndex(b => b.Box.Focused) is >= 0 and var field && field < _boxes.Count - 1:
                 _boxes[field + 1].Box.Focus(); // the next field; the last one inserts
                 break;
@@ -211,6 +225,52 @@ internal sealed class LongPhrasePicker : Form
         {
             e.Handled = e.SuppressKeyPress = true;
         }
+    }
+
+    // User decision (after 2.0): a new long text can be added from here. It is saved in Settings and shown
+    // chosen in the list; the user inserts it or not. An unsaved edit of the chosen text is dropped.
+    private void AddNew()
+    {
+        if (_addNew is null || _filling is not null)
+        {
+            return;
+        }
+
+        (IReadOnlyList<LongPhrase> All, LongPhrase Added)? result;
+        _asking = true; // the dialog takes the focus: the list must stay open
+        try
+        {
+            result = _addNew(this);
+        }
+        finally
+        {
+            _asking = false;
+        }
+
+        Activate();
+        if (result is not { } added)
+        {
+            _search.Focus();
+            return;
+        }
+
+        _all = added.All;
+        if (_search.Text.Length > 0)
+        {
+            _search.Text = string.Empty; // filters again
+        }
+        else
+        {
+            Filter();
+        }
+
+        var index = _shown.ToList().FindIndex(p => p.Name == added.Added.Name);
+        if (index >= 0)
+        {
+            _list.SelectedIndex = index;
+        }
+
+        _list.Focus();
     }
 
     // Cancel and Esc: back to the list while filling, otherwise close (an unsaved edit is dropped).
@@ -253,9 +313,10 @@ internal sealed class LongPhrasePicker : Form
     // The text box fills what the buttons leave.
     private void LayOutBottom(int textTop, int margin, int width)
     {
-        _insertButton.Top = _cancelButton.Top = ClientSize.Height - margin - _insertButton.Height;
+        _insertButton.Top = _cancelButton.Top = _addButton.Top = ClientSize.Height - margin - _insertButton.Height;
         _cancelButton.Left = ClientSize.Width - margin - _cancelButton.Width;
         _insertButton.Left = _cancelButton.Left - Px(8) - _insertButton.Width;
+        _addButton.Left = margin; // the other end of the row (mirrored for Arabic)
         _text.Bounds = new Rectangle(margin, textTop, width, _insertButton.Top - Px(12) - textTop);
     }
 
@@ -405,7 +466,7 @@ internal sealed class LongPhrasePicker : Form
         _text.TabIndex = _boxes.Count;
         _insertButton.TabIndex = _boxes.Count + 1;
         _cancelButton.TabIndex = _boxes.Count + 2;
-        _search.Visible = _list.Visible = _textLabel.Visible = false;
+        _search.Visible = _list.Visible = _textLabel.Visible = _addButton.Visible = false;
         _fillHint.Visible = _fields.Visible = true;
         ShowText();
         _boxes[0].Box.Focus();
@@ -447,6 +508,7 @@ internal sealed class LongPhrasePicker : Form
         _fields.Controls.Clear();
         _boxes.Clear(); // the typed values are not kept
         _search.Visible = _list.Visible = _textLabel.Visible = true;
+        _addButton.Visible = _addNew is not null;
         LayOutList();
         ShowText();
         _search.Focus();

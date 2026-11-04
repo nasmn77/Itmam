@@ -425,6 +425,25 @@ internal sealed class SettingCard : Panel
 
     public Control? Control { get; }
 
+    /// <summary>
+    /// Six dots at the start of the card: it can be dragged to another place (<see cref="CardReorder"/>).
+    /// </summary>
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public bool ShowGrip
+    {
+        get => _showGrip;
+        set
+        {
+            _showGrip = value;
+            PerformLayout();
+            Invalidate();
+        }
+    }
+
+    private bool _showGrip;
+
+    private int GripWidth => _showGrip ? (int)(20 * DeviceDpi / 96f) : 0;
+
     /// <summary>Replaces the description (e.g. a contrast warning).</summary>
     public void SetDescription(string? description)
     {
@@ -477,8 +496,9 @@ internal sealed class SettingCard : Panel
             Control.Left = rtl ? padding : Width - padding - controlWidth;
         }
 
-        var textWidth = Math.Max(0, Width - (2 * padding) - controlWidth - (controlWidth > 0 ? padding : 0));
-        var textLeft = rtl ? Width - padding - textWidth : padding;
+        var grip = GripWidth;
+        var textWidth = Math.Max(0, Width - (2 * padding) - controlWidth - (controlWidth > 0 ? padding : 0) - grip);
+        var textLeft = rtl ? Width - padding - grip - textWidth : padding + grip;
 
         // "Left" means "start of the line": a Label with RightToLeft = Yes mirrors it to the right.
         const ContentAlignment align = ContentAlignment.BottomLeft;
@@ -544,6 +564,30 @@ internal sealed class SettingCard : Panel
         using var border = new Pen(_palette.CardBorder);
         g.FillPath(fill, path);
         g.DrawPath(border, path);
+        if (_showGrip)
+        {
+            PaintGrip(g);
+        }
+    }
+
+    // Two columns of three dots, centred in the grip area at the start of the line (the right for Arabic).
+    private void PaintGrip(Graphics g)
+    {
+        var scale = DeviceDpi / 96f;
+        var padding = 16 * scale;
+        var radius = 1.6f * scale;
+        var step = 5.5f * scale;
+        var areaStart = RightToLeft == RightToLeft.Yes ? Width - padding - GripWidth : padding;
+        var centerX = areaStart + (GripWidth / 2f) - (4 * scale * (RightToLeft == RightToLeft.Yes ? -1 : 1));
+        var centerY = Height / 2f;
+        using var dot = new SolidBrush(_palette.SecondaryText);
+        foreach (var dx in new[] { -step / 2, step / 2 })
+        {
+            foreach (var dy in new[] { -step, 0f, step })
+            {
+                g.FillEllipse(dot, centerX + dx - radius, centerY + dy - radius, 2 * radius, 2 * radius);
+            }
+        }
     }
 }
 

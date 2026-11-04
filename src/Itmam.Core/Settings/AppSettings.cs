@@ -61,6 +61,12 @@ public sealed record AppSettings
     /// <summary>Complete fixed expressions (data/phrases.txt and <see cref="MyPhrases"/>).</summary>
     public bool SuggestPhrases { get; init; } = true;
 
+    /// <summary>
+    /// Phrases come after the dictionary words in the bar instead of before them (user decision after 2.0;
+    /// default off). Text shortcuts and common mistakes stay first; the same suggestions are shown.
+    /// </summary>
+    public bool PhrasesLast { get; init; }
+
     /// <summary>Learn word sequences typed often (user decision 1.1: on by default; see LearningService.Phrases).</summary>
     public bool LearnPhrases { get; init; } = true;
 

@@ -1330,6 +1330,12 @@ internal sealed class SettingsWindow : Form
         suggest.CheckedChanged += (_, _) => Update(s => s with { SuggestPhrases = suggest.Checked });
         AddCard(Strings.SuggestPhrases, Strings.SuggestPhrasesHint, suggest);
 
+        // User decision (after 2.0): phrases before the words (default) or after them.
+        var position = new SegmentedChoice { Options = [Strings.PhrasesPositionFirst, Strings.PhrasesPositionLast] };
+        position.SelectedIndex = settings.PhrasesLast ? 1 : 0;
+        position.SelectedIndexChanged += (_, _) => Update(s => s with { PhrasesLast = position.SelectedIndex == 1 });
+        AddCard(Strings.PhrasesPosition, Strings.PhrasesPositionHint, position);
+
         var learn = new ToggleSwitch { Checked = settings.LearnPhrases };
         learn.CheckedChanged += (_, _) => Update(s => s with { LearnPhrases = learn.Checked });
         AddCard(Strings.LearnPhrases, Strings.LearnPhrasesHint, learn);
@@ -1546,6 +1552,13 @@ internal sealed class SettingsWindow : Form
             (s, merged) => s with { LongPhrases = merged });
 
         AddSection(string.Format(CultureInfo.CurrentCulture, Strings.SectionLongPhrases, phrases.Count));
+        if (phrases.Count > 1)
+        {
+            AddText(Strings.LongPhrasesDragHint, secondary: true);
+        }
+
+        // User decision (after 2.0): put in order by dragging; the shortcut's list follows this order.
+        var cards = new List<SettingCard>();
         foreach (var phrase in phrases)
         {
             var change = new ThemedButton { Text = Strings.EditWordButton };
@@ -1559,8 +1572,25 @@ internal sealed class SettingsWindow : Form
                     BeginInvoke(RebuildPage); // after this click is handled
                 }
             };
-            AddCard(phrase.Name, LongPhrases.Preview(phrase.Text), new ButtonRow(change, remove));
+            cards.Add(AddCard(phrase.Name, LongPhrases.Preview(phrase.Text), new ButtonRow(change, remove)));
         }
+
+        CardReorder.Attach(_content, cards, _palette.Accent, (from, to) =>
+        {
+            var moved = phrases[from];
+            Update(s =>
+            {
+                var list = s.LongPhrases.ToList();
+                if (list.FindIndex(p => p.Name == moved.Name) is var index and >= 0)
+                {
+                    list.RemoveAt(index);
+                    list.Insert(Math.Min(to, list.Count), moved);
+                }
+
+                return s with { LongPhrases = list };
+            });
+            BeginInvoke(RebuildPage); // after the drop is handled
+        });
     }
 
     // Add (existing = null) or edit a long phrase; a name already used is replaced after a confirmation.

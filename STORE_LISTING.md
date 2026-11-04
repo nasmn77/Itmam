@@ -30,7 +30,7 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 - يكمل العبارات: «بسم الله الرحمن الرحيم»، «جزاك الله خيرًا» ونحو 250 عبارة
 - يتعلّم العبارات التي تكررها، وصفحة «عباراتي» لعباراتك أنت
 - اختصارات نصية: اكتب «ع1» فيقترح «السلام عليكم ورحمة الله وبركاته»
-- عبارات طويلة من عدة أسطر بمتغيرات (اسم العميل، تاريخ اليوم)، مثل ردود الدعم الفني، تختارها باختصار في أي برنامج
+- نصوص طويلة من عدة أسطر بمتغيرات (اسم العميل، تاريخ اليوم)، مثل ردود الدعم الفني، تختارها باختصار في أي برنامج
 - يكمل الكلمة من وسطها بعد النقر أو Backspace
 - Tab للإدراج، وCtrl مع رقم أو الأسهم لغيره، وBackspace مباشرة بعده يتراجع عنه
 - الزر الأيمن على اقتراح: احذفه، أو احظر الكلمة، أو أضف العبارة إلى عباراتك
@@ -120,7 +120,7 @@ Your privacy first. Itmam sends no data: no statistics, no crash reports. Its on
 - Completes phrases: «بسم الله الرحمن الرحيم», «جزاك الله خيرا» and about 250 more
 - Learns the phrases you repeat; "My phrases" for your own
 - Text shortcuts: type «ع1» and it offers «السلام عليكم ورحمة الله وبركاته»
-- Long phrases of several lines with variables (customer name, today's date), such as support replies, chosen with a shortcut in any app
+- Long texts of several lines with variables (customer name, today's date), such as support replies, chosen with a shortcut in any app
 - Continues a word from the middle after a click or Backspace
 - Tab to insert, Ctrl + a number or the arrow keys for the others; Backspace right after undoes it
 - Right-click a suggestion: delete it, block the word, or add the phrase to your phrases
@@ -202,7 +202,7 @@ Screenshots (1920×1032, upload in this order): `docs/store/ar/` for the Arabic 
 | 3 | `3-general.png` | عدد الاقتراحات والتعلّم | Number of suggestions and learning |
 | 4 | `4-shortcuts.png` | اختصارات قابلة للتغيير | Configurable shortcuts |
 | 5 | `5-phrases.png` | العبارات المتلازمة وعباراتك أنت | Common phrases and your own |
-| 6 | `6-long-phrases.png` | عبارات طويلة لردود الدعم الفني | Long phrases for support replies |
+| 6 | `6-long-phrases.png` | نصوص طويلة لردود الدعم الفني | Long texts for support replies |
 
 They show the real bar and settings window (the bar at the real caret, with real dictionary suggestions, via the
 Debug-only `--demo-caret` option, because the hook ignores scripted typing). "My words" is not shown: it would
@@ -231,7 +231,7 @@ Paste into Partner Center → Submission options → Notes for certification.
 >   update check through `Windows.Services.Store.StoreContext` (Store service; can be turned off in Settings → Updates).
 > - Only word → use count / last use is stored, locally (`%LOCALAPPDATA%\Itmam\user.db`), plus 2–5-word sequences
 >   with their counts to learn repeated phrases (can be turned off; sequences not repeated are deleted after 30 days).
-> - Long phrases (replies the user saved, list opened with Ctrl+Shift+Space) are inserted by pasting: the user's
+> - Long texts (replies the user saved, list opened with Ctrl+Shift+Space) are inserted by pasting: the user's
 >   clipboard is saved and restored right after, and the temporary text is excluded from clipboard history and the
 >   cloud clipboard.
 > - It is silent in password fields (ES_PASSWORD, UI Automation IsPassword), elevated apps, excluded apps and

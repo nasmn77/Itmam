@@ -84,6 +84,17 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
   field end), the pipeline keeps only the count of the word's letters after the caret + the next char
   (`_wordAfterCaret`, `DeleteForward`; no undo then). Privacy policy (docs + site, ar/en) says «و30 حرفًا بعده»;
   its effective date still says 2.0 — update it with the release.
+  Then (user decisions 2026-11-04): (1) setting `PhrasesLast` («مكان العبارات في الشريط»: في البداية/في النهاية, default
+  start, on the «عباراتي» page): only phrases move after the dictionary words — the SAME suggestions are shown (phrases
+  are not pushed out), text shortcuts and corrections stay first (`SuggestionController.PhrasesLast`). (2) «العبارات
+  الطويلة» renamed «النصوص الطويلة» / "Long texts" in the UI, guide, site, READMEs, privacy policy, Store feature line
+  and certification notes (the What's new history stays as published); code names (`LongPhrase…`, setting
+  `LongPhrases`, `SettingsPage.LongPhrases`) unchanged so settings.json/backups keep working; guide screenshots and
+  PDFs still show the old name — retake/rebuild with the release. Long texts are reordered by dragging their cards
+  (`CardReorder`, accent insertion line, auto-scroll near the edges; the picker follows the settings order).
+  (3) «إضافة نص…» button in the shortcut's list (`LongPhrasePicker` `addNew` → `TrayApplication.AddLongPhrase`, same
+  dialog as Settings, a used name replaced after a confirmation, the new text shown SELECTED, not inserted; hidden
+  while filling variables).
 - **Phase 7** merged into main. `src/Itmam.Package` (.wapproj, x64 + ARM64 bundle),
   identity from Partner Center product **9P08F7KGRJB0** (`NasserAlmadi.563063310BE3D`, `CN=9260B530-9E02-440E-8E99-B74323B1CE93`,
   PublisherDisplayName "Nasser Almadi"; reserved names «إتمام» + "Itmam"; a separate draft product «اتمام» without hamza

@@ -92,7 +92,7 @@
   <data name="NativeNavigation" xml:space="preserve"><value>Choose with the arrow keys</value></data>
   <data name="NativeNavigationHint" xml:space="preserve"><value>↑ moves into the bar, ← → choose, Enter inserts, Esc or ↓ leaves. Ctrl+Delete forgets the chosen learned word.</value></data>
   <data name="ResetShortcuts" xml:space="preserve"><value>Default shortcuts</value></data>
-  <data name="ResetShortcutsHint" xml:space="preserve"><value>Tab to insert, Esc to hide, Ctrl+Alt (pressed and released) to turn on or off, the arrow keys to choose, and Ctrl+Shift+Space for the long phrases list.</value></data>
+  <data name="ResetShortcutsHint" xml:space="preserve"><value>Tab to insert, Esc to hide, Ctrl+Alt (pressed and released) to turn on or off, the arrow keys to choose, and Ctrl+Shift+Space for the long texts list.</value></data>
   <data name="HotkeyProblemDuplicate" xml:space="preserve"><value>{0} is already used by another Itmam shortcut.</value></data>
   <data name="HotkeyProblemTypesText" xml:space="preserve"><value>{0} types text: add Ctrl or Alt.</value></data>
   <data name="HotkeyProblemEditingKey" xml:space="preserve"><value>{0} is needed for editing text: choose another key.</value></data>
@@ -186,6 +186,12 @@
   <data name="NavPhrases" xml:space="preserve"><value>My phrases</value></data>
   <data name="PhrasesIntro" xml:space="preserve"><value>{0} common phrases are built in: greetings, remembrance, prayers, occasions and formal letters. Type the start of one and Tab inserts it whole, or keep going word by word.</value></data>
   <data name="SuggestPhrases" xml:space="preserve"><value>Suggest common phrases</value></data>
+  <data name="LongPhrasesDragHint" xml:space="preserve"><value>Drag a text to change its place: the shortcut's list shows them in this order.</value></data>
+  <data name="AddLongPhraseShort" xml:space="preserve"><value>Add a text…</value></data>
+  <data name="PhrasesPosition" xml:space="preserve"><value>Phrases in the bar</value></data>
+  <data name="PhrasesPositionHint" xml:space="preserve"><value>Show phrases before the suggested words or after them. Text shortcuts and corrections of common mistakes always come first.</value></data>
+  <data name="PhrasesPositionFirst" xml:space="preserve"><value>At the start</value></data>
+  <data name="PhrasesPositionLast" xml:space="preserve"><value>At the end</value></data>
   <data name="SuggestPhrasesHint" xml:space="preserve"><value>After «بسم » the bar offers «الله الرحمن الرحيم». Suggested: My phrases, the phrases learned from your typing, and the built-in list.</value></data>
   <data name="SectionMyPhrases" xml:space="preserve"><value>Phrases you added ({0})</value></data>
   <data name="AddPhrase" xml:space="preserve"><value>Add a phrase</value></data>
@@ -234,25 +240,25 @@
   <data name="RestoreButton" xml:space="preserve"><value>Restore</value></data>
   <data name="BarMenuBlock" xml:space="preserve"><value>Block</value></data>
   <data name="ImportExportPhrasesHint" xml:space="preserve"><value>A text file with My phrases and the learned phrases, to back them up or move them to another PC. Importing adds to what you have.</value></data>
-  <data name="NavLongPhrases" xml:space="preserve"><value>Long phrases</value></data>
+  <data name="NavLongPhrases" xml:space="preserve"><value>Long texts</value></data>
   <data name="LongPhrasesIntro" xml:space="preserve"><value>Replies of several lines, such as technical support answers. Press {0} in any program: a list of their names opens; choose one and it is typed where you were writing.</value></data>
-  <data name="AddLongPhrase" xml:space="preserve"><value>Add a long phrase</value></data>
+  <data name="AddLongPhrase" xml:space="preserve"><value>Add a long text</value></data>
   <data name="AddLongPhraseHint" xml:space="preserve"><value>A name to find it in the list, and its text (up to 4,000 characters, several lines).</value></data>
-  <data name="EditLongPhrase" xml:space="preserve"><value>Edit long phrase</value></data>
-  <data name="SectionLongPhrases" xml:space="preserve"><value>My long phrases ({0})</value></data>
+  <data name="EditLongPhrase" xml:space="preserve"><value>Edit long text</value></data>
+  <data name="SectionLongPhrases" xml:space="preserve"><value>My long texts ({0})</value></data>
   <data name="LongPhraseNamePrompt" xml:space="preserve"><value>Name (shown in the list):</value></data>
   <data name="LongPhraseTextPrompt" xml:space="preserve"><value>Text (Enter for a new line; Ctrl+Enter saves):</value></data>
   <data name="NotALongPhraseName" xml:space="preserve"><value>Type a name of at most 60 characters.</value></data>
   <data name="NotALongPhraseText" xml:space="preserve"><value>Type the text (at most 4,000 characters).</value></data>
-  <data name="ConfirmDeleteLongPhrase" xml:space="preserve"><value>Delete the long phrase «{0}»?</value></data>
-  <data name="ConfirmReplaceLongPhrase" xml:space="preserve"><value>A long phrase named «{0}» already exists. Replace it?</value></data>
-  <data name="LongPhrasesFileName" xml:space="preserve"><value>Itmam long phrases.txt</value></data>
-  <data name="ShortcutLongPhrases" xml:space="preserve"><value>Open the long phrases list</value></data>
+  <data name="ConfirmDeleteLongPhrase" xml:space="preserve"><value>Delete the long text «{0}»?</value></data>
+  <data name="ConfirmReplaceLongPhrase" xml:space="preserve"><value>A long text named «{0}» already exists. Replace it?</value></data>
+  <data name="LongPhrasesFileName" xml:space="preserve"><value>Itmam long texts.txt</value></data>
+  <data name="ShortcutLongPhrases" xml:space="preserve"><value>Open the long texts list</value></data>
   <data name="ShortcutLongPhrasesHint" xml:space="preserve"><value>Works in every program while Itmam is on.</value></data>
-  <data name="LongPhrasesTitle" xml:space="preserve"><value>Long phrases</value></data>
+  <data name="LongPhrasesTitle" xml:space="preserve"><value>Long texts</value></data>
   <data name="LongPhrasesSearch" xml:space="preserve"><value>Search by name or text</value></data>
-  <data name="LongPhrasesEmpty" xml:space="preserve"><value>No long phrases yet. Add them in Settings → Long phrases.</value></data>
-  <data name="LongPhrasesNoMatch" xml:space="preserve"><value>No phrase matches the search.</value></data>
+  <data name="LongPhrasesEmpty" xml:space="preserve"><value>No long texts yet. Press "Add a text…" to add the first one.</value></data>
+  <data name="LongPhrasesNoMatch" xml:space="preserve"><value>No text matches the search.</value></data>
   <data name="MenuExcludeApp" xml:space="preserve"><value>Turn off Itmam in {0}</value></data>
   <data name="MenuIncludeApp" xml:space="preserve"><value>Turn on Itmam in {0}</value></data>
   <data name="ConfirmExcludeApp" xml:space="preserve"><value>Turn Itmam off in {0}? It is added to the excluded apps; Itmam stays silent there.</value></data>
@@ -264,14 +270,14 @@
   <data name="ConfirmResetStats" xml:space="preserve"><value>Reset the statistics to zero?</value></data>
   <data name="SectionBackup" xml:space="preserve"><value>Backup</value></data>
   <data name="FullBackup" xml:space="preserve"><value>Full backup</value></data>
-  <data name="FullBackupHint" xml:space="preserve"><value>One file with your words, phrases, text shortcuts, long phrases, settings and statistics, to move Itmam to another PC. Restoring replaces everything here.</value></data>
+  <data name="FullBackupHint" xml:space="preserve"><value>One file with your words, phrases, text shortcuts, long texts, settings and statistics, to move Itmam to another PC. Restoring replaces everything here.</value></data>
   <data name="BackupButton" xml:space="preserve"><value>Back up…</value></data>
   <data name="RestoreBackupButton" xml:space="preserve"><value>Restore…</value></data>
   <data name="BackupFileFilter" xml:space="preserve"><value>Itmam backup (*.itmam)|*.itmam</value></data>
   <data name="BackupFileName" xml:space="preserve"><value>Itmam backup {0:yyyy-MM-dd}.itmam</value></data>
   <data name="BackupDone" xml:space="preserve"><value>The backup was saved.</value></data>
   <data name="NotABackup" xml:space="preserve"><value>This file is not an Itmam backup.</value></data>
-  <data name="ConfirmRestoreBackup" xml:space="preserve"><value>Replace all your words, phrases, shortcuts, long phrases and settings on this PC with the backup? This cannot be undone.</value></data>
+  <data name="ConfirmRestoreBackup" xml:space="preserve"><value>Replace all your words, phrases, shortcuts, long texts and settings on this PC with the backup? This cannot be undone.</value></data>
   <data name="RestoreDone" xml:space="preserve"><value>The backup was restored.</value></data>
   <data name="SectionDictionary" xml:space="preserve"><value>Arabic dictionary</value></data>
   <data name="DictionaryChoice" xml:space="preserve"><value>Dictionary</value></data>
@@ -298,11 +304,11 @@ Insert the reply without them?</value></data>
   <data name="EmptyVariable" xml:space="preserve"><value>This field is empty: {0}.
 
 Insert the reply without it?</value></data>
-  <data name="LongPhraseEditHint" xml:space="preserve"><value>The phrase's text (you can edit it before inserting; Ctrl+Enter inserts):</value></data>
+  <data name="LongPhraseEditHint" xml:space="preserve"><value>The text (you can edit it before inserting; Ctrl+Enter inserts):</value></data>
   <data name="LongPhraseFinalEdited" xml:space="preserve"><value>You edited the reply: the fields are locked, and it is inserted as it is.</value></data>
   <data name="SaveLongPhraseEdit" xml:space="preserve"><value>You edited the text of "{0}".
 
-Save the edit in the phrase?
+Save the edit in the saved text?
 Yes: save it, then insert.
 No: insert it this time only.</value></data>
   <data name="NavLanguages" xml:space="preserve"><value>Languages</value></data>

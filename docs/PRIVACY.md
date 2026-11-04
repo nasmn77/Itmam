@@ -35,7 +35,7 @@
   المكان: `%LOCALAPPDATA%\Itmam\user.db` (عند التثبيت من المتجر يكون داخل المجلد الخاص بالتطبيق).
 - **العبارات المتعلَّمة** (من الإصدار 1.1، مفعّلة افتراضيًا): من كلمتين إلى 5 كلمات كتبتها متتالية بلغة واحدة، مع لغتها وعدد مرات كتابتها ووقت آخرها، في الملف نفسه. التسلسل الذي تكتبه مرتين يُقترح عبارةً، وما لم يتكرر يُحذف بعد 30 يومًا من آخر كتابة له. لا يُحفظ معها اسم التطبيق ولا ما قبلها أو بعدها، ولا يُعدّ شيء في المواضع المذكورة في «ما لا يُتعلَّم». لإيقافها: الإعدادات ← «عباراتي» ← «تعلّم العبارات من كتابتي».
 - **الإحصاءات:** عدد الكلمات والعبارات التي أكملها إتمام، وعدد الأحرف التي كتبها عنك، وتاريخ البدء. أرقام فقط، في `user.db`، ويمكن تصفيرها من الإعدادات ← «عام».
-- **إعداداتك:** مثل الألوان والاختصارات وقائمة التطبيقات المستثناة، و«عباراتي» و«الاختصارات النصية» و«العبارات الطويلة» التي تضيفها بنفسك، في `%LOCALAPPDATA%\Itmam\settings.json`. لا تحتوي أي نص مما تكتبه في البرامج الأخرى، ولا القيم التي تكتبها في متغيرات العبارات الطويلة (تُنسى بعد الإدراج).
+- **إعداداتك:** مثل الألوان والاختصارات وقائمة التطبيقات المستثناة، و«عباراتي» و«الاختصارات النصية» و«النصوص الطويلة» التي تضيفها بنفسك، في `%LOCALAPPDATA%\Itmam\settings.json`. لا تحتوي أي نص مما تكتبه في البرامج الأخرى، ولا القيم التي تكتبها في متغيرات النصوص الطويلة (تُنسى بعد الإدراج).
 - **ما لا يُتعلَّم:** الكلمات في حقول كلمات المرور، والتطبيقات المستثناة، والتطبيقات التي تعمل بصلاحيات المسؤول، والألعاب بملء الشاشة، والكلمات المحظورة وأي تسلسل فيه كلمة محظورة، وأي كلمة تمسحها مباشرة بعد كتابتها.
 
 ### تحكّمك في بياناتك
@@ -43,7 +43,7 @@
 - **الحذف:** من الإعدادات ← «كلماتي» (لكل لغة على حدة): حذف كلمة، أو «حذف كل كلماتي»، أو إطفاء «تعلّم الكلمات الجديدة». ومن «عباراتي»: حذف عبارة متعلَّمة، أو «حذف العبارات المتعلَّمة» مع كل ما عُدّ، أو إيقاف تعلّمها.
 - **التصدير:** لا تُنسخ كلماتك إلى أي مكان إلا إذا اخترت «تصدير…» بنفسك، فتُكتب في الملف الذي تختاره أنت.
 - **الاستيراد:** يمكنك استيراد كلمات من أي ملف نصي تختاره بنفسك؛ يُحفظ منه الكلمات وعدد مرات ورودها فقط، لا النص نفسه.
-- **النسخة الاحتياطية الشاملة:** لا تُنشأ إلا إذا اخترت «نسخ احتياطي…» في الإعدادات ← «عام»، فتُكتب في الملف الذي تختاره أنت ولا تُرسل إلى أي مكان. وفيها كلماتك وعباراتك واختصاراتك وعباراتك الطويلة وإعداداتك وإحصاءاتك، فاحفظها حيث تحفظ ملفاتك الخاصة.
+- **النسخة الاحتياطية الشاملة:** لا تُنشأ إلا إذا اخترت «نسخ احتياطي…» في الإعدادات ← «عام»، فتُكتب في الملف الذي تختاره أنت ولا تُرسل إلى أي مكان. وفيها كلماتك وعباراتك واختصاراتك ونصوصك الطويلة وإعداداتك وإحصاءاتك، فاحفظها حيث تحفظ ملفاتك الخاصة.
 - **إلغاء التثبيت:** يحذف التطبيق وملفاته من جهازك.
 
 ### التواصل
@@ -87,7 +87,7 @@
   Location: `%LOCALAPPDATA%\Itmam\user.db` (inside the app's private folder when installed from the Store).
 - **Learned phrases** (from 1.1, on by default): sequences of 2 to 5 words you typed in a row in one language, with their language, how many times and when you last typed them, in the same file. A sequence typed twice is suggested as a phrase; one not repeated is deleted 30 days after it was last typed. The app and the text around it are not kept, and nothing is counted in the places listed under "Never learned". To turn it off: Settings → "My phrases" → "Learn phrases from my typing".
 - **Statistics:** how many words and phrases Itmam completed, how many characters it typed for you, and since when. Numbers only, in `user.db`; reset them in Settings → "General".
-- **Your settings:** such as colors, shortcuts, the excluded apps list and the "My phrases", text shortcuts and long phrases you add yourself, in `%LOCALAPPDATA%\Itmam\settings.json`. They contain nothing you type in other apps, nor the values you type for long phrase variables (forgotten after inserting).
+- **Your settings:** such as colors, shortcuts, the excluded apps list and the "My phrases", text shortcuts and long texts you add yourself, in `%LOCALAPPDATA%\Itmam\settings.json`. They contain nothing you type in other apps, nor the values you type for long text variables (forgotten after inserting).
 - **Never learned:** words in password fields, excluded apps, apps running as administrator, full-screen games, blocked words and any sequence containing one, and any word you delete right after typing it.
 
 ### Your control over your data
@@ -95,7 +95,7 @@
 - **Delete:** Settings → "My words" (one language at a time): delete a word, "Delete all my words", or turn off "Learn new words". Settings → "My phrases": delete a learned phrase, "Delete learned phrases" (with everything counted so far), or stop learning them.
 - **Export:** your words are copied nowhere unless you choose "Export…" yourself; they are then written to the file you pick.
 - **Import:** you can import words from any text file you choose yourself; only the words and how often they occur are kept, never the text.
-- **Full backup:** created only when you choose "Back up…" in Settings → "General", written to the file you pick and sent nowhere. It holds your words, phrases, shortcuts, long phrases, settings and statistics, so keep it where you keep private files.
+- **Full backup:** created only when you choose "Back up…" in Settings → "General", written to the file you pick and sent nowhere. It holds your words, phrases, shortcuts, long texts, settings and statistics, so keep it where you keep private files.
 - **Uninstall:** removes the app and its files from your device.
 
 ### Contact
