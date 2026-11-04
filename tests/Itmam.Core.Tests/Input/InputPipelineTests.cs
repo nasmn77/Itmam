@@ -442,6 +442,31 @@ public sealed class InputPipelineTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task Read_only_text_at_the_caret_silences_until_the_context_changes()
+    {
+        // A web page clicked outside its fields: the page's words must not become the current word.
+        Type("مط");
+        _context.ReadOnly = true;
+        _context.Next = "مطو";
+        Send(InputEvent.Of(InputEventKind.MouseClick));
+        var probe = await WaitForProbeAsync();
+        probe.Silenced.ShouldBe(SilenceReason.ReadOnlyText);
+        probe.Letters.ShouldBe(0);
+
+        Type("سرية ");
+        await DrainAsync();
+        Commits().ShouldBeEmpty();
+
+        _context.ReadOnly = false;
+        _context.Next = "";
+        Send(InputEvent.Of(InputEventKind.MouseClick));   // clicked into a field
+        await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedEmpty);
+        Type("كلمة ");
+        await DrainAsync();
+        Commits().ShouldBe(["كلمة"]);
+    }
+
+    [Fact]
     public async Task A_finished_word_is_learned_when_the_next_event_arrives()
     {
         Type("كلمة ");
@@ -863,6 +888,9 @@ public sealed class InputPipelineTests : IAsyncDisposable
         /// <summary>The focused field is a password field.</summary>
         public volatile bool Password;
 
+        /// <summary>The caret is in read-only text.</summary>
+        public volatile bool ReadOnly;
+
         public async Task<CaretContext> ReadBeforeCaretAsync(int maxChars, CancellationToken cancellation)
         {
             var call = Interlocked.Increment(ref _calls);
@@ -879,6 +907,11 @@ public sealed class InputPipelineTests : IAsyncDisposable
             if (HasSelection)
             {
                 return CaretContext.Selection;
+            }
+
+            if (ReadOnly)
+            {
+                return CaretContext.ReadOnly;
             }
 
             var text = Responses is { } responses ? responses(call) : Next;

@@ -53,6 +53,13 @@ public sealed class UiaCaretContextSource(UiaWorker worker, Func<string?, bool> 
             return CaretContext.Unavailable;
         }
 
+        // Read-only text (a web page clicked outside its fields, a list item): Chromium reports a caret at
+        // the click point there, and the page's words were taken for the one being typed.
+        if (UiaText.IsReadOnly(caret))
+        {
+            return CaretContext.ReadOnly;
+        }
+
         // Collapse a copy to the caret, then extend its start backwards by up to maxChars characters.
         var before = caret.Clone();
         before.MoveEndpointByRange(TextPatternRangeEndpoint.TextPatternRangeEndpoint_Start, caret, TextPatternRangeEndpoint.TextPatternRangeEndpoint_End);
@@ -121,6 +128,22 @@ internal static class UiaText
 
         var range = selection.GetElement(0);
         return range.CompareEndpoints(TextPatternRangeEndpoint.TextPatternRangeEndpoint_Start, range, TextPatternRangeEndpoint.TextPatternRangeEndpoint_End) != 0;
+    }
+
+    /// <summary>
+    /// True only when the app states that the text at the caret cannot be edited. Mixed values, apps that
+    /// do not support the attribute and errors count as editable, so Itmam never goes silent by mistake.
+    /// </summary>
+    public static bool IsReadOnly(IUIAutomationTextRange caret)
+    {
+        try
+        {
+            return caret.GetAttributeValue(UIA_TEXTATTRIBUTE_ID.UIA_IsReadOnlyAttributeId) is true;
+        }
+        catch (COMException)
+        {
+            return false;
+        }
     }
 
     /// <summary>Degenerate range at the caret: TextPattern2 caret range, or the TextPattern selection.</summary>

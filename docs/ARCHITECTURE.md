@@ -61,7 +61,7 @@
 ليستأنف بسرعة، ينتظر `InputPipeline` ‏40 ملّي ثانية بعد آخر حدث من هذا النوع (ليكون التطبيق قد طبّقه؛ وإبقاء مفتاح مضغوطًا يقرأ مرة واحدة)، ثم يطلب من `UiaCaretContextSource` النص الذي قبل المؤشر:
 
 1. `IUIAutomation.GetFocusedElement()`؛ وإذا كان `CurrentIsPassword` فلا يُقرأ شيء.
-2. نطاق المؤشر من `TextPattern2.GetCaretRange`، أو التحديد (الفارغ) من `TextPattern`.
+2. نطاق المؤشر من `TextPattern2.GetCaretRange`، أو التحديد (الفارغ) من `TextPattern`. وإذا قال التطبيق صراحة إن النص عند المؤشر للقراءة فقط (`UIA_IsReadOnlyAttributeId` = true) فلا يُقرأ شيء ويصمت إتمام حتى يتغير السياق (إصلاح بعد 2.0): المتصفحات تضع مؤشرًا عند موضع النقر في نص الصفحة نفسه، فكانت كلماتها تُعامَل كأنها الكلمة التي تُكتب. أي قيمة أخرى (مختلطة، غير مدعومة، خطأ) تُعامَل كنص قابل للتحرير.
 3. تُمدّ نسخة من النطاق **إلى الخلف بما لا يزيد عن 49 حرفًا** ويُستدعى `GetText(49)`.
 
 لا يُقرأ شيء في التطبيقات المستثناة (`Itmam.Core.Input.ExcludedApps`؛ افتراضيًا: سطح المكتب البعيد والأجهزة الافتراضية والطرفيات ومشغّلات الألعاب). يُتحقق من ذلك مرتين: عبر `InputPipelineOptions.CanReadContext` على العملية الأمامية قبل كل قراءة، وعبر `UiaCaretContextSource` على العملية المالكة لعنصر UI Automation المركَّز قبل القراءة مباشرة.
@@ -210,6 +210,7 @@
 | السبب | طريقة الاكتشاف |
 |---|---|
 | حقل كلمة مرور | `ES_PASSWORD` على عنصر Edit مركَّز؛ و`IsPassword` من UI Automation عند قراءة سياق المؤشر |
+| نص للقراءة فقط | `UIA_IsReadOnlyAttributeId` عند المؤشر عند قراءة سياقه (نص صفحة ويب خارج الحقول، عنصر قائمة)؛ حتى يتغير السياق |
 | تطبيق بصلاحيات مسؤول | مستوى السلامة الإلزامي للعملية الأمامية أعلى من مستوانا (أو تعذّرت قراءته) |
 | تطبيق مستثنى | اسم العملية في `ExcludedApps` |
 | ملء الشاشة | `SHQueryUserNotificationState`: ملء شاشة حصري لـ Direct3D أو وضع العرض التقديمي |
@@ -320,7 +321,10 @@ it; holding a key probes only once) and asks `UiaCaretContextSource` for the tex
 caret:
 
 1. `IUIAutomation.GetFocusedElement()`; if `CurrentIsPassword` → nothing is read.
-2. Caret range from `TextPattern2.GetCaretRange`, or the (empty) selection from `TextPattern`.
+2. Caret range from `TextPattern2.GetCaretRange`, or the (empty) selection from `TextPattern`. If the app states
+   that the text at the caret is read-only (`UIA_IsReadOnlyAttributeId` = true), nothing is read and Itmam stays
+   silent until the context changes (fix after 2.0): browsers put a caret at the click point in the page's own text, whose
+   words were taken for the word being typed. Any other value (mixed, unsupported, error) counts as editable.
 3. A copy of the range is extended **backwards by at most 49 characters** and `GetText(49)` is called.
 
 Nothing is read in excluded apps (`Itmam.Core.Input.ExcludedApps`; defaults: remote desktop/VMs,
@@ -595,6 +599,7 @@ nothing:
 | Reason | Detection |
 |---|---|
 | Password field | `ES_PASSWORD` on a focused Edit control; UI Automation `IsPassword` when the caret context is read |
+| Read-only text | `UIA_IsReadOnlyAttributeId` at the caret when its context is read (web page text outside fields, a list item); until the context changes |
 | Elevated app | Mandatory integrity level of the foreground process above ours (or unreadable) |
 | Excluded app | Process name in `ExcludedApps` |
 | Full screen | `SHQueryUserNotificationState`: Direct3D exclusive full screen or presentation mode |

@@ -32,6 +32,12 @@ public enum CaretContextStatus
 
     /// <summary>The focused field is a password field: nothing was read, and Itmam stays silent there.</summary>
     Password,
+
+    /// <summary>
+    /// The caret is in read-only text (e.g. a web page clicked outside any input field): nothing was
+    /// read, and Itmam stays silent until the context changes.
+    /// </summary>
+    ReadOnly,
 }
 
 /// <summary>Why Itmam is silent (tracks, shows and learns nothing) in the current window.</summary>
@@ -45,6 +51,9 @@ public enum SilenceReason
 
     /// <summary>An input method editor took a key (it composes the text itself).</summary>
     InputMethod,
+
+    /// <summary>The caret is in read-only text: there is nothing to type into.</summary>
+    ReadOnlyText,
 }
 
 /// <summary>
@@ -68,6 +77,8 @@ public readonly record struct CaretContext(CaretContextStatus Status, string Tex
     public static CaretContext Selection => new(CaretContextStatus.Selection);
 
     public static CaretContext Password => new(CaretContextStatus.Password);
+
+    public static CaretContext ReadOnly => new(CaretContextStatus.ReadOnly);
 
     public static CaretContext Of(string text, char? charAfter = null) => new(CaretContextStatus.Text, text, charAfter);
 }
@@ -664,6 +675,15 @@ public sealed class InputPipeline(
         {
             // Found while reading (UI Automation IsPassword): silent until the focus moves elsewhere.
             _silence = SilenceReason.PasswordField;
+            Tracker.Buffer.Reset();
+            outcome = ProbeOutcome.NotAllowed;
+        }
+        else if (caret.Status == CaretContextStatus.ReadOnly)
+        {
+            // Text that cannot be edited (a web page clicked outside its fields, a list item): never
+            // take its words for the one being typed. Silent until the next event that may change the
+            // context (click, focus, arrows …).
+            _silence = SilenceReason.ReadOnlyText;
             Tracker.Buffer.Reset();
             outcome = ProbeOutcome.NotAllowed;
         }
