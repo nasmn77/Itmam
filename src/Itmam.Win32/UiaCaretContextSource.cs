@@ -53,6 +53,13 @@ public sealed class UiaCaretContextSource(UiaWorker worker, Func<string?, bool> 
             return CaretContext.Unavailable;
         }
 
+        // Read-only text (a web page clicked outside its fields, a list item): Chromium reports a caret at
+        // the click point there, and the page's words were taken for the one being typed.
+        if (UiaText.IsReadOnly(caret))
+        {
+            return CaretContext.ReadOnly;
+        }
+
         // Collapse a copy to the caret, then extend its start backwards by up to maxChars characters.
         var before = caret.Clone();
         before.MoveEndpointByRange(TextPatternRangeEndpoint.TextPatternRangeEndpoint_Start, caret, TextPatternRangeEndpoint.TextPatternRangeEndpoint_End);
@@ -62,30 +69,38 @@ public sealed class UiaCaretContextSource(UiaWorker worker, Func<string?, bool> 
         // Never past the start of the focused field: in web pages (Chromium) the range moves on into the
         // text before it, e.g. the chat messages above WhatsApp Web's message box, which were then taken
         // for the word being typed.
-        if (element.GetCurrentPattern(UIA_PATTERN_ID.UIA_TextPatternId) is IUIAutomationTextPattern field
-            && field.DocumentRange is { } document
+        var document = element.GetCurrentPattern(UIA_PATTERN_ID.UIA_TextPatternId) is IUIAutomationTextPattern field
+            ? field.DocumentRange
+            : null;
+        if (document is not null
             && before.CompareEndpoints(TextPatternRangeEndpoint.TextPatternRangeEndpoint_Start, document, TextPatternRangeEndpoint.TextPatternRangeEndpoint_Start) < 0)
         {
             before.MoveEndpointByRange(TextPatternRangeEndpoint.TextPatternRangeEndpoint_Start, document, TextPatternRangeEndpoint.TextPatternRangeEndpoint_Start);
         }
 
-        return CaretContext.Of(ReadText(before, maxChars), CharAfter(caret));
+        return CaretContext.Around(ReadText(before, maxChars), TextAfter(caret, document));
     }
 
-    // The single character after the caret ('\0' at the end of the text): decides whether accepting
-    // a suggestion must add a space. Only this one character is read after the caret.
-    private static char? CharAfter(IUIAutomationTextRange caret)
+    // Up to CaretContext.MaxTextAfter characters after the caret, never past the end of the field (empty at
+    // the end of the text): the pipeline keeps only the rest of the word the caret is in (accepting
+    // replaces the whole word) and the character after it (whether accepting adds a space).
+    private static string TextAfter(IUIAutomationTextRange caret, IUIAutomationTextRange? document)
     {
         var after = caret.Clone();
         after.MoveEndpointByRange(TextPatternRangeEndpoint.TextPatternRangeEndpoint_Start, caret, TextPatternRangeEndpoint.TextPatternRangeEndpoint_End);
         after.MoveEndpointByRange(TextPatternRangeEndpoint.TextPatternRangeEndpoint_End, caret, TextPatternRangeEndpoint.TextPatternRangeEndpoint_End);
-        if (after.MoveEndpointByUnit(TextPatternRangeEndpoint.TextPatternRangeEndpoint_End, TextUnit.TextUnit_Character, 1) == 0)
+        if (after.MoveEndpointByUnit(TextPatternRangeEndpoint.TextPatternRangeEndpoint_End, TextUnit.TextUnit_Character, CaretContext.MaxTextAfter) == 0)
         {
-            return '\0';
+            return string.Empty;
         }
 
-        var text = ReadText(after, 1);
-        return text.Length > 0 ? text[0] : '\0';
+        if (document is not null
+            && after.CompareEndpoints(TextPatternRangeEndpoint.TextPatternRangeEndpoint_End, document, TextPatternRangeEndpoint.TextPatternRangeEndpoint_End) > 0)
+        {
+            after.MoveEndpointByRange(TextPatternRangeEndpoint.TextPatternRangeEndpoint_End, document, TextPatternRangeEndpoint.TextPatternRangeEndpoint_End);
+        }
+
+        return ReadText(after, CaretContext.MaxTextAfter);
     }
 
     private static unsafe string ReadText(IUIAutomationTextRange range, int maxChars)
@@ -121,6 +136,22 @@ internal static class UiaText
 
         var range = selection.GetElement(0);
         return range.CompareEndpoints(TextPatternRangeEndpoint.TextPatternRangeEndpoint_Start, range, TextPatternRangeEndpoint.TextPatternRangeEndpoint_End) != 0;
+    }
+
+    /// <summary>
+    /// True only when the app states that the text at the caret cannot be edited. Mixed values, apps that
+    /// do not support the attribute and errors count as editable, so Itmam never goes silent by mistake.
+    /// </summary>
+    public static bool IsReadOnly(IUIAutomationTextRange caret)
+    {
+        try
+        {
+            return caret.GetAttributeValue(UIA_TEXTATTRIBUTE_ID.UIA_IsReadOnlyAttributeId) is true;
+        }
+        catch (COMException)
+        {
+            return false;
+        }
     }
 
     /// <summary>Degenerate range at the caret: TextPattern2 caret range, or the TextPattern selection.</summary>

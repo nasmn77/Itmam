@@ -444,6 +444,7 @@ internal sealed class ItmamApp : IDisposable
         Popup.Appearance = PopupAppearance.From(settings);
         UpdatePhrases();
         Suggestions.Shortcuts = new TextShortcuts(settings.TextShortcuts);
+        Suggestions.PhrasesLast = settings.PhrasesLast;
     }
 
     // What a language suggests from: Arabic and English are loaded when they are turned on (UI thread), the

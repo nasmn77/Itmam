@@ -56,6 +56,7 @@ IUIAutomationTextPattern
 IUIAutomationTextPattern2
 IUIAutomationTextRange
 IUIAutomationTextRangeArray
+UIA_TEXTATTRIBUTE_ID
 UIA_PATTERN_ID
 CoCreateInstance
 

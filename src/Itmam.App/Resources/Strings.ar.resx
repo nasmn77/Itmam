@@ -92,7 +92,7 @@
   <data name="NativeNavigation" xml:space="preserve"><value>الاختيار بالأسهم</value></data>
   <data name="NativeNavigationHint" xml:space="preserve"><value>↑ للدخول إلى الشريط، ← → للاختيار، Enter للإدراج، Esc أو ↓ للخروج. Ctrl+Delete ينسى الكلمة المتعلَّمة المحددة.</value></data>
   <data name="ResetShortcuts" xml:space="preserve"><value>الاختصارات الافتراضية</value></data>
-  <data name="ResetShortcutsHint" xml:space="preserve"><value>Tab للإدراج، وEsc للإخفاء، و‪Ctrl+Alt‬ (ضغطًا ثم إفلاتًا) للتشغيل والإيقاف، والاختيار بالأسهم، و‪Ctrl+Shift+Space‬ لقائمة العبارات الطويلة.</value></data>
+  <data name="ResetShortcutsHint" xml:space="preserve"><value>Tab للإدراج، وEsc للإخفاء، و‪Ctrl+Alt‬ (ضغطًا ثم إفلاتًا) للتشغيل والإيقاف، والاختيار بالأسهم، و‪Ctrl+Shift+Space‬ لقائمة النصوص الطويلة.</value></data>
   <data name="HotkeyProblemDuplicate" xml:space="preserve"><value>{0} مستخدم لاختصار آخر في إتمام.</value></data>
   <data name="HotkeyProblemTypesText" xml:space="preserve"><value>{0} يكتب نصًا: أضف Ctrl أو Alt.</value></data>
   <data name="HotkeyProblemEditingKey" xml:space="preserve"><value>{0} لازم لتحرير النص: اختر مفتاحًا آخر.</value></data>
@@ -186,6 +186,12 @@
   <data name="NavPhrases" xml:space="preserve"><value>عباراتي</value></data>
   <data name="PhrasesIntro" xml:space="preserve"><value>مضمّنة {0} عبارة متلازمة: التحية، والذكر، والدعاء، والمناسبات، والرسائل الرسمية. اكتب أولها فيُدرجها Tab كاملة، أو أكمل كلمة بعد كلمة.</value></data>
   <data name="SuggestPhrases" xml:space="preserve"><value>اقتراح العبارات المتلازمة</value></data>
+  <data name="LongPhrasesDragHint" xml:space="preserve"><value>اسحب نصًّا لتغيير مكانه: تعرضها قائمة الاختصار بهذا الترتيب.</value></data>
+  <data name="AddLongPhraseShort" xml:space="preserve"><value>إضافة نص…</value></data>
+  <data name="PhrasesPosition" xml:space="preserve"><value>مكان العبارات في الشريط</value></data>
+  <data name="PhrasesPositionHint" xml:space="preserve"><value>تظهر العبارات قبل الكلمات المقترحة أو بعدها. الاختصارات النصية وتصحيح الأخطاء الشائعة تأتي أولًا دائمًا.</value></data>
+  <data name="PhrasesPositionFirst" xml:space="preserve"><value>في البداية</value></data>
+  <data name="PhrasesPositionLast" xml:space="preserve"><value>في النهاية</value></data>
   <data name="SuggestPhrasesHint" xml:space="preserve"><value>بعد «بسم » يقترح الشريط «الله الرحمن الرحيم». يُقترح من «عباراتي» ثم العبارات المتعلَّمة من كتابتك ثم القائمة المضمّنة.</value></data>
   <data name="SectionMyPhrases" xml:space="preserve"><value>العبارات التي أضفتها ({0})</value></data>
   <data name="AddPhrase" xml:space="preserve"><value>إضافة عبارة</value></data>
@@ -234,25 +240,25 @@
   <data name="RestoreButton" xml:space="preserve"><value>استعادة</value></data>
   <data name="BarMenuBlock" xml:space="preserve"><value>حظر</value></data>
   <data name="ImportExportPhrasesHint" xml:space="preserve"><value>ملف نصي فيه «عباراتي» والعبارات المتعلَّمة، لنسخها احتياطيًا أو نقلها إلى جهاز آخر. الاستيراد يضيف إلى ما عندك.</value></data>
-  <data name="NavLongPhrases" xml:space="preserve"><value>العبارات الطويلة</value></data>
+  <data name="NavLongPhrases" xml:space="preserve"><value>النصوص الطويلة</value></data>
   <data name="LongPhrasesIntro" xml:space="preserve"><value>ردود من عدة أسطر، مثل ردود الدعم الفني. اضغط {0} في أي برنامج فتُفتح قائمة بأسمائها، واختر منها فتُكتب حيث كنت تكتب.</value></data>
-  <data name="AddLongPhrase" xml:space="preserve"><value>إضافة عبارة طويلة</value></data>
+  <data name="AddLongPhrase" xml:space="preserve"><value>إضافة نص طويل</value></data>
   <data name="AddLongPhraseHint" xml:space="preserve"><value>اسم تجدها به في القائمة، ونصها (حتى 4000 حرف، بعدة أسطر).</value></data>
-  <data name="EditLongPhrase" xml:space="preserve"><value>تعديل عبارة طويلة</value></data>
-  <data name="SectionLongPhrases" xml:space="preserve"><value>عباراتي الطويلة ({0})</value></data>
+  <data name="EditLongPhrase" xml:space="preserve"><value>تعديل نص طويل</value></data>
+  <data name="SectionLongPhrases" xml:space="preserve"><value>نصوصي الطويلة ({0})</value></data>
   <data name="LongPhraseNamePrompt" xml:space="preserve"><value>الاسم (يظهر في القائمة):</value></data>
   <data name="LongPhraseTextPrompt" xml:space="preserve"><value>النص (Enter لسطر جديد، وCtrl+Enter للحفظ):</value></data>
   <data name="NotALongPhraseName" xml:space="preserve"><value>اكتب اسمًا لا يزيد على 60 حرفًا.</value></data>
   <data name="NotALongPhraseText" xml:space="preserve"><value>اكتب النص (4000 حرف على الأكثر).</value></data>
-  <data name="ConfirmDeleteLongPhrase" xml:space="preserve"><value>حذف العبارة الطويلة «{0}»؟</value></data>
-  <data name="ConfirmReplaceLongPhrase" xml:space="preserve"><value>توجد عبارة طويلة باسم «{0}». استبدالها؟</value></data>
-  <data name="LongPhrasesFileName" xml:space="preserve"><value>العبارات الطويلة - إتمام.txt</value></data>
-  <data name="ShortcutLongPhrases" xml:space="preserve"><value>فتح قائمة العبارات الطويلة</value></data>
+  <data name="ConfirmDeleteLongPhrase" xml:space="preserve"><value>حذف النص الطويل «{0}»؟</value></data>
+  <data name="ConfirmReplaceLongPhrase" xml:space="preserve"><value>يوجد نص طويل باسم «{0}». استبداله؟</value></data>
+  <data name="LongPhrasesFileName" xml:space="preserve"><value>النصوص الطويلة - إتمام.txt</value></data>
+  <data name="ShortcutLongPhrases" xml:space="preserve"><value>فتح قائمة النصوص الطويلة</value></data>
   <data name="ShortcutLongPhrasesHint" xml:space="preserve"><value>يعمل في كل البرامج ما دام إتمام يعمل.</value></data>
-  <data name="LongPhrasesTitle" xml:space="preserve"><value>العبارات الطويلة</value></data>
+  <data name="LongPhrasesTitle" xml:space="preserve"><value>النصوص الطويلة</value></data>
   <data name="LongPhrasesSearch" xml:space="preserve"><value>ابحث بالاسم أو النص</value></data>
-  <data name="LongPhrasesEmpty" xml:space="preserve"><value>لا عبارات طويلة بعد. أضفها من الإعدادات ← «العبارات الطويلة».</value></data>
-  <data name="LongPhrasesNoMatch" xml:space="preserve"><value>لا عبارة تطابق البحث.</value></data>
+  <data name="LongPhrasesEmpty" xml:space="preserve"><value>لا نصوص طويلة بعد. اضغط «إضافة نص…» لإضافة أول نص.</value></data>
+  <data name="LongPhrasesNoMatch" xml:space="preserve"><value>لا نص يطابق البحث.</value></data>
   <data name="MenuExcludeApp" xml:space="preserve"><value>إيقاف إتمام في {0}</value></data>
   <data name="MenuIncludeApp" xml:space="preserve"><value>تشغيل إتمام في {0}</value></data>
   <data name="ConfirmExcludeApp" xml:space="preserve"><value>إيقاف إتمام في {0}؟ يُضاف إلى التطبيقات المستثناة، ويبقى إتمام صامتًا فيه.</value></data>
@@ -264,14 +270,14 @@
   <data name="ConfirmResetStats" xml:space="preserve"><value>تصفير الإحصاءات؟</value></data>
   <data name="SectionBackup" xml:space="preserve"><value>النسخ الاحتياطي</value></data>
   <data name="FullBackup" xml:space="preserve"><value>نسخة احتياطية شاملة</value></data>
-  <data name="FullBackupHint" xml:space="preserve"><value>ملف واحد فيه كلماتك، وعباراتك، والاختصارات النصية، والعبارات الطويلة، والإعدادات، والإحصاءات، لنقل إتمام إلى جهاز آخر. الاستعادة تستبدل كل ما هنا.</value></data>
+  <data name="FullBackupHint" xml:space="preserve"><value>ملف واحد فيه كلماتك، وعباراتك، والاختصارات النصية، والنصوص الطويلة، والإعدادات، والإحصاءات، لنقل إتمام إلى جهاز آخر. الاستعادة تستبدل كل ما هنا.</value></data>
   <data name="BackupButton" xml:space="preserve"><value>نسخ احتياطي…</value></data>
   <data name="RestoreBackupButton" xml:space="preserve"><value>استعادة…</value></data>
   <data name="BackupFileFilter" xml:space="preserve"><value>نسخة إتمام الاحتياطية (*.itmam)|*.itmam</value></data>
   <data name="BackupFileName" xml:space="preserve"><value>نسخة إتمام {0:yyyy-MM-dd}.itmam</value></data>
   <data name="BackupDone" xml:space="preserve"><value>حُفظت النسخة الاحتياطية.</value></data>
   <data name="NotABackup" xml:space="preserve"><value>هذا الملف ليس نسخة احتياطية لإتمام.</value></data>
-  <data name="ConfirmRestoreBackup" xml:space="preserve"><value>استبدال كل كلماتك وعباراتك واختصاراتك وعباراتك الطويلة وإعداداتك على هذا الجهاز بما في النسخة؟ لا يمكن التراجع عن ذلك.</value></data>
+  <data name="ConfirmRestoreBackup" xml:space="preserve"><value>استبدال كل كلماتك وعباراتك واختصاراتك ونصوصك الطويلة وإعداداتك على هذا الجهاز بما في النسخة؟ لا يمكن التراجع عن ذلك.</value></data>
   <data name="RestoreDone" xml:space="preserve"><value>استُعيدت النسخة الاحتياطية.</value></data>
   <data name="SectionDictionary" xml:space="preserve"><value>القاموس العربي</value></data>
   <data name="DictionaryChoice" xml:space="preserve"><value>القاموس المستعمل</value></data>
@@ -298,11 +304,11 @@
   <data name="EmptyVariable" xml:space="preserve"><value>هذه الخانة فارغة: {0}.
 
 هل تريد إدراج الرد بدونها؟</value></data>
-  <data name="LongPhraseEditHint" xml:space="preserve"><value>نص العبارة (يمكنك تعديله قبل الإدراج؛ Ctrl+Enter للإدراج):</value></data>
+  <data name="LongPhraseEditHint" xml:space="preserve"><value>النص (يمكنك تعديله قبل الإدراج؛ Ctrl+Enter للإدراج):</value></data>
   <data name="LongPhraseFinalEdited" xml:space="preserve"><value>عدّلت الرد، فقُفلت الخانات، ويُدرج كما هو.</value></data>
   <data name="SaveLongPhraseEdit" xml:space="preserve"><value>عدّلت نص «{0}».
 
-هل تريد حفظ التعديل في العبارة؟
+هل تريد حفظ التعديل في النص المحفوظ؟
 نعم: يُحفظ ثم يُدرج.
 لا: يُدرج هذه المرة فقط.</value></data>
   <data name="NavLanguages" xml:space="preserve"><value>اللغات</value></data>

@@ -101,7 +101,7 @@ public static class UserListFiles
 
     public static void WriteLongPhrases(TextWriter writer, IEnumerable<LongPhrase> phrases)
     {
-        writer.WriteLine("# Itmam (إتمام) — long phrases: name<TAB>text, line breaks as \\n");
+        writer.WriteLine("# Itmam (إتمام) — long texts: name<TAB>text, line breaks as \\n");
         foreach (var phrase in phrases)
         {
             writer.WriteLine($"{phrase.Name}\t{Escape(phrase.Text)}");

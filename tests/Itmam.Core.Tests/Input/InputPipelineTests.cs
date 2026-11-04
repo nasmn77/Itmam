@@ -442,6 +442,31 @@ public sealed class InputPipelineTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task Read_only_text_at_the_caret_silences_until_the_context_changes()
+    {
+        // A web page clicked outside its fields: the page's words must not become the current word.
+        Type("مط");
+        _context.ReadOnly = true;
+        _context.Next = "مطو";
+        Send(InputEvent.Of(InputEventKind.MouseClick));
+        var probe = await WaitForProbeAsync();
+        probe.Silenced.ShouldBe(SilenceReason.ReadOnlyText);
+        probe.Letters.ShouldBe(0);
+
+        Type("سرية ");
+        await DrainAsync();
+        Commits().ShouldBeEmpty();
+
+        _context.ReadOnly = false;
+        _context.Next = "";
+        Send(InputEvent.Of(InputEventKind.MouseClick));   // clicked into a field
+        await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedEmpty);
+        Type("كلمة ");
+        await DrainAsync();
+        Commits().ShouldBe(["كلمة"]);
+    }
+
+    [Fact]
     public async Task A_finished_word_is_learned_when_the_next_event_arrives()
     {
         Type("كلمة ");
@@ -782,6 +807,66 @@ public sealed class InputPipelineTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task Accepting_inside_a_word_replaces_the_whole_word_without_a_space()
+    {
+        // "من محم|د": the caret was clicked inside the word.
+        _context.Next = "من محم";
+        _context.TextAfter = "د وصل";
+        Send(InputEvent.Of(InputEventKind.MouseClick));
+        await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedWithWord);
+
+        Send(InputEvent.Accept(0, "محمود"));
+        await DrainAsync();
+
+        _injector.Edits.ShouldBe([new TextEdit(0, "ود", 1)]);
+        Commits().ShouldBe(["محمود"]);
+    }
+
+    [Fact]
+    public async Task Accepting_inside_a_word_after_typing_there_still_replaces_the_rest()
+    {
+        _context.Next = "من مح";
+        _context.TextAfter = "مد";                          // the word ends the text
+        Send(InputEvent.Of(InputEventKind.MouseClick));
+        await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedWithWord);
+
+        Type("م");                                           // typed before the same rest
+        Send(InputEvent.Accept(0, "محمود"));
+        await DrainAsync();
+
+        _injector.Edits.ShouldBe([new TextEdit(0, "ود", 2)]);
+    }
+
+    [Fact]
+    public async Task A_word_ended_inside_another_leaves_its_rest_alone()
+    {
+        _context.Next = "من محم";
+        _context.TextAfter = "د";
+        Send(InputEvent.Of(InputEventKind.MouseClick));
+        await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedWithWord);
+
+        Type(" مدر");                                        // a space splits the word: "محم مدر|د"
+        Send(InputEvent.Accept(0, "مدرسة"));
+        await DrainAsync();
+
+        _injector.Edits.Single().DeleteForward.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task A_word_longer_than_what_was_read_after_the_caret_is_not_replaced()
+    {
+        _context.Next = "مح";
+        _context.TextAfter = new string('م', CaretContext.MaxTextAfter);
+        Send(InputEvent.Of(InputEventKind.MouseClick));
+        await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedWithWord);
+
+        Send(InputEvent.Accept(0, "محمود"));
+        await DrainAsync();
+
+        _injector.Edits.Single().DeleteForward.ShouldBe(0);
+    }
+
+    [Fact]
     public async Task Keyboard_selection_hides_suggestions_without_reading_the_context()
     {
         _context.Next = "ذهبت إلى المدرسة";
@@ -863,6 +948,9 @@ public sealed class InputPipelineTests : IAsyncDisposable
         /// <summary>The focused field is a password field.</summary>
         public volatile bool Password;
 
+        /// <summary>The caret is in read-only text.</summary>
+        public volatile bool ReadOnly;
+
         public async Task<CaretContext> ReadBeforeCaretAsync(int maxChars, CancellationToken cancellation)
         {
             var call = Interlocked.Increment(ref _calls);
@@ -881,11 +969,21 @@ public sealed class InputPipelineTests : IAsyncDisposable
                 return CaretContext.Selection;
             }
 
+            if (ReadOnly)
+            {
+                return CaretContext.ReadOnly;
+            }
+
             var text = Responses is { } responses ? responses(call) : Next;
-            return text is null ? CaretContext.Unavailable : CaretContext.Of(text, CharAfter);
+            return text is null ? CaretContext.Unavailable
+                : TextAfter is { } after ? CaretContext.Around(text, after)
+                : CaretContext.Of(text, CharAfter);
         }
 
         /// <summary>The character after the caret returned with the text.</summary>
         public char? CharAfter { get; set; }
+
+        /// <summary>The text after the caret returned with the text (overrides <see cref="CharAfter"/>).</summary>
+        public string? TextAfter { get; set; }
     }
 }

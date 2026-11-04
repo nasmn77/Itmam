@@ -61,7 +61,7 @@
 ليستأنف بسرعة، ينتظر `InputPipeline` ‏40 ملّي ثانية بعد آخر حدث من هذا النوع (ليكون التطبيق قد طبّقه؛ وإبقاء مفتاح مضغوطًا يقرأ مرة واحدة)، ثم يطلب من `UiaCaretContextSource` النص الذي قبل المؤشر:
 
 1. `IUIAutomation.GetFocusedElement()`؛ وإذا كان `CurrentIsPassword` فلا يُقرأ شيء.
-2. نطاق المؤشر من `TextPattern2.GetCaretRange`، أو التحديد (الفارغ) من `TextPattern`.
+2. نطاق المؤشر من `TextPattern2.GetCaretRange`، أو التحديد (الفارغ) من `TextPattern`. وإذا قال التطبيق صراحة إن النص عند المؤشر للقراءة فقط (`UIA_IsReadOnlyAttributeId` = true) فلا يُقرأ شيء ويصمت إتمام حتى يتغير السياق (إصلاح بعد 2.0): المتصفحات تضع مؤشرًا عند موضع النقر في نص الصفحة نفسه، فكانت كلماتها تُعامَل كأنها الكلمة التي تُكتب. أي قيمة أخرى (مختلطة، غير مدعومة، خطأ) تُعامَل كنص قابل للتحرير.
 3. تُمدّ نسخة من النطاق **إلى الخلف بما لا يزيد عن 49 حرفًا** ويُستدعى `GetText(49)`.
 
 لا يُقرأ شيء في التطبيقات المستثناة (`Itmam.Core.Input.ExcludedApps`؛ افتراضيًا: سطح المكتب البعيد والأجهزة الافتراضية والطرفيات ومشغّلات الألعاب). يُتحقق من ذلك مرتين: عبر `InputPipelineOptions.CanReadContext` على العملية الأمامية قبل كل قراءة، وعبر `UiaCaretContextSource` على العملية المالكة لعنصر UI Automation المركَّز قبل القراءة مباشرة.
@@ -133,7 +133,7 @@
  KEYEVENTF_UNICODE (+ space). Injected events carry LLKHF_INJECTED, so our hook ignores them.
 ```
 
-المسافات: قراءة سياق المؤشر تعيد أيضًا الحرف الواحد الذي بعد المؤشر. يبقى صحيحًا أثناء الكتابة (النص يُدرج قبله) ويصبح مجهولًا عند تحرّك المؤشر. عند القبول، تُستبدل المسافة التالية (Delete ثم الكلمة والمسافة) فلا تتكرر مسافتان، ولا توضع مسافة قبل علامة ترقيم تالية، وفي غير ذلك تُضاف مسافة.
+المسافات: قراءة سياق المؤشر تعيد أيضًا ما لا يزيد عن 30 حرفًا بعد المؤشر (لا يتجاوز نهاية الحقل)، ولا يُحتفظ منها إلا بعدد حروف الكلمة التي بعد المؤشر وبالحرف الذي يليها. يبقى ذلك صحيحًا أثناء الكتابة (النص يُدرج قبله) ويصبح مجهولًا عند تحرّك المؤشر. عند القبول، تُستبدل المسافة التالية (Delete ثم الكلمة والمسافة) فلا تتكرر مسافتان، ولا توضع مسافة قبل علامة ترقيم تالية، وفي غير ذلك تُضاف مسافة. وإذا كان المؤشر في وسط كلمة (قرار المستخدم بعد 2.0) تُحذف بقيتها أيضًا (`DeleteForward`) وتُكتب الكلمة المقبولة بلا مسافة، فتصبح «محم|د» «محمود»؛ وإذا انتهت الكلمة قبل بقيتها (مسافة كُتبت داخلها) أو ملأت الثلاثين حرفًا كلها فلا تُحذف.
 
 الكلمة في `AcceptSuggestion` مأخوذة من لقطة الشريط التي رآها الخطاف، فتُدرج الكلمة الظاهرة على الشاشة بالضبط. ينشر خيط الواجهة `PopupState` مع كل إظهار وإخفاء، ويقرؤه الخطاف دون قفل. النقر على كلمة في الشريط يرسل الحدث نفسه، والنقرات داخل حدود الشريط لا تُعدّ حركة مؤشر. وأثناء الإيقاف (Ctrl+Alt افتراضيًا) لا تنشر الخطافات شيئًا ولا تبتلع شيئًا، إلا اختصار التشغيل إن كان بمفتاح.
 
@@ -175,7 +175,7 @@
 
 بعد إدراج اقتراح يحفظ `InputPipeline` في الذاكرة ما كُتب قبله وما أُدرج (`UndoableAccept`) ويرفع `PopupState.CanUndoAccept`. في الخطاف، Backspace بلا معدِّلات والعلم مرفوع يُبتلع ويصبح `UndoAccept`، وأي مفتاح آخر (غير المعدِّلات) أو نقرة يُنزل العلم، وكذلك الحدث التالي في المسار. يحذف المسار ما أُدرج ويكتب ما كان قد حُذف دفعة واحدة، ويعيد الكلمة والكلمات المتتالية كما كانت، ولا يتعلّم الكلمة المقبولة ولا تسلسلاتها. وإن لم يبقَ ما يُتراجع عنه يرسل Backspace عاديًا، فلا تضيع الضغطة. لا تراجع حين استُبدلت مسافة بعد المؤشر (`DeleteForward`).
 
-### العبارات الطويلة (من الإصدار 1.1)
+### النصوص الطويلة (من الإصدار 1.1؛ اسمها «العبارات الطويلة» حتى 2.0)
 
 ردود بعدة أسطر (`LongPhrase`: اسم ونص حتى 4000 حرف) في `settings.json`. اختصار يعمل في كل البرامج (`HotkeySettings.OpenLongPhrases`، افتراضيًا Ctrl+Shift+Space، ويحتاج Ctrl أو Alt) يبتلعه الخطاف ويرسل `OpenLongPhrases`. يحفظ `ItmamApp` النافذة الأمامية ويحدد مكان مؤشرها، ثم يفتح `LongPhrasePicker` قربه: نافذة تأخذ التركيز (يربط `PopupWindows.BringToFront` إدخال الخيط الأمامي لأن Windows يرفض غير ذلك)، فيها بحث بالاسم أو النص (`LongPhrases.Filter`) وقائمة ومعاينة. عند الاختيار تُخفى، ويعود التركيز إلى النافذة السابقة، ثم يلصق `ClipboardPaste` النص (قرار المستخدم، لأن كتابة مئات الأحرف ضغطةً ضغطة جمّدت Word): تُحفظ الحافظة، ويوضع النص فيها مع علامات Windows التي تستثنيه من سجل الحافظة ومزامنتها، ثم Ctrl+V، ثم تُستعاد الحافظة بعد 700 ملّي ثانية. وإن كانت الحافظة مشغولة يُكتب النص، وكل فاصل سطر Shift+Enter. لا يُتعلَّم منها شيء.
 
@@ -210,6 +210,7 @@
 | السبب | طريقة الاكتشاف |
 |---|---|
 | حقل كلمة مرور | `ES_PASSWORD` على عنصر Edit مركَّز؛ و`IsPassword` من UI Automation عند قراءة سياق المؤشر |
+| نص للقراءة فقط | `UIA_IsReadOnlyAttributeId` عند المؤشر عند قراءة سياقه (نص صفحة ويب خارج الحقول، عنصر قائمة)؛ حتى يتغير السياق |
 | تطبيق بصلاحيات مسؤول | مستوى السلامة الإلزامي للعملية الأمامية أعلى من مستوانا (أو تعذّرت قراءته) |
 | تطبيق مستثنى | اسم العملية في `ExcludedApps` |
 | ملء الشاشة | `SHQueryUserNotificationState`: ملء شاشة حصري لـ Direct3D أو وضع العرض التقديمي |
@@ -320,7 +321,10 @@ it; holding a key probes only once) and asks `UiaCaretContextSource` for the tex
 caret:
 
 1. `IUIAutomation.GetFocusedElement()`; if `CurrentIsPassword` → nothing is read.
-2. Caret range from `TextPattern2.GetCaretRange`, or the (empty) selection from `TextPattern`.
+2. Caret range from `TextPattern2.GetCaretRange`, or the (empty) selection from `TextPattern`. If the app states
+   that the text at the caret is read-only (`UIA_IsReadOnlyAttributeId` = true), nothing is read and Itmam stays
+   silent until the context changes (fix after 2.0): browsers put a caret at the click point in the page's own text, whose
+   words were taken for the word being typed. Any other value (mixed, unsupported, error) counts as editable.
 3. A copy of the range is extended **backwards by at most 49 characters** and `GetText(49)` is called.
 
 Nothing is read in excluded apps (`Itmam.Core.Input.ExcludedApps`; defaults: remote desktop/VMs,
@@ -434,10 +438,14 @@ increase; numbers dominated by Chrome finishing start-up). Large pages build lar
  KEYEVENTF_UNICODE (+ space). Injected events carry LLKHF_INJECTED, so our hook ignores them.
 ```
 
-Spaces: the caret-context read also returns the one character after the caret. It stays valid
-while typing (text is inserted before it) and becomes unknown when the caret moves. On accept,
-a following space is replaced (Delete, then word + space) so there are never two spaces, following
-punctuation gets no space before it, and otherwise a space is appended.
+Spaces: the caret-context read also returns at most 30 characters after the caret (never past the
+end of the field); only the length of the word after the caret and the character after it are kept.
+They stay valid while typing (text is inserted before them) and become unknown when the caret moves.
+On accept, a following space is replaced (Delete, then word + space) so there are never two spaces,
+following punctuation gets no space before it, and otherwise a space is appended. When the caret is
+inside a word (user decision after 2.0) the rest of it is deleted too (`DeleteForward`) and the
+accepted word is typed without a space, so «محم|د» becomes «محمود»; not when the word was ended
+before its rest (a space typed inside it) or it fills all 30 characters.
 
 The word in `AcceptSuggestion` is captured from the bar snapshot the hook saw, so exactly the
 word on screen is inserted. `PopupState` is published by the UI thread on every show/hide and
@@ -509,7 +517,7 @@ pipeline deletes what was inserted and types back what had been deleted in one b
 a row, and learns neither the accepted word nor its sequences. If there is nothing left to undo it sends a plain
 Backspace, so the key press is never lost. No undo when a space after the caret was replaced (`DeleteForward`).
 
-### Long phrases (from 1.1)
+### Long texts (from 1.1; called "long phrases" until 2.0)
 
 Replies of several lines (`LongPhrase`: a name and a text of up to 4,000 characters) in `settings.json`. A shortcut that
 works everywhere (`HotkeySettings.OpenLongPhrases`, default Ctrl+Shift+Space, Ctrl or Alt required) is swallowed by the
@@ -595,6 +603,7 @@ nothing:
 | Reason | Detection |
 |---|---|
 | Password field | `ES_PASSWORD` on a focused Edit control; UI Automation `IsPassword` when the caret context is read |
+| Read-only text | `UIA_IsReadOnlyAttributeId` at the caret when its context is read (web page text outside fields, a list item); until the context changes |
 | Elevated app | Mandatory integrity level of the foreground process above ours (or unreadable) |
 | Excluded app | Process name in `ExcludedApps` |
 | Full screen | `SHQueryUserNotificationState`: Direct3D exclusive full screen or presentation mode |

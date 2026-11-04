@@ -251,9 +251,40 @@ internal sealed class TrayApplication : ApplicationContext
         _longPhrases?.Close();
         var settings = _app.Settings;
         _longPhrases = new LongPhrasePicker(settings.LongPhrases, target, _app.Injector, SettingsPalette.For(settings.Theme),
-            settings.Language == UiLanguage.Arabic, near, chars => _app.Learning.RecordUsage(1, chars), SaveLongPhraseText);
+            settings.Language == UiLanguage.Arabic, near, chars => _app.Learning.RecordUsage(1, chars), SaveLongPhraseText, AddLongPhrase);
         _longPhrases.FormClosed += (_, _) => _longPhrases = null;
         _longPhrases.Show();
+    }
+
+    // "Add" in the long texts list (after 2.0): the same dialog as in Settings; a name already used is replaced
+    // after a confirmation, a new one goes last.
+    private (IReadOnlyList<LongPhrase> All, LongPhrase Added)? AddLongPhrase(IWin32Window owner)
+    {
+        var settings = _app.Settings;
+        var rtl = settings.Language == UiLanguage.Arabic;
+        if (LongPhraseDialog.Ask(owner, Strings.AddLongPhrase, null, SettingsPalette.For(settings.Theme), rtl) is not { } added)
+        {
+            return null;
+        }
+
+        if (settings.LongPhrases.Any(p => p.Name == added.Name))
+        {
+            var options = rtl ? MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign : 0;
+            var question = string.Format(CultureInfo.CurrentCulture, Strings.ConfirmReplaceLongPhrase, added.Name);
+            if (MessageBox.Show(owner, question, Strings.AppName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2, options) != DialogResult.Yes)
+            {
+                return null;
+            }
+        }
+
+        var all = settings.LongPhrases.Select(p => p.Name == added.Name ? added : p).ToList();
+        if (!all.Contains(added))
+        {
+            all.Add(added);
+        }
+
+        _app.UpdateSettings(settings with { LongPhrases = all });
+        return (all, added);
     }
 
     // "Save the edit" in the long phrases list (1.3): the phrase keeps its name and place.
