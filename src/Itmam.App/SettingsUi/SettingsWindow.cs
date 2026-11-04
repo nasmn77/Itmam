@@ -479,7 +479,7 @@ internal sealed class SettingsWindow : Form
     // The languages that have something to show in My words / My phrases: those with learned words or
     // phrases, and those turned on that Itmam suggests in. Arabic first.
     private List<LanguageProfile> ListLanguages() =>
-        [.. _app.Learning.Languages
+        [.. _app.Learning.LanguagesWithLearned
             .Concat(_app.Settings.EnabledLanguages.Select(LanguageRegistry.ForTag).Where(l => LanguageRegistry.Support(l) != LanguageSupport.Unsupported))
             .DistinctBy(l => l.Id)
             .OrderBy(l => l.Id switch { "ar" => 0, "en" => 1, _ => 2 })

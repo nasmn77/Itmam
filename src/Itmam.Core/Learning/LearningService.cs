@@ -118,6 +118,25 @@ public sealed partial class LearningService : IDisposable
     }
 
     /// <summary>
+    /// The languages with something to show in Settings (the primary one always), primary first: learned
+    /// words, or phrases typed at least <see cref="LearningOptions.PhraseMinUses"/> times. Unlike
+    /// <see cref="Languages"/>, sequences counted but not learned yet do not count (they are never shown).
+    /// </summary>
+    public IReadOnlyList<LanguageProfile> LanguagesWithLearned
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return [_primary.Language, .. _languages.Values
+                    .Where(s => s != _primary && (s.Index.Count > 0 || s.Phrases.Values.Any(p => p.Count >= _options.PhraseMinUses)))
+                    .Select(s => s.Language)
+                    .OrderBy(l => l.Id, StringComparer.Ordinal)];
+            }
+        }
+    }
+
+    /// <summary>
     /// The words of a language, read by its suggestion engine (under <see cref="SyncRoot"/>); created empty
     /// the first time. A blocklist given here replaces the language's (none by default).
     /// </summary>

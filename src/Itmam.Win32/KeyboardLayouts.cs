@@ -29,7 +29,37 @@ public static class KeyboardLayouts
             count = PInvoke.GetKeyboardLayoutList(count, list);
         }
 
-        return [.. layouts.Take(Math.Max(count, 0)).Select(layout => (nint)layout.Value)];
+        var loaded = layouts.Take(Math.Max(count, 0)).Select(layout => (nint)layout.Value);
+
+        // A layout removed in Windows Settings stays in GetKeyboardLayoutList until sign-out (a removed
+        // Persian layout was still listed, found in 2.0 testing). The user's list in the registry is
+        // updated at once, so a loaded layout whose language is no longer there is left out.
+        var preload = PreloadLanguages();
+        return [.. preload.Count == 0 ? loaded : loaded.Where(layout => preload.Contains((ushort)(layout & 0xFFFF)))];
+    }
+
+    // The languages (LANGID, the low word of each KLID) under HKCU\Keyboard Layout\Preload; empty if unreadable.
+    private static HashSet<ushort> PreloadLanguages()
+    {
+        var languages = new HashSet<ushort>();
+        try
+        {
+            using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Keyboard Layout\Preload");
+            foreach (var name in key?.GetValueNames() ?? [])
+            {
+                if (key!.GetValue(name) is string klid
+                    && uint.TryParse(klid, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture, out var id))
+                {
+                    languages.Add((ushort)(id & 0xFFFF));
+                }
+            }
+        }
+        catch (Exception ex) when (ex is System.Security.SecurityException or UnauthorizedAccessException or IOException)
+        {
+            languages.Clear();
+        }
+
+        return languages;
     }
 
     /// <summary>
