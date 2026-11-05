@@ -31,6 +31,7 @@ internal sealed class TrayApplication : ApplicationContext
     private readonly ToolStripMenuItem _settingsItem = new();
     private readonly ToolStripMenuItem _aboutItem = new();
     private readonly ToolStripMenuItem _guideItem = new();
+    private readonly ToolStripMenuItem _languageItem = new();
     private readonly ToolStripMenuItem _exitItem = new();
     private readonly System.Windows.Forms.Timer _pauseTimer = new() { Interval = 15_000 };
     private readonly Icon _iconOn;
@@ -63,9 +64,13 @@ internal sealed class TrayApplication : ApplicationContext
         _settingsItem.Click += (_, _) => ShowSettings(SettingsPage.General);
         _aboutItem.Click += (_, _) => ShowSettings(SettingsPage.About);
         _guideItem.Click += (_, _) => OpenGuide();
+        _languageItem.Click += (_, _) => _app.UpdateSettings(_app.Settings with
+        {
+            Language = _app.Settings.Language == UiLanguage.Arabic ? UiLanguage.English : UiLanguage.Arabic,
+        });
         _exitItem.Click += (_, _) => ConfirmAndExit();
 
-        _menu.Items.AddRange([_enabled, _pause, _excludeApp, new ToolStripSeparator(), _settingsItem, _guideItem, _aboutItem]);
+        _menu.Items.AddRange([_enabled, _pause, _excludeApp, new ToolStripSeparator(), _settingsItem, _guideItem, _languageItem, _aboutItem]);
 #if DEBUG
         _diagnosticsItem.Click += (_, _) => ShowDiagnostics();
         _menu.Items.Add(_diagnosticsItem);
@@ -343,6 +348,7 @@ internal sealed class TrayApplication : ApplicationContext
         _settingsItem.Text = Strings.MenuSettings;
         _aboutItem.Text = Strings.MenuAbout;
         _guideItem.Text = Strings.MenuGuide;
+        _languageItem.Text = Strings.MenuSwitchLanguage; // written in the language it switches to
         _exitItem.Text = Strings.MenuExit;
 #if DEBUG
         _diagnosticsItem.Text = Strings.MenuDiagnostics;

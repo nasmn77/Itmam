@@ -134,6 +134,14 @@ public sealed record AppSettings
 
     public IReadOnlyList<string> ExcludedApps { get; init; } = ExcludedAppsDefaults();
 
+    /// <summary>
+    /// The interface language on first run (user decision after 2.1): Arabic if Windows is displayed in Arabic,
+    /// English otherwise.
+    /// </summary>
+    /// <param name="systemUiLanguage">The two-letter ISO code of the Windows display language.</param>
+    public static UiLanguage FirstRunLanguage(string systemUiLanguage) =>
+        string.Equals(systemUiLanguage, "ar", StringComparison.OrdinalIgnoreCase) ? UiLanguage.Arabic : UiLanguage.English;
+
     /// <summary>Values out of range (hand-edited file, older version) are brought back into range.</summary>
     public AppSettings Normalized() => this with
     {

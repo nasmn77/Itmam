@@ -99,6 +99,10 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
   (3) «إضافة نص…» button in the shortcut's list (`LongPhrasePicker` `addNew` → `TrayApplication.AddLongPhrase`, same
   dialog as Settings, a used name replaced after a confirmation, the new text shown SELECTED, not inserted; hidden
   while filling variables).
+- **After 2.1 (user decisions 2026-11-05, branch `ui-language`, not merged yet; `live-drag` merged locally, not pushed):** the interface language on first run
+  follows the Windows display language (`AppSettings.FirstRunLanguage`: Arabic if «ar», else English; `SettingsStore.Load(firstRunLanguage)` uses it only
+  when there is no settings file or it is damaged, so existing users keep theirs); tray item `MenuSwitchLanguage`, written in the language it switches
+  to («Switch to English» / «تبديل إلى اللغة العربية»), applied at once. Guide text updated; PDFs to rebuild with the release.
 - **Phase 7** merged into main. `src/Itmam.Package` (.wapproj, x64 + ARM64 bundle),
   identity from Partner Center product **9P08F7KGRJB0** (`NasserAlmadi.563063310BE3D`, `CN=9260B530-9E02-440E-8E99-B74323B1CE93`,
   PublisherDisplayName "Nasser Almadi"; reserved names «إتمام» + "Itmam"; a separate draft product «اتمام» without hamza

@@ -100,6 +100,28 @@ public sealed class SettingsStoreTests : IDisposable
         new AppSettings().LongTextsWindow.ShouldBeNull(); // the default size
     }
 
+    [Theory]
+    [InlineData("ar", UiLanguage.Arabic)]
+    [InlineData("AR", UiLanguage.Arabic)]
+    [InlineData("en", UiLanguage.English)]
+    [InlineData("fr", UiLanguage.English)]
+    [InlineData("", UiLanguage.English)]
+    public void The_first_run_language_follows_the_windows_display_language(string system, UiLanguage expected) =>
+        AppSettings.FirstRunLanguage(system).ShouldBe(expected);
+
+    [Fact]
+    public void The_first_run_language_applies_only_when_there_are_no_settings()
+    {
+        var store = new SettingsStore(SettingsPath);
+        store.Load(UiLanguage.English).Language.ShouldBe(UiLanguage.English); // first run
+
+        store.Save(new AppSettings { Language = UiLanguage.Arabic });
+        store.Load(UiLanguage.English).Language.ShouldBe(UiLanguage.Arabic);  // the user's choice stays
+
+        File.WriteAllText(SettingsPath, "{ not json");
+        store.Load(UiLanguage.English).Language.ShouldBe(UiLanguage.English); // a damaged file
+    }
+
     [Fact]
     public void Languages_default_to_arabic_and_english_and_are_cleaned()
     {
