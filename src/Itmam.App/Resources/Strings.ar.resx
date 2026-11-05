@@ -35,7 +35,11 @@
   <data name="AboutDictionary" xml:space="preserve"><value>القاموس: {0:N0} كلمة</value></data>
   <data name="AboutLearned" xml:space="preserve"><value>كلماتك: {0:N0}</value></data>
   <data name="AboutSources" xml:space="preserve"><value>المصادر</value></data>
-  <data name="AboutPrivacy" xml:space="preserve"><value>لا يغادر جهازك شيء مما تكتبه. الاتصال الوحيد سؤال متجر Microsoft عن التحديثات، ويمكن إيقافه.</value></data>
+  <data name="AboutPrivacy" xml:space="preserve"><value>لا يغادر جهازك شيء مما تكتبه. الاتصال التلقائي الوحيد سؤال متجر Microsoft عن التحديثات، ويمكن إيقافه. وزر «تقييم ومراجعة» يفتح نافذة المتجر عند ضغطك عليه فقط.</value></data>
+  <data name="RateTitle" xml:space="preserve"><value>قيّم إتمام</value></data>
+  <data name="RateHint" xml:space="preserve"><value>امنحه نجومًا واكتب مراجعتك في نافذة متجر Microsoft، فتساعد غيرك على اكتشاف إتمام.</value></data>
+  <data name="RateButton" xml:space="preserve"><value>تقييم ومراجعة</value></data>
+  <data name="RateUnavailable" xml:space="preserve"><value>تعذّر فتح متجر Microsoft على هذا الجهاز.</value></data>
   <data name="AboutPrivacyLink" xml:space="preserve"><value>سياسة الخصوصية</value></data>
   <data name="LanguageArabic" xml:space="preserve"><value>العربية</value></data>
   <data name="LanguageEnglish" xml:space="preserve"><value>English</value></data>

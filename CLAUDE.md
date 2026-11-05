@@ -103,6 +103,9 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
   follows the Windows display language (`AppSettings.FirstRunLanguage`: Arabic if «ar», else English; `SettingsStore.Load(firstRunLanguage)` uses it only
   when there is no settings file or it is damaged, so existing users keep theirs); tray item `MenuSwitchLanguage`, written in the language it switches
   to («Switch to English» / «تبديل إلى اللغة العربية»), applied at once. Guide text updated; PDFs to rebuild with the release.
+- **After 2.1 (user decision 2026-11-05, branch `store-review`, not merged yet; `ui-language` merged locally, not pushed):** one in-app button «تقييم ومراجعة» on the Updates
+  and About pages (`SettingsWindow.AddRateCard` → `StoreUpdates.RequestRateAndReviewAsync`; unpackaged or the window fails → `StoreUpdates.ReviewPage` in the Store app, so it can be tried from Debug; message `RateUnavailable` only if that fails too; the real window can be checked only in a Store install). Privacy wording changed
+  everywhere; the published Store description must be updated in Partner Center with the next submission. Screenshots of About/Updates and guide PDFs: with the release.
 - **Phase 7** merged into main. `src/Itmam.Package` (.wapproj, x64 + ARM64 bundle),
   identity from Partner Center product **9P08F7KGRJB0** (`NasserAlmadi.563063310BE3D`, `CN=9260B530-9E02-440E-8E99-B74323B1CE93`,
   PublisherDisplayName "Nasser Almadi"; reserved names «إتمام» + "Itmam"; a separate draft product «اتمام» without hamza
@@ -183,7 +186,9 @@ Tests run on Microsoft.Testing.Platform (opted in via `global.json` → `test.ru
 - No network access at runtime: no `internetClient` capability, no telemetry, no crash upload. **Exception (user decision,
   2026-10-29, from 1.1):** `StoreUpdates` asks Microsoft Store through `StoreContext` whether a newer package exists
   (12 s after start-up, setting "CheckForUpdates", default on); the Store service does the network work, nothing else is
-  sent. Documented in the privacy policy (docs/PRIVACY.md, site/) — keep it in sync.
+  sent. Documented in the privacy policy (docs/PRIVACY.md, site/) — keep it in sync. **Exception (user decision, 2026-11-05,
+  after 2.1):** the button «تقييم ومراجعة» / "Rate and review" (Updates and About pages) calls `StoreContext.RequestRateAndReviewAppAsync`
+  only when pressed; published wording: "its only AUTOMATIC connection is the Store update check".
 - Never log typed characters. Debug logs (Debug builds only) contain event types and timings only.
 - Learn only word → count/last-used. Never sentences. Never learn in password fields or excluded apps.
   **Exception (user decision, 2026-10-29, from 1.1):** 2–5-word sequences → count/last-used (learned phrases, setting

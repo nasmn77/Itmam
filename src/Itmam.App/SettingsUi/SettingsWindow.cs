@@ -1648,6 +1648,39 @@ internal sealed class SettingsWindow : Form
         var open = new ThemedButton { Text = Strings.OpenButton };
         open.Click += (_, _) => Tray.TrayApplication.OpenStorePage();
         AddCard(Strings.OpenStore, Strings.OpenStoreHint, open);
+        AddRateCard();
+    }
+
+    // User decision (after 2.1): one button, on the Updates and About pages, for the Store's own window.
+    private void AddRateCard()
+    {
+        var rate = new ThemedButton { Text = Strings.RateButton };
+        rate.Click += async (_, _) =>
+        {
+            rate.Enabled = false;
+            rate.Invalidate();
+            var result = await StoreUpdates.RequestRateAndReviewAsync(Handle);
+            if (rate.IsDisposed)
+            {
+                return; // the page was left meanwhile
+            }
+
+            rate.Enabled = true;
+            rate.Invalidate();
+            if (result == RateAndReview.Unavailable)
+            {
+                // Not a Store installation, or the window could not open: the Store app's own review page.
+                try
+                {
+                    Process.Start(new ProcessStartInfo(StoreUpdates.ReviewPage.ToString()) { UseShellExecute = true });
+                }
+                catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
+                {
+                    ShowInfo(Strings.RateUnavailable);
+                }
+            }
+        };
+        AddCard(Strings.RateTitle, Strings.RateHint, rate);
     }
 
     // The package version when installed from the Store or a test package, else the assembly version.
@@ -1684,6 +1717,7 @@ internal sealed class SettingsWindow : Form
         AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutDictionary, _app.LoadedDictionaries.Sum(d => d.Count)), secondary: false);
         AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutLearned, _app.Learning.Languages.Sum(l => _app.Learning.Snapshot(l).Count)), secondary: false);
         AddLink(Strings.AboutWebsite, _app.Settings.Language == UiLanguage.Arabic ? WebsiteUrl : WebsiteUrlEnglish);
+        AddRateCard();
 
         AddSection(Strings.SectionDeveloper);
         AddText(Strings.DeveloperName, secondary: false);

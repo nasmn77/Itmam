@@ -8,7 +8,7 @@
 
 **تاريخ السريان:** الإصدار 2.1 (4 نوفمبر 2026)
 
-**لا يرسل إتمام أي بيانات.** لا يجمع إحصاءات استخدام، ولا يرفع تقارير الأعطال، وكل ما يفعله بما تكتبه يبقى على جهازك. والاتصال الوحيد سؤال متجر Microsoft عن التحديثات، ويمكن إيقافه (انظر «التحقق من التحديثات» أدناه).
+**لا يرسل إتمام أي بيانات.** لا يجمع إحصاءات استخدام، ولا يرفع تقارير الأعطال، وكل ما يفعله بما تكتبه يبقى على جهازك. والاتصال التلقائي الوحيد سؤال متجر Microsoft عن التحديثات، ويمكن إيقافه (انظر «التحقق من التحديثات» أدناه). وزر «تقييم ومراجعة» يفتح نافذة المتجر عند ضغطك عليه فقط.
 
 ### ما الذي يقرؤه التطبيق
 
@@ -28,6 +28,11 @@
 - بعد بدء التشغيل بثوانٍ، يسأل إتمام **متجر Microsoft** عبر Windows: هل يوجد إصدار أحدث من إتمام؟ وإن وُجد يظهر إشعار، والنقر عليه يفتح صفحة إتمام في المتجر.
 - خدمة المتجر في Windows هي التي تتصل، كما تفعل لتحديث كل تطبيقاتك. إتمام نفسه لا يملك صلاحية الاتصال بالإنترنت، ولا يُرسَل في هذا السؤال أي شيء عنك أو عما تكتبه.
 - يمكنك إطفاؤه من الإعدادات ← «التحديثات» ← «البحث عن التحديثات عند بدء إتمام». ويبقى المتجر يحدّث التطبيق بطريقته المعتادة.
+
+### التقييم والمراجعة
+
+- زر «تقييم ومراجعة» في صفحتي «التحديثات» و«حول» يفتح نافذة **متجر Microsoft** للتقييم، عند ضغطك عليه فقط، ولا يتصل شيء تلقائيًا.
+- خدمة المتجر في Windows هي التي تتصل. وما تكتبه في تلك النافذة ترسله أنت إلى Microsoft بحسابك في المتجر، ولا يمر عبر إتمام، ولا يقرؤه ولا يحفظه.
 
 ### ما الذي يُحفظ على جهازك
 
@@ -60,7 +65,7 @@
 
 **Effective date:** version 2.1 (November 4, 2026)
 
-**Itmam sends no data.** It collects no usage statistics, uploads no crash reports, and everything it does with what you type stays on your device. Its only connection is asking Microsoft Store about updates, and it can be turned off (see "Update check" below).
+**Itmam sends no data.** It collects no usage statistics, uploads no crash reports, and everything it does with what you type stays on your device. Its only automatic connection is asking Microsoft Store about updates, and it can be turned off (see "Update check" below). "Rate and review" opens the Store's window only when you press it.
 
 ### What the app reads
 
@@ -80,6 +85,11 @@
 - A few seconds after it starts, Itmam asks **Microsoft Store** through Windows whether a newer version of Itmam exists. If so, a notification appears; clicking it opens Itmam's page in the Store.
 - The Store service in Windows does the network work, as it does to update all your apps. Itmam itself has no permission to connect to the internet, and nothing about you or what you type is sent with this question.
 - You can turn it off in Settings → "Updates" → "Check for updates when Itmam starts". The Store keeps updating the app in its usual way.
+
+### Rating and reviewing
+
+- The "Rate and review" button on the Updates and About pages opens **Microsoft Store**'s rating window, only when you press it; nothing connects automatically.
+- The Store service in Windows does the network work. What you write in that window goes from you to Microsoft with your Store account; it does not pass through Itmam, which neither reads nor saves it.
 
 ### What is stored on your device
 
