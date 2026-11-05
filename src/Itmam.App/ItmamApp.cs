@@ -43,7 +43,8 @@ internal sealed class ItmamApp : IDisposable
         DataFolder = Environment.GetEnvironmentVariable("ITMAM_DEMO_DATA") is { Length: > 0 } demo ? demo : DataFolder;
 #endif
         _settingsStore = new SettingsStore(Path.Combine(DataFolder, "settings.json"));
-        Settings = _settingsStore.Load();
+        // Read before UiCulture.Apply replaces it: at this point it is the Windows display language.
+        Settings = _settingsStore.Load(AppSettings.FirstRunLanguage(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName));
 
         var blocklist = Blocklist.Load(Path.Combine(AppContext.BaseDirectory, "blocklist.txt"));
         ShippedPhrases = LoadPhrases(Path.Combine(AppContext.BaseDirectory, "phrases.txt"));

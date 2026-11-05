@@ -41,13 +41,17 @@ public sealed class SettingsStore(string path)
     /// <summary>Set when the file could not be read at the last <see cref="Load"/>: where it was kept.</summary>
     public string? RecoveredBackupPath { get; private set; }
 
-    public AppSettings Load()
+    /// <param name="firstRunLanguage">
+    /// The interface language when there are no settings to read (first run, or a damaged file); an existing
+    /// file keeps its own, so a user's choice is never replaced.
+    /// </param>
+    public AppSettings Load(UiLanguage firstRunLanguage = UiLanguage.Arabic)
     {
         lock (_lock)
         {
             if (!File.Exists(Path))
             {
-                return new AppSettings();
+                return new AppSettings { Language = firstRunLanguage };
             }
 
             try
@@ -59,7 +63,7 @@ public sealed class SettingsStore(string path)
             {
                 RecoveredBackupPath = $"{Path}.corrupt-{DateTime.Now:yyyyMMdd-HHmmss}";
                 File.Move(Path, RecoveredBackupPath, overwrite: true);
-                return new AppSettings();
+                return new AppSettings { Language = firstRunLanguage };
             }
         }
     }
