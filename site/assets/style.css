@@ -295,12 +295,6 @@ h2 {
   overflow: hidden;
 }
 .feature { background: var(--card); padding: 28px 26px 30px; }
-.feature .num {
-  font: 700 15px/1 var(--mono);
-  color: var(--teal-ink);
-  display: block;
-  margin-bottom: 18px;
-}
 .feature h3 { font-size: 19px; margin: 0 0 8px; }
 .feature p { margin: 0; color: var(--ink-soft); font-size: 16px; }
 
