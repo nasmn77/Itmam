@@ -91,7 +91,11 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
   and certification notes (the What's new history stays as published); code names (`LongPhrase…`, setting
   `LongPhrases`, `SettingsPage.LongPhrases`) unchanged so settings.json/backups keep working; guide/site screenshots
   retaken (sample data from the 2.0 session copied to the scratchpad, PrintWindow, Arabic flipped, dialog borders cropped 7 px). Long texts are reordered by dragging their cards
-  (`CardReorder`, accent insertion line, auto-scroll near the edges; the picker follows the settings order).
+  (`CardReorder`; the picker follows the settings order). After 2.1 (user decision 2026-11-05, branch `live-drag`, not merged yet): like the
+  language list in Windows Settings — no OLE drag or insertion line: a translucent copy (`DragGhost`, click-through, 75 %, image taken with
+  CopyFromScreen because drawing a mirrored Arabic window comes out mirrored) follows the mouse, the card leaves an empty gap
+  (`SettingCard.SetDragHole`), the others slide 120 ms (a 15 ms timer reads the mouse; `_pageControls` is reordered live), Esc cancels,
+  auto-scroll near the edges, and a drop saves by name WITHOUT rebuilding the page. Checked with a scripted drag on the demo.
   (3) «إضافة نص…» button in the shortcut's list (`LongPhrasePicker` `addNew` → `TrayApplication.AddLongPhrase`, same
   dialog as Settings, a used name replaced after a confirmation, the new text shown SELECTED, not inserted; hidden
   while filling variables).
