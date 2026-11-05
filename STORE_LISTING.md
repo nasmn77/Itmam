@@ -264,7 +264,8 @@ Paste into Partner Center → Submission options → Notes for certification.
 >
 > **Windows App Certification Kit.** "Blocked executables" lists strings such as `cmd` inside the self-contained .NET 10
 > runtime files and the compressed dictionary data, and `Process.Start` / `ShellExecute`, which Itmam uses only to
-> open https links in the user's browser (About page), Itmam's own Store page when an update is available, and the
+> open https links in the user's browser (About page), Itmam's own Store page when an update is available, its review
+> page if the Store's rating window cannot open, and the
 > Windows typing settings page (`ms-settings:typing`, Settings → Languages, to turn off Windows' own suggestion bar). Itmam
 > never launches other programs. The High-DPI warning: WinForms sets PerMonitorV2 at start-up
 > (`ApplicationHighDpiMode`), not in the manifest.

@@ -104,7 +104,7 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
   when there is no settings file or it is damaged, so existing users keep theirs); tray item `MenuSwitchLanguage`, written in the language it switches
   to («Switch to English» / «تبديل إلى اللغة العربية»), applied at once. Guide text updated; PDFs to rebuild with the release.
 - **After 2.1 (user decision 2026-11-05, branch `store-review`, not merged yet; `ui-language` merged locally, not pushed):** one in-app button «تقييم ومراجعة» on the Updates
-  and About pages (`SettingsWindow.AddRateCard` → `StoreUpdates.RequestRateAndReviewAsync`; unpackaged or Store unreachable → message `RateUnavailable`). Privacy wording changed
+  and About pages (`SettingsWindow.AddRateCard` → `StoreUpdates.RequestRateAndReviewAsync`; unpackaged or the window fails → `StoreUpdates.ReviewPage` in the Store app, so it can be tried from Debug; message `RateUnavailable` only if that fails too; the real window can be checked only in a Store install). Privacy wording changed
   everywhere; the published Store description must be updated in Partner Center with the next submission. Screenshots of About/Updates and guide PDFs: with the release.
 - **Phase 7** merged into main. `src/Itmam.Package` (.wapproj, x64 + ARM64 bundle),
   identity from Partner Center product **9P08F7KGRJB0** (`NasserAlmadi.563063310BE3D`, `CN=9260B530-9E02-440E-8E99-B74323B1CE93`,

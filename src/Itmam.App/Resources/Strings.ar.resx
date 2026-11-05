@@ -39,7 +39,7 @@
   <data name="RateTitle" xml:space="preserve"><value>قيّم إتمام</value></data>
   <data name="RateHint" xml:space="preserve"><value>امنحه نجومًا واكتب مراجعتك في نافذة متجر Microsoft، فتساعد غيرك على اكتشاف إتمام.</value></data>
   <data name="RateButton" xml:space="preserve"><value>تقييم ومراجعة</value></data>
-  <data name="RateUnavailable" xml:space="preserve"><value>يعمل التقييم في النسخة المثبّتة من متجر Microsoft، حين يمكن الوصول إلى المتجر.</value></data>
+  <data name="RateUnavailable" xml:space="preserve"><value>تعذّر فتح متجر Microsoft على هذا الجهاز.</value></data>
   <data name="AboutPrivacyLink" xml:space="preserve"><value>سياسة الخصوصية</value></data>
   <data name="LanguageArabic" xml:space="preserve"><value>العربية</value></data>
   <data name="LanguageEnglish" xml:space="preserve"><value>English</value></data>

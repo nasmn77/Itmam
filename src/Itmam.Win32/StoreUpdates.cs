@@ -37,6 +37,9 @@ public static class StoreUpdates
     /// <summary>Itmam's page in the Microsoft Store app.</summary>
     public static Uri StorePage { get; } = new($"ms-windows-store://pdp/?productid={ProductId}");
 
+    /// <summary>Itmam's review page in the Microsoft Store app, when the Store's window cannot open.</summary>
+    public static Uri ReviewPage { get; } = new($"ms-windows-store://review/?ProductId={ProductId}");
+
     /// <summary>The package version ("1.1.0") when packaged, otherwise null.</summary>
     public static string? PackageVersion
     {

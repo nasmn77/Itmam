@@ -39,7 +39,7 @@
   <data name="RateTitle" xml:space="preserve"><value>Rate Itmam</value></data>
   <data name="RateHint" xml:space="preserve"><value>Give it stars and write a review in Microsoft Store's window. It helps others find Itmam.</value></data>
   <data name="RateButton" xml:space="preserve"><value>Rate and review</value></data>
-  <data name="RateUnavailable" xml:space="preserve"><value>Rating works in the copy installed from Microsoft Store, when the Store can be reached.</value></data>
+  <data name="RateUnavailable" xml:space="preserve"><value>Microsoft Store could not be opened on this PC.</value></data>
   <data name="AboutPrivacyLink" xml:space="preserve"><value>Privacy policy</value></data>
   <data name="LanguageArabic" xml:space="preserve"><value>العربية</value></data>
   <data name="LanguageEnglish" xml:space="preserve"><value>English</value></data>

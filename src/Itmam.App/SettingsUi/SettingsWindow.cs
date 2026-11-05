@@ -1669,7 +1669,15 @@ internal sealed class SettingsWindow : Form
             rate.Invalidate();
             if (result == RateAndReview.Unavailable)
             {
-                ShowInfo(Strings.RateUnavailable);
+                // Not a Store installation, or the window could not open: the Store app's own review page.
+                try
+                {
+                    Process.Start(new ProcessStartInfo(StoreUpdates.ReviewPage.ToString()) { UseShellExecute = true });
+                }
+                catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
+                {
+                    ShowInfo(Strings.RateUnavailable);
+                }
             }
         };
         AddCard(Strings.RateTitle, Strings.RateHint, rate);
