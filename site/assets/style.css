@@ -188,6 +188,19 @@ h1 em { font-style: normal; color: var(--teal); }
 .btn.ghost { color: var(--ink); border: 1px solid var(--rule); background: color-mix(in srgb, var(--card) 70%, transparent); }
 .btn svg { width: 18px; height: 18px; flex: none; }
 
+/* Microsoft's own Store badge (from its badge generator), hosted here: the page requests nothing from elsewhere. */
+.store-badge { display: inline-block; line-height: 0; transition: transform .15s ease; }
+.store-badge:hover { transform: translateY(-1px); }
+.store-badge:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; border-radius: 6px; }
+.store-badge img { width: 200px; height: auto; }
+.store-badge .on-dark { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .store-badge .on-light { display: none; }
+  :root:not([data-theme="light"]) .store-badge .on-dark { display: inline; }
+}
+:root[data-theme="dark"] .store-badge .on-light { display: none; }
+:root[data-theme="dark"] .store-badge .on-dark { display: inline; }
+
 .note { margin-top: 16px; font-size: 14px; color: var(--ink-soft); }
 
 /* ---------- the live demo ---------- */
