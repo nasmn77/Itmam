@@ -91,7 +91,7 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
   and certification notes (the What's new history stays as published); code names (`LongPhrase…`, setting
   `LongPhrases`, `SettingsPage.LongPhrases`) unchanged so settings.json/backups keep working; guide/site screenshots
   retaken (sample data from the 2.0 session copied to the scratchpad, PrintWindow, Arabic flipped, dialog borders cropped 7 px). Long texts are reordered by dragging their cards
-  (`CardReorder`; the picker follows the settings order). After 2.1 (user decision 2026-11-05, branch `live-drag`, not merged yet): like the
+  (`CardReorder`; the picker follows the settings order). In 2.2 (user decision 2026-11-05): like the
   language list in Windows Settings — no OLE drag or insertion line: a translucent copy (`DragGhost`, click-through, 75 %, image taken with
   CopyFromScreen because drawing a mirrored Arabic window comes out mirrored) follows the mouse, the card leaves an empty gap
   (`SettingCard.SetDragHole`), the others slide 120 ms (a 15 ms timer reads the mouse; `_pageControls` is reordered live), Esc cancels,
@@ -99,11 +99,11 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
   (3) «إضافة نص…» button in the shortcut's list (`LongPhrasePicker` `addNew` → `TrayApplication.AddLongPhrase`, same
   dialog as Settings, a used name replaced after a confirmation, the new text shown SELECTED, not inserted; hidden
   while filling variables).
-- **After 2.1 (user decisions 2026-11-05, branch `ui-language`, not merged yet; `live-drag` merged locally, not pushed):** the interface language on first run
+- **In 2.2 (user decisions 2026-11-05):** the interface language on first run
   follows the Windows display language (`AppSettings.FirstRunLanguage`: Arabic if «ar», else English; `SettingsStore.Load(firstRunLanguage)` uses it only
   when there is no settings file or it is damaged, so existing users keep theirs); tray item `MenuSwitchLanguage`, written in the language it switches
   to («Switch to English» / «تبديل إلى اللغة العربية»), applied at once. Guide text updated; PDFs to rebuild with the release.
-- **After 2.1 (user decision 2026-11-05, branch `store-review`, not merged yet; `ui-language` merged locally, not pushed):** one in-app button «تقييم ومراجعة» on the Updates
+- **2.2 (version 2.2.0.0; branches `live-drag`, `ui-language`, `store-review` merged into main 2026-11-05; `release-2.2` merged into main; **Submission 9 (package 2.2.0.0 + What's new + Description privacy paragraph + screenshots 2-6, ar and en, + certification notes) SENT FOR CERTIFICATION 2026-11-05**; two builds carried the number 2.2.0.0 and the Store refused the second until the first was removed: never rebuild a number already uploaded):** one in-app button «تقييم ومراجعة» on the Updates
   and About pages (`SettingsWindow.AddRateCard` → `StoreUpdates.RequestRateAndReviewAsync`; unpackaged or the window fails → `StoreUpdates.ReviewPage` in the Store app, so it can be tried from Debug; message `RateUnavailable` only if that fails too; the real window can be checked only in a Store install). Privacy wording changed
   everywhere; the published Store description must be updated in Partner Center with the next submission. Screenshots of About/Updates and guide PDFs: with the release.
 - **Phase 7** merged into main. `src/Itmam.Package` (.wapproj, x64 + ARM64 bundle),

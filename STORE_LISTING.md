@@ -44,6 +44,13 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 
 **كلمات البحث** (7 على الأكثر): اتمام · اكمال الكلمات · اقتراح الكلمات · لوحة المفاتيح العربية · الكتابة بالعربي · التنبؤ بالنص · الكتابة التنبؤية
 
+**ما الجديد في 2.2:**
+
+- ترتيب النصوص الطويلة صار مثل إعدادات Windows: البطاقة شفافة تتبع الفأرة، والبطاقات الأخرى تفسح لها مكانًا أثناء السحب.
+- لغة الواجهة عند أول تشغيل تتبع لغة Windows: العربية إن كانت لغة العرض عربية، وإلا فالإنجليزية.
+- تبديل لغة الواجهة مباشرة من قائمة الأيقونة.
+- زر «تقييم ومراجعة» في صفحتي «التحديثات» و«حول».
+
 **ما الجديد في 2.1:**
 
 - اختيار اقتراح والمؤشر في وسط كلمة يستبدل الكلمة كلها.
@@ -143,6 +150,13 @@ Your privacy first. Itmam sends no data: no statistics, no crash reports. Its on
 - Arabic and English interface; open source (MIT)
 
 **Search terms** (7 max): Arabic keyboard · Arabic word prediction · Arabic autocomplete · predictive text · word suggestions · Arabic typing · اتمام
+
+**What's new in 2.2:**
+
+- Reordering long texts now works like Windows Settings: a translucent card follows the mouse and the others make room while you drag.
+- On first run the interface language follows Windows: Arabic if Windows is displayed in Arabic, English otherwise.
+- Switch the interface language directly from the tray menu.
+- A "Rate and review" button on the Updates and About pages.
 
 **What's new in 2.1:**
 
