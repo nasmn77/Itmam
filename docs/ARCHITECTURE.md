@@ -225,6 +225,7 @@
 - الإعدادات: `%LOCALAPPDATA%\Itmam\settings.json` (‏`SettingsStore`: ملف مؤقت ثم استبدال؛ الملف التالف يُحفظ باسم `settings.json.corrupt-*` وتُستخدم القيم الافتراضية). تفضيلات فقط، بلا أي نص مكتوب.
 - المظهر: `PopupAppearance.From(AppSettings)` ← `PopupColors.For(appearance)` (ألوان السمة، أو خلفية مخصصة مع نص أسود أو أبيض يُختار بتباين WCAG عبر `ColorContrast`). `BarRenderer` يرسم عناصر الشريط الحقيقي والمعاينة الحية في صفحة «المظهر» معًا. العتامة بنافذة طبقية (`Form.Opacity`) لا تفعّل الشريط ولا تُظهره.
 - التشغيل مع Windows (`StartupRegistration`): ‏`StartupTask` باسم "ItmamStartup" في حزمة MSIX (يُطابَق مع الإعداد عند البدء)؛ و`HKCU\…\Run` دون حزمة، فقط حين يفعّله المستخدم من الإعدادات (نسخ التطوير لا تُسجَّل تلقائيًا أبدًا).
+- التقييم والمراجعة (بعد 2.1، قرار المستخدم): زر واحد في صفحتي «التحديثات» و«حول» يستدعي `StoreUpdates.RequestRateAndReviewAsync` الدالة `StoreContext.RequestRateAndReviewAppAsync` عند الضغط فقط، فتظهر نافذة المتجر، وما يُكتب فيها لا يمر عبر إتمام. في نسخة المتجر فقط.
 - التحديثات (من الإصدار 1.1، قرار المستخدم): بعد 12 ثانية من البدء، وإن كان «البحث عن التحديثات» مفعّلًا، يستدعي `StoreUpdates.CheckAsync` الدالة `StoreContext.GetAppAndOptionalStorePackageUpdatesAsync`. خدمة المتجر في Windows هي التي تتصل، والحزمة بلا صلاحية `internetClient`. إن وُجد تحديث يظهر إشعار يفتح النقرُ عليه `ms-windows-store://pdp/?productid=9P08F7KGRJB0`. لا يعمل إلا في نسخة المتجر؛ ونسخ التطوير والتجربة تعطي «غير متاح». صفحة «التحديثات» تعرض الإصدار وتبحث عند الطلب.
 - الإشعارات: عند تغيّر حالة التشغيل (القائمة، أو اختصار التشغيل، أو الإيقاف المؤقت وانتهاؤه) يظهر إشعار من الأيقونة، ما دام «إشعار عند إيقاف إتمام واستئنافه» مفعّلًا. الخروج من القائمة أو من الإعدادات يطلب تأكيدًا؛ وتسجيل الخروج من Windows لا يطلبه.
 
@@ -233,7 +234,7 @@
 - الحروف المكتوبة توجد في الذاكرة فقط: في القناة، وفي `WordBuffer` (ومنها ما كُتب أثناء انتظار قراءة السياق)، وعلى الشاشة.
 - النص الوحيد الذي يُقرأ من التطبيقات الأخرى هو ما لا يزيد عن 49 حرفًا قبل المؤشر داخل الحقل نفسه (لا يتجاوز بدايته، فلا يُقرأ ما قبله في صفحات الويب)، بعد انتقال المؤشر إلى نص موجود، وأبدًا من حقول كلمات المرور أو التطبيقات المستثناة؛ ولا يُحتفظ إلا بالكلمة الحالية.
 - آخر 8 كلمات متتالية (للعبارات) تبقى في الذاكرة فقط وتُنسى عند أي حركة للمؤشر. ولا يُحفظ من ترتيب الكلمات إلا تسلسلات من كلمتين إلى 5 مع عددها (العبارات المتعلَّمة، قابلة للإطفاء)، وما لم يتكرر يُحذف بعد 30 يومًا.
-- السؤال الوحيد الذي يخرج من الجهاز هو سؤال متجر Microsoft عن وجود إصدار أحدث (`StoreUpdates`، قابل للإطفاء)، ولا يحمل شيئًا عن المستخدم أو عما يكتبه.
+- لا يخرج من الجهاز تلقائيًا إلا سؤال متجر Microsoft عن وجود إصدار أحدث (`StoreUpdates`، قابل للإطفاء)، ولا يحمل شيئًا عن المستخدم أو عما يكتبه.
 - لا يكتب أي مسار في الشيفرة حروفًا في سجل أو ملف أو شبكة. قائمة الأحداث في نافذة التشخيص تعرض *أنواع* الأحداث وأزمنتها فقط (الحروف تظهر بصيغة `Character (letter)`).
 - تشخيص الخطافات (`HookDiagnostics`) عدّادات وأزمنة فقط.
 - الكلمات المتعلَّمة تُحفظ بصيغة «الكلمة ← العدد / آخر استعمال» فقط، مع وسم لغتها من الإصدار 2.0 (انظر «التعلّم والتخزين»)، ولا تُنسخ إلى أي مكان إلا بتصدير يختاره المستخدم إلى ملف يختاره.
@@ -631,6 +632,7 @@ nothing:
 - Start with Windows (`StartupRegistration`): MSIX `StartupTask` "ItmamStartup" when packaged
   (synced with the setting at start-up); `HKCU\…\Run` when unpackaged, only when the user switches it
   on in Settings (development builds are never registered automatically).
+- Rate and review (after 2.1, user decision): one button on the Updates and About pages.
 - Updates (from 1.1, user decision): 12 s after start-up, if "Check for updates" is on, `StoreUpdates.CheckAsync` calls
   `StoreContext.GetAppAndOptionalStorePackageUpdatesAsync`. The Store service in Windows does the network work; the
   package has no `internetClient` capability. If an update exists, a notification opens
@@ -650,8 +652,10 @@ nothing:
 - The last 8 words in a row (for phrases) stay in memory only and are forgotten on any caret move. Word order is
   stored only as 2–5-word sequences with their counts (learned phrases, can be turned off); one not repeated is
   deleted after 30 days.
-- The only question that leaves the device is asking Microsoft Store whether a newer version exists (`StoreUpdates`,
-  can be turned off); it carries nothing about the user or what they type.
+- The only automatic question that leaves the device is asking Microsoft Store whether a newer version exists
+  (`StoreUpdates`, can be turned off); it carries nothing about the user or what they type. "Rate and review"
+  (`StoreUpdates.RequestRateAndReviewAsync`, `StoreContext.RequestRateAndReviewAppAsync`, Store installations only) opens
+  the Store's own window, only on a button press; what is written there does not pass through Itmam.
 - No code path writes characters to a log, file, or the network. The diagnostics window's event list
   shows event *kinds* and latencies only (letters are shown as `Character (letter)`).
 - Hook diagnostics (`HookDiagnostics`) are counters and timings only.

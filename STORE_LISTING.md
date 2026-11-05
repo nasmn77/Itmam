@@ -18,7 +18,7 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 
 ويوفّر عليك الكتابة المتكررة: يكمل العبارات المعروفة، ويحوّل اختصاراتك إلى نصوص كاملة، ويدرج ردودًا طويلة من عدة أسطر، مثل ردود الدعم الفني، بضغطة اختصار.
 
-خصوصيتك أولًا. لا يرسل إتمام أي بيانات: لا إحصاءات ولا تقارير أعطال. الاتصال الوحيد سؤال متجر Microsoft عن التحديثات، ويمكن إيقافه. ولا يحفظ نصوصك: يحفظ الكلمات والعبارات القصيرة التي تكررها مع عدد مرات استعمالها فقط، على جهازك. ولا يعمل في حقول كلمات المرور ولا في التطبيقات التي تستثنيها. والشيفرة المصدرية مفتوحة للمراجعة على GitHub.
+خصوصيتك أولًا. لا يرسل إتمام أي بيانات: لا إحصاءات ولا تقارير أعطال. الاتصال التلقائي الوحيد سؤال متجر Microsoft عن التحديثات، ويمكن إيقافه. ولا يحفظ نصوصك: يحفظ الكلمات والعبارات القصيرة التي تكررها مع عدد مرات استعمالها فقط، على جهازك. ولا يعمل في حقول كلمات المرور ولا في التطبيقات التي تستثنيها. والشيفرة المصدرية مفتوحة للمراجعة على GitHub.
 
 **المزايا** (حتى 20 بندًا):
 - اقتراحات فورية أثناء الكتابة في أي برنامج
@@ -118,7 +118,7 @@ It works in Notepad, Word, browsers and most apps, with an Arabic dictionary of 
 
 It also saves you repeated typing: it completes well-known phrases, turns your shortcuts into full text, and inserts long replies of several lines, such as support answers, with one shortcut.
 
-Your privacy first. Itmam sends no data: no statistics, no crash reports. Its only connection is asking Microsoft Store about updates, and it can be turned off. Your text is not saved: only the words and short phrases you repeat, with how many times you used them, on your PC. It does nothing in password fields or in apps you exclude. The source code is open for review on GitHub.
+Your privacy first. Itmam sends no data: no statistics, no crash reports. Its only automatic connection is asking Microsoft Store about updates, and it can be turned off. Your text is not saved: only the words and short phrases you repeat, with how many times you used them, on your PC. It does nothing in password fields or in apps you exclude. The source code is open for review on GitHub.
 
 **Features** (up to 20):
 - Instant suggestions as you type, in any app
@@ -249,8 +249,10 @@ Paste into Partner Center → Submission options → Notes for certification.
 > current word is kept, in memory).
 > - Keys are tracked only while the foreground window uses a layout of a language turned on (Arabic and English by
 >   default); never with input method editors (Chinese, Japanese, Korean).
-> - Nothing typed is logged or sent anywhere; the app has no network capability. Its only online request is the
->   update check through `Windows.Services.Store.StoreContext` (Store service; can be turned off in Settings → Updates).
+> - Nothing typed is logged or sent anywhere; the app has no network capability. Its only automatic online request is
+>   the update check through `Windows.Services.Store.StoreContext` (Store service; can be turned off in Settings →
+>   Updates). The "Rate and review" button (Updates and About pages) calls `RequestRateAndReviewAppAsync` only when
+>   pressed.
 > - Only word → use count / last use is stored, locally (`%LOCALAPPDATA%\Itmam\user.db`), plus 2–5-word sequences
 >   with their counts to learn repeated phrases (can be turned off; sequences not repeated are deleted after 30 days).
 > - Long texts (replies the user saved, list opened with Ctrl+Shift+Space) are inserted by pasting: the user's
