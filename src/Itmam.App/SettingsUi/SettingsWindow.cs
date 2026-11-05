@@ -1575,22 +1575,13 @@ internal sealed class SettingsWindow : Form
             cards.Add(AddCard(phrase.Name, LongPhrases.Preview(phrase.Text), new ButtonRow(change, remove)));
         }
 
-        CardReorder.Attach(_content, cards, _palette.Accent, (from, to) =>
+        // Saved by name, without rebuilding the page: the cards are already in their places.
+        CardReorder.Attach(_content, cards, _pageControls, LayoutPage, order => Update(s =>
         {
-            var moved = phrases[from];
-            Update(s =>
-            {
-                var list = s.LongPhrases.ToList();
-                if (list.FindIndex(p => p.Name == moved.Name) is var index and >= 0)
-                {
-                    list.RemoveAt(index);
-                    list.Insert(Math.Min(to, list.Count), moved);
-                }
-
-                return s with { LongPhrases = list };
-            });
-            BeginInvoke(RebuildPage); // after the drop is handled
-        });
+            var names = order.Select(i => phrases[i].Name).ToList();
+            var ordered = names.Select(name => s.LongPhrases.FirstOrDefault(p => p.Name == name)).OfType<LongPhrase>();
+            return s with { LongPhrases = [.. ordered, .. s.LongPhrases.Where(p => !names.Contains(p.Name))] };
+        }));
     }
 
     // Add (existing = null) or edit a long phrase; a name already used is replaced after a confirmation.

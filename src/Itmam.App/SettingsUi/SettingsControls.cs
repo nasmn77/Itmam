@@ -441,6 +441,43 @@ internal sealed class SettingCard : Panel
     }
 
     private bool _showGrip;
+    private bool _dragHole;
+    private readonly List<Control> _hiddenForHole = [];
+
+    /// <summary>The card is being dragged: only an empty gap stays in the list (<see cref="CardReorder"/>).</summary>
+    public void SetDragHole(bool hole)
+    {
+        if (hole == _dragHole)
+        {
+            return;
+        }
+
+        _dragHole = hole;
+        if (hole)
+        {
+            _hiddenForHole.Clear();
+            foreach (Control child in Controls)
+            {
+                if (child.Visible)
+                {
+                    _hiddenForHole.Add(child);
+                    child.Visible = false;
+                }
+            }
+        }
+        else
+        {
+            foreach (var child in _hiddenForHole)
+            {
+                child.Visible = true;
+            }
+
+            _hiddenForHole.Clear();
+            PerformLayout();
+        }
+
+        Invalidate();
+    }
 
     private int GripWidth => _showGrip ? (int)(20 * DeviceDpi / 96f) : 0;
 
@@ -480,6 +517,11 @@ internal sealed class SettingCard : Panel
     protected override void OnLayout(LayoutEventArgs levent)
     {
         base.OnLayout(levent);
+        if (_dragHole)
+        {
+            return; // its text is hidden: the height must not follow
+        }
+
         var scale = DeviceDpi / 96f;
         var padding = (int)(16 * scale);
         var rtl = RightToLeft == RightToLeft.Yes;
@@ -556,6 +598,11 @@ internal sealed class SettingCard : Panel
 
     protected override void OnPaint(PaintEventArgs e)
     {
+        if (_dragHole)
+        {
+            return; // the window's color: an empty gap
+        }
+
         var g = e.Graphics;
         g.SmoothingMode = SmoothingMode.AntiAlias;
         var bounds = new RectangleF(0.5f, 0.5f, Width - 1.5f, Height - 1.5f);
