@@ -49,7 +49,7 @@ Shortcuts can be changed in Settings → "Keyboard shortcuts".
 Click the Itmam icon next to the clock (right or left button) and choose "Settings":
 
 - **General:** start with Windows, number of suggestions, letters before they appear.
-- **Languages:** the interface language, the keyboard languages on your PC and what Itmam does with each, turning them on or off (a
+- **Languages:** the interface language (it starts in Arabic if Windows is displayed in Arabic and in English otherwise, and the tray menu switches it too), the keyboard languages on your PC and what Itmam does with each, turning them on or off (a
   language turned off frees its dictionary from memory at once), and the Arabic and English dictionaries (basic or Wikipedia).
 - **Appearance:** theme, bar, text and selection colors, opacity, text size, with a live preview.
 - **Shortcuts:** record a new shortcut by pressing it; shortcuts that would break typing or Windows shortcuts are refused.
@@ -59,7 +59,7 @@ Click the Itmam icon next to the clock (right or left button) and choose "Settin
 - **Text shortcuts:** add a shortcut («ع1») and its text, edit, delete, import and export.
 - **Long texts:** add a text with its name and content (up to 4,000 characters, several lines), "Insert variable…", edit, delete, reorder by dragging, import and export. Texts can also be added from the shortcut's list itself.
 - **Phrases in the bar** (My phrases page): at its start or at its end, after the words.
-- **Updates:** the version, and checking for an update through Microsoft Store.
+- **Updates:** the version, checking for an update through Microsoft Store, and "Rate and review" (also on the About page).
 
 ## The icon next to the clock
 
@@ -76,7 +76,7 @@ Itmam has no main window and no taskbar button; it runs from an icon next to the
 
 ## Privacy
 
-- Itmam sends no data: no statistics, no crash reports. Its only automatic connection is asking Microsoft Store about updates, and it can be turned off in Settings → "Updates".
+- Itmam sends no data: no statistics, no crash reports. Its only automatic connection is asking Microsoft Store about updates, and it can be turned off in Settings → "Updates". "Rate and review" opens the Store's window only when you press it.
 - For each word only the word, how many times it was used and when are kept, in a file on your device. No sentences.
 - To learn phrases, short sequences (2 to 5 words) are kept with their counts; one not typed twice is deleted after 30 days. This can be turned off in Settings.
 - Nothing is read or learned in password fields or excluded apps.
