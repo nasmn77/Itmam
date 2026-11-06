@@ -106,6 +106,7 @@ Arabic as-you-type word prediction for the physical keyboard on Windows, shipped
 - **2.2 (version 2.2.0.0; branches `live-drag`, `ui-language`, `store-review` merged into main 2026-11-05; `release-2.2` merged into main; **Submission 9 (package 2.2.0.0 + What's new + Description privacy paragraph + screenshots 2-6, ar and en, + certification notes) SENT FOR CERTIFICATION 2026-11-05, PUBLISHED 2026-11-06 (the user confirmed)**; site feature cards 19-21, READMEs and the site's appearance image updated afterwards; two builds carried the number 2.2.0.0 and the Store refused the second until the first was removed: never rebuild a number already uploaded):** one in-app button «تقييم ومراجعة» on the Updates
   and About pages (`SettingsWindow.AddRateCard` → `StoreUpdates.RequestRateAndReviewAsync`; unpackaged or the window fails → `StoreUpdates.ReviewPage` in the Store app, so it can be tried from Debug; message `RateUnavailable` only if that fails too; the real window can be checked only in a Store install). Privacy wording changed
   everywhere, Store description included.
+- **2.2.1 (version 2.2.1.0, branch `release-2.2.1`; user decision 2026-11-06):** the user found in the published 2.2 that the in-app rating window opens but Send does nothing, while sending from the Store app works; cause unknown (the window can be tried only in a Store install). The button now opens `StoreUpdates.ReviewPage`; `RequestRateAndReviewAsync` removed. Not built into a new number until the user tried it: never upload a number that may be rebuilt.
 - **Phase 7** merged into main. `src/Itmam.Package` (.wapproj, x64 + ARM64 bundle),
   identity from Partner Center product **9P08F7KGRJB0** (`NasserAlmadi.563063310BE3D`, `CN=9260B530-9E02-440E-8E99-B74323B1CE93`,
   PublisherDisplayName "Nasser Almadi"; reserved names «إتمام» + "Itmam"; a separate draft product «اتمام» without hamza
@@ -187,8 +188,8 @@ Tests run on Microsoft.Testing.Platform (opted in via `global.json` → `test.ru
   2026-10-29, from 1.1):** `StoreUpdates` asks Microsoft Store through `StoreContext` whether a newer package exists
   (12 s after start-up, setting "CheckForUpdates", default on); the Store service does the network work, nothing else is
   sent. Documented in the privacy policy (docs/PRIVACY.md, site/) — keep it in sync. **Exception (user decision, 2026-11-05,
-  after 2.1):** the button «تقييم ومراجعة» / "Rate and review" (Updates and About pages) calls `StoreContext.RequestRateAndReviewAppAsync`
-  only when pressed; published wording: "its only AUTOMATIC connection is the Store update check".
+  after 2.1):** the button «تقييم ومراجعة» / "Rate and review" (Updates and About pages) opens the Store app's review page
+  only when pressed (from 2.2.1; `StoreContext.RequestRateAndReviewAppAsync` in 2.2 showed a window whose Send button did nothing); published wording: "its only AUTOMATIC connection is the Store update check".
 - Never log typed characters. Debug logs (Debug builds only) contain event types and timings only.
 - Learn only word → count/last-used. Never sentences. Never learn in password fields or excluded apps.
   **Exception (user decision, 2026-10-29, from 1.1):** 2–5-word sequences → count/last-used (learned phrases, setting

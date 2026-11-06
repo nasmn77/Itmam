@@ -1651,33 +1651,19 @@ internal sealed class SettingsWindow : Form
         AddRateCard();
     }
 
-    // User decision (after 2.1): one button, on the Updates and About pages, for the Store's own window.
+    // User decision: one button, on the Updates and About pages, for Itmam's review page in the Store app.
     private void AddRateCard()
     {
         var rate = new ThemedButton { Text = Strings.RateButton };
-        rate.Click += async (_, _) =>
+        rate.Click += (_, _) =>
         {
-            rate.Enabled = false;
-            rate.Invalidate();
-            var result = await StoreUpdates.RequestRateAndReviewAsync(Handle);
-            if (rate.IsDisposed)
+            try
             {
-                return; // the page was left meanwhile
+                Process.Start(new ProcessStartInfo(StoreUpdates.ReviewPage.ToString()) { UseShellExecute = true });
             }
-
-            rate.Enabled = true;
-            rate.Invalidate();
-            if (result == RateAndReview.Unavailable)
+            catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
             {
-                // Not a Store installation, or the window could not open: the Store app's own review page.
-                try
-                {
-                    Process.Start(new ProcessStartInfo(StoreUpdates.ReviewPage.ToString()) { UseShellExecute = true });
-                }
-                catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
-                {
-                    ShowInfo(Strings.RateUnavailable);
-                }
+                ShowInfo(Strings.RateUnavailable);
             }
         };
         AddCard(Strings.RateTitle, Strings.RateHint, rate);

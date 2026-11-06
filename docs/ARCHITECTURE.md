@@ -225,7 +225,7 @@
 - الإعدادات: `%LOCALAPPDATA%\Itmam\settings.json` (‏`SettingsStore`: ملف مؤقت ثم استبدال؛ الملف التالف يُحفظ باسم `settings.json.corrupt-*` وتُستخدم القيم الافتراضية). تفضيلات فقط، بلا أي نص مكتوب.
 - المظهر: `PopupAppearance.From(AppSettings)` ← `PopupColors.For(appearance)` (ألوان السمة، أو خلفية مخصصة مع نص أسود أو أبيض يُختار بتباين WCAG عبر `ColorContrast`). `BarRenderer` يرسم عناصر الشريط الحقيقي والمعاينة الحية في صفحة «المظهر» معًا. العتامة بنافذة طبقية (`Form.Opacity`) لا تفعّل الشريط ولا تُظهره.
 - التشغيل مع Windows (`StartupRegistration`): ‏`StartupTask` باسم "ItmamStartup" في حزمة MSIX (يُطابَق مع الإعداد عند البدء)؛ و`HKCU\…\Run` دون حزمة، فقط حين يفعّله المستخدم من الإعدادات (نسخ التطوير لا تُسجَّل تلقائيًا أبدًا).
-- التقييم والمراجعة (بعد 2.1، قرار المستخدم): زر واحد في صفحتي «التحديثات» و«حول» يستدعي `StoreUpdates.RequestRateAndReviewAsync` الدالة `StoreContext.RequestRateAndReviewAppAsync` عند الضغط فقط، فتظهر نافذة المتجر، وما يُكتب فيها لا يمر عبر إتمام. وإن تعذّرت (ليست نسخة المتجر مثلًا) يفتح `ms-windows-store://review/?ProductId=9P08F7KGRJB0` في تطبيق المتجر.
+- التقييم والمراجعة (بعد 2.1، قرار المستخدم): زر واحد في صفحتي «التحديثات» و«حول» يفتح عند الضغط فقط `ms-windows-store://review/?ProductId=9P08F7KGRJB0` في تطبيق المتجر، وما يُكتب هناك لا يمر عبر إتمام. (في 2.2 كان يستدعي `RequestRateAndReviewAppAsync`، فظهرت النافذة ولم يعمل زر الإرسال فيها، فأُزيل في 2.2.1.)
 - التحديثات (من الإصدار 1.1، قرار المستخدم): بعد 12 ثانية من البدء، وإن كان «البحث عن التحديثات» مفعّلًا، يستدعي `StoreUpdates.CheckAsync` الدالة `StoreContext.GetAppAndOptionalStorePackageUpdatesAsync`. خدمة المتجر في Windows هي التي تتصل، والحزمة بلا صلاحية `internetClient`. إن وُجد تحديث يظهر إشعار يفتح النقرُ عليه `ms-windows-store://pdp/?productid=9P08F7KGRJB0`. لا يعمل إلا في نسخة المتجر؛ ونسخ التطوير والتجربة تعطي «غير متاح». صفحة «التحديثات» تعرض الإصدار وتبحث عند الطلب.
 - الإشعارات: عند تغيّر حالة التشغيل (القائمة، أو اختصار التشغيل، أو الإيقاف المؤقت وانتهاؤه) يظهر إشعار من الأيقونة، ما دام «إشعار عند إيقاف إتمام واستئنافه» مفعّلًا. الخروج من القائمة أو من الإعدادات يطلب تأكيدًا؛ وتسجيل الخروج من Windows لا يطلبه.
 
@@ -654,9 +654,9 @@ nothing:
   deleted after 30 days.
 - The only automatic question that leaves the device is asking Microsoft Store whether a newer version exists
   (`StoreUpdates`, can be turned off); it carries nothing about the user or what they type. "Rate and review"
-  (`StoreUpdates.RequestRateAndReviewAsync`, `StoreContext.RequestRateAndReviewAppAsync`) opens the Store's own window, only
-  on a button press; what is written there does not pass through Itmam. If that fails (for example, not a Store
-  installation), it opens `ms-windows-store://review/?ProductId=9P08F7KGRJB0` in the Store app.
+  opens `ms-windows-store://review/?ProductId=9P08F7KGRJB0` in the Store app, only on a button press; what is written
+  there does not pass through Itmam. (In 2.2 it called `RequestRateAndReviewAppAsync`: the window opened but its Send
+  button did nothing, so it was removed in 2.2.1.)
 - No code path writes characters to a log, file, or the network. The diagnostics window's event list
   shows event *kinds* and latencies only (letters are shown as `Character (letter)`).
 - Hook diagnostics (`HookDiagnostics`) are counters and timings only.

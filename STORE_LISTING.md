@@ -44,6 +44,10 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 
 **كلمات البحث** (7 على الأكثر): اتمام · اكمال الكلمات · اقتراح الكلمات · لوحة المفاتيح العربية · الكتابة بالعربي · التنبؤ بالنص · الكتابة التنبؤية
 
+**ما الجديد في 2.2.1:**
+
+- إصلاح زر «تقييم ومراجعة»: كان إرسال المراجعة من نافذته لا يعمل، فصار يفتح صفحة المراجعة في تطبيق المتجر.
+
 **ما الجديد في 2.2:**
 
 - ترتيب النصوص الطويلة صار مثل إعدادات Windows: البطاقة شفافة تتبع الفأرة، والبطاقات الأخرى تفسح لها مكانًا أثناء السحب.
@@ -150,6 +154,10 @@ Your privacy first. Itmam sends no data: no statistics, no crash reports. Its on
 - Arabic and English interface; open source (MIT)
 
 **Search terms** (7 max): Arabic keyboard · Arabic word prediction · Arabic autocomplete · predictive text · word suggestions · Arabic typing · اتمام
+
+**What's new in 2.2.1:**
+
+- Fixed the "Rate and review" button: sending a review from its window did not work, so it now opens the review page in the Store app.
 
 **What's new in 2.2:**
 
@@ -265,8 +273,8 @@ Paste into Partner Center → Submission options → Notes for certification.
 >   default); never with input method editors (Chinese, Japanese, Korean).
 > - Nothing typed is logged or sent anywhere; the app has no network capability. Its only automatic online request is
 >   the update check through `Windows.Services.Store.StoreContext` (Store service; can be turned off in Settings →
->   Updates). The "Rate and review" button (Updates and About pages) calls `RequestRateAndReviewAppAsync` only when
->   pressed.
+>   Updates). The "Rate and review" button (Updates and About pages) opens Itmam's review page in the Store app only
+>   when pressed.
 > - Only word → use count / last use is stored, locally (`%LOCALAPPDATA%\Itmam\user.db`), plus 2–5-word sequences
 >   with their counts to learn repeated phrases (can be turned off; sequences not repeated are deleted after 30 days).
 > - Long texts (replies the user saved, list opened with Ctrl+Shift+Space) are inserted by pasting: the user's
@@ -279,7 +287,7 @@ Paste into Partner Center → Submission options → Notes for certification.
 > **Windows App Certification Kit.** "Blocked executables" lists strings such as `cmd` inside the self-contained .NET 10
 > runtime files and the compressed dictionary data, and `Process.Start` / `ShellExecute`, which Itmam uses only to
 > open https links in the user's browser (About page), Itmam's own Store page when an update is available, its review
-> page if the Store's rating window cannot open, and the
+> page ("Rate and review"), and the
 > Windows typing settings page (`ms-settings:typing`, Settings → Languages, to turn off Windows' own suggestion bar). Itmam
 > never launches other programs. The High-DPI warning: WinForms sets PerMonitorV2 at start-up
 > (`ApplicationHighDpiMode`), not in the manifest.
