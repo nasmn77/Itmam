@@ -39,7 +39,9 @@ internal sealed class ArabicLanguage : LanguageProfile
         _ => string.Empty,
     };
 
-    public override string KeyAlphabet => "ابتثجحخدذرزسشصضطظعغفقكلمنهويءؤئ";
+    public override bool EndsWordsOnly(char letter) => letter is 'ة' or 'ى';
+
+    public override string KeyAlphabet =>"ابتثجحخدذرزسشصضطظعغفقكلمنهويءؤئ";
 
     public override string Id => "ar";
 
