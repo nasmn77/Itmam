@@ -25,6 +25,13 @@ public sealed record AppSettings
     /// <summary>Itmam suggests words (tray "Enable/Disable", Ctrl+Alt by default).</summary>
     public bool Enabled { get; init; } = true;
 
+    /// <summary>
+    /// The suggestion bar. Off (for people who only want long texts): it appears only for a text shortcut typed
+    /// exactly, nothing is learned and the dictionaries leave memory; with no text shortcuts typing is not followed
+    /// at all. The keyboard shortcuts keep working (user decisions after 2.2.1).
+    /// </summary>
+    public bool ShowSuggestionBar { get; init; } = true;
+
     /// <summary>Start Itmam when the user signs in.</summary>
     public bool StartWithWindows { get; init; } = true;
 

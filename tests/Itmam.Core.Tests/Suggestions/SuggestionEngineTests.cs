@@ -1,4 +1,5 @@
 using Itmam.Core.Dictionary;
+using Itmam.Core.Languages;
 using Itmam.Core.Learning;
 using Itmam.Core.Suggestions;
 
@@ -22,6 +23,134 @@ public class SuggestionEngineTests
         var engine = Engine(TestDictionaries.Of(("كتاب", 100), ("كتب", 300), ("كتابة", 30), ("كتيب", 1)));
 
         Words(engine.Suggest("كت")).ShouldBe(["كتب", "كتاب", "كتابة"]);
+    }
+
+    private static readonly SuggestionOptions AnyFrequency = new() { MaxSuggestions = 3, KeyTypoMinScore = double.NegativeInfinity, KeyTypoMinBaseScore = double.NegativeInfinity };
+
+    [Fact]
+    public void A_key_next_to_the_right_one_still_finds_the_word()
+    {
+        var suggestions = Engine(TestDictionaries.Of(("موظف", 100)), AnyFrequency).Suggest("مزظ");
+
+        Words(suggestions).ShouldBe(["موظف"]);
+        suggestions[0].Kind.ShouldBe(MatchKind.KeyTypo);
+    }
+
+    [Fact]
+    public void A_key_far_from_the_right_one_finds_nothing() =>
+        Engine(TestDictionaries.Of(("موظف", 100)), AnyFrequency).Suggest("مقظ").ShouldBeEmpty();
+
+    [Fact]
+    public void A_whole_word_can_be_the_correction() =>
+        Words(Engine(TestDictionaries.Of(("موظف", 100)), AnyFrequency).Suggest("مزظف")).ShouldBe(["موظف"]);
+
+    [Fact]
+    public void A_correct_word_with_no_longer_forms_is_not_corrected() =>
+        Engine(TestDictionaries.Of(("موظف", 100), ("موزف", 50)), AnyFrequency).Suggest("موزف").ShouldBeEmpty();
+
+    [Fact]
+    public void A_learned_word_is_not_corrected()
+    {
+        _user.RecordUse("مزظو", Now);
+
+        Engine(TestDictionaries.Of(("موظو", 100)), AnyFrequency).Suggest("مزظو").ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void Corrections_only_when_nothing_else_matches() =>
+        Words(Engine(TestDictionaries.Of(("موظف", 100), ("مزظا", 1)), AnyFrequency).Suggest("مزظ")).ShouldBe(["مزظا"]);
+
+    private static readonly SuggestionOptions RareMatches = new()
+    {
+        MaxSuggestions = 3,
+        KeyTypoRareWordScore = double.PositiveInfinity,
+        KeyTypoStrongScore = double.NegativeInfinity,
+    };
+
+    [Fact]
+    public void A_rare_misspelling_in_the_dictionary_is_corrected() =>
+        Words(Engine(TestDictionaries.Of(("مدرسة", 1000), ("مدرية", 1)), RareMatches).Suggest("مدرية")).ShouldContain("مدرسة");
+
+    [Fact]
+    public void The_start_of_a_longer_word_is_not_corrected() =>
+        Words(Engine(TestDictionaries.Of(("موظف", 1000), ("مزظا", 1)), RareMatches).Suggest("مزظ")).ShouldBe(["مزظا"]);
+
+    [Fact]
+    public void A_common_typed_word_is_not_corrected() =>
+        Engine(TestDictionaries.Of(("مدرسة", 1000), ("مدرية", 1)), RareMatches with { KeyTypoRareWordScore = double.NegativeInfinity }).Suggest("مدرية").ShouldBeEmpty();
+
+    [Fact]
+    public void Only_a_common_correction_replaces_rare_matches() =>
+        Engine(TestDictionaries.Of(("مدرسة", 1000), ("مدرية", 1)), RareMatches with { KeyTypoStrongScore = double.PositiveInfinity }).Suggest("مدرية").ShouldBeEmpty();
+
+    [Theory]
+    [InlineData("مدسرة")] // two letters swapped
+    [InlineData("مدرسسة")] // a letter too many
+    [InlineData("مدسة")] // a letter missing
+    public void One_typing_mistake_is_undone(string typed) =>
+        Words(Engine(TestDictionaries.Of(("مدرسة", 100)), AnyFrequency).Suggest(typed)).ShouldBe(["مدرسة"]);
+
+    [Theory]
+    [InlineData("نضارة", "نظارة")]
+    [InlineData("زهب", "ذهب")]
+    [InlineData("سوب", "ثوب")]
+    public void A_letter_that_sounds_alike_is_corrected(string typed, string word) =>
+        Words(Engine(TestDictionaries.Of((word, 100)), AnyFrequency).Suggest(typed)).ShouldBe([word]);
+
+    [Fact]
+    public void Two_mistakes_are_not_undone() =>
+        Engine(TestDictionaries.Of(("مدرسة", 100)), AnyFrequency).Suggest("مقسسة").ShouldBeEmpty();
+
+    [Fact]
+    public void A_missing_space_is_added()
+    {
+        var options = AnyFrequency with { KeyTypoSplitMinScore = double.NegativeInfinity };
+
+        Words(Engine(TestDictionaries.Of(("في", 100), ("البيت", 100)), options).Suggest("فيالبيت")).ShouldBe(["في البيت"]);
+    }
+
+    [Fact]
+    public void A_rare_word_in_the_dictionary_loses_no_letter_and_gets_no_space()
+    {
+        var options = RareMatches with { KeyTypoMinScore = double.NegativeInfinity, KeyTypoMinBaseScore = double.NegativeInfinity, KeyTypoSplitMinScore = double.NegativeInfinity };
+
+        Engine(TestDictionaries.Of(("طاولة", 1000), ("مطاولة", 1)), options).Suggest("مطاولة").ShouldBeEmpty();
+        Engine(TestDictionaries.Of(("شارع", 1000), ("ولدي", 1000), ("شارعولدي", 1)), options).Suggest("شارعولدي").ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void A_short_second_part_is_not_split_off() =>
+        Engine(TestDictionaries.Of(("حملت", 100), ("ها", 100)), AnyFrequency with { KeyTypoSplitMinScore = double.NegativeInfinity })
+            .Suggest("حملتها").ShouldBeEmpty();
+
+    [Fact]
+    public void A_missing_space_needs_two_common_words() =>
+        Engine(TestDictionaries.Of(("في", 100), ("البيت", 100)), AnyFrequency with { KeyTypoSplitMinScore = double.PositiveInfinity })
+            .Suggest("فيالبيت").ShouldBeEmpty();
+
+    [Fact]
+    public void A_blocked_word_is_not_used_for_a_correction()
+    {
+        _user.SetBlocked("مدرسة", blocked: true, Now);
+
+        Engine(TestDictionaries.Of(("مدرسة", 100)), AnyFrequency).Suggest("مدسرة").ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void Two_letters_are_too_few_to_correct() =>
+        Engine(TestDictionaries.Of(("موظف", 100)), AnyFrequency).Suggest("مز").ShouldBeEmpty();
+
+    [Fact]
+    public void Rare_corrections_are_left_out() =>
+        Engine(TestDictionaries.Of(("موظف", 100)), AnyFrequency with { KeyTypoMinScore = double.PositiveInfinity }).Suggest("مزظ").ShouldBeEmpty();
+
+    [Fact]
+    public void Keyboard_neighbors_follow_the_standard_layouts()
+    {
+        LanguageProfile.Arabic.KeyNeighbors('ز').ShouldBe("كمظو", ignoreOrder: true);
+        LanguageProfile.Arabic.KeyNeighbors('ه').ShouldContain('و'); // ة shares its key letter with ه
+        LanguageProfile.English.KeyNeighbors('r').ShouldBe("etdf", ignoreOrder: true);
+        LanguageProfile.Arabic.KeyNeighbors('x').ShouldBeEmpty();
     }
 
     [Fact]

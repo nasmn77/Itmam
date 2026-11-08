@@ -116,6 +116,18 @@ public abstract class LanguageProfile
     public virtual IReadOnlyList<string> FallbackVariants(string normalizedKey) => [];
 
     /// <summary>
+    /// The matching-key letters next to this one on the language's standard keyboard, for a key pressed by
+    /// mistake; empty when the keyboard is not known.
+    /// </summary>
+    public virtual string KeyNeighbors(char keyLetter) => string.Empty;
+
+    /// <summary>Matching-key letters commonly written for this one because they sound alike.</summary>
+    public virtual string SoundAlikes(char keyLetter) => string.Empty;
+
+    /// <summary>The matching-key letters tried when a letter is missing; empty when they are not known.</summary>
+    public virtual string KeyAlphabet => string.Empty;
+
+    /// <summary>
     /// After stripping <paramref name="clitic"/>, stems starting with this text are skipped (Arabic: ل + ال
     /// is written لل, so no ال stem follows a clitic ending in ل); null when none are.
     /// </summary>

@@ -61,7 +61,7 @@
 ليستأنف بسرعة، ينتظر `InputPipeline` ‏40 ملّي ثانية بعد آخر حدث من هذا النوع (ليكون التطبيق قد طبّقه؛ وإبقاء مفتاح مضغوطًا يقرأ مرة واحدة)، ثم يطلب من `UiaCaretContextSource` النص الذي قبل المؤشر:
 
 1. `IUIAutomation.GetFocusedElement()`؛ وإذا كان `CurrentIsPassword` فلا يُقرأ شيء.
-2. نطاق المؤشر من `TextPattern2.GetCaretRange`، أو التحديد (الفارغ) من `TextPattern`. وإذا قال التطبيق صراحة إن النص عند المؤشر للقراءة فقط (`UIA_IsReadOnlyAttributeId` = true) فلا يُقرأ شيء ويصمت إتمام حتى يتغير السياق (إصلاح بعد 2.0): المتصفحات تضع مؤشرًا عند موضع النقر في نص الصفحة نفسه، فكانت كلماتها تُعامَل كأنها الكلمة التي تُكتب. أي قيمة أخرى (مختلطة، غير مدعومة، خطأ) تُعامَل كنص قابل للتحرير.
+2. نطاق المؤشر من `TextPattern2.GetCaretRange`، أو التحديد (الفارغ) من `TextPattern`. وإذا قال التطبيق صراحة إن النص عند المؤشر للقراءة فقط (`UIA_IsReadOnlyAttributeId` = true) فلا يُقرأ شيء ويصمت إتمام حتى يتغير السياق (إصلاح بعد 2.0): المتصفحات تضع مؤشرًا عند موضع النقر في نص الصفحة نفسه، فكانت كلماتها تُعامَل كأنها الكلمة التي تُكتب. أي قيمة أخرى (مختلطة، غير مدعومة، خطأ) تُعامَل كنص قابل للتحرير. ويصمت إتمام كذلك إذا كان التركيز في صفحة ويب على عنصر لا نص فيه ولا يمكن أن يكون حقلًا (منطقة محادثة، زر، قائمة). وفي حقول الويب يبلّغ Chromium عن النص الإرشادي للحقل الفارغ كأنه نص الحقل، فإذا انتهت كلمة عند نهاية الحقل بعد حركة مؤشر لم يسبقها حرف، فلا تُعرض اقتراحات حتى يُكتب حرف وتُقرأ السياق من جديد.
 3. تُمدّ نسخة من النطاق **إلى الخلف بما لا يزيد عن 49 حرفًا** ويُستدعى `GetText(49)`.
 
 لا يُقرأ شيء في التطبيقات المستثناة (`Itmam.Core.Input.ExcludedApps`؛ افتراضيًا: سطح المكتب البعيد والأجهزة الافتراضية والطرفيات ومشغّلات الألعاب). يُتحقق من ذلك مرتين: عبر `InputPipelineOptions.CanReadContext` على العملية الأمامية قبل كل قراءة، وعبر `UiaCaretContextSource` على العملية المالكة لعنصر UI Automation المركَّز قبل القراءة مباشرة.
@@ -176,6 +176,8 @@
 بعد إدراج اقتراح يحفظ `InputPipeline` في الذاكرة ما كُتب قبله وما أُدرج (`UndoableAccept`) ويرفع `PopupState.CanUndoAccept`. في الخطاف، Backspace بلا معدِّلات والعلم مرفوع يُبتلع ويصبح `UndoAccept`، وأي مفتاح آخر (غير المعدِّلات) أو نقرة يُنزل العلم، وكذلك الحدث التالي في المسار. يحذف المسار ما أُدرج ويكتب ما كان قد حُذف دفعة واحدة، ويعيد الكلمة والكلمات المتتالية كما كانت، ولا يتعلّم الكلمة المقبولة ولا تسلسلاتها. وإن لم يبقَ ما يُتراجع عنه يرسل Backspace عاديًا، فلا تضيع الضغطة. لا تراجع حين استُبدلت مسافة بعد المؤشر (`DeleteForward`).
 
 ### النصوص الطويلة (من الإصدار 1.1؛ اسمها «العبارات الطويلة» حتى 2.0)
+
+عند إيقاف الشريط (الإعداد `ShowSuggestionBar`) لا يظهر إلا لاختصار نصي مكتوب بالضبط، ولا يُتعلَّم شيء، وتُحذف القواميس من الذاكرة. وإن لم توجد اختصارات نصية يعالج الخطاف اختصارات لوحة المفاتيح فقط: لا تُترجم المفاتيح ولا تُنشر أحداث الكتابة أو النقر أو التركيز، ولا يُقرأ سياق المؤشر.
 
 ردود بعدة أسطر (`LongPhrase`: اسم ونص حتى 4000 حرف) في `settings.json`. اختصار يعمل في كل البرامج (`HotkeySettings.OpenLongPhrases`، افتراضيًا Ctrl+Shift+Space، ويحتاج Ctrl أو Alt) يبتلعه الخطاف ويرسل `OpenLongPhrases`. يحفظ `ItmamApp` النافذة الأمامية ويحدد مكان مؤشرها، ثم يفتح `LongPhrasePicker` قربه: نافذة تأخذ التركيز (يربط `PopupWindows.BringToFront` إدخال الخيط الأمامي لأن Windows يرفض غير ذلك)، فيها بحث بالاسم أو النص (`LongPhrases.Filter`) وقائمة ومعاينة. عند الاختيار تُخفى، ويعود التركيز إلى النافذة السابقة، ثم يلصق `ClipboardPaste` النص (قرار المستخدم، لأن كتابة مئات الأحرف ضغطةً ضغطة جمّدت Word): تُحفظ الحافظة، ويوضع النص فيها مع علامات Windows التي تستثنيه من سجل الحافظة ومزامنتها، ثم Ctrl+V، ثم تُستعاد الحافظة بعد 700 ملّي ثانية. وإن كانت الحافظة مشغولة يُكتب النص، وكل فاصل سطر Shift+Enter. لا يُتعلَّم منها شيء.
 
@@ -325,7 +327,11 @@ caret:
 2. Caret range from `TextPattern2.GetCaretRange`, or the (empty) selection from `TextPattern`. If the app states
    that the text at the caret is read-only (`UIA_IsReadOnlyAttributeId` = true), nothing is read and Itmam stays
    silent until the context changes (fix after 2.0): browsers put a caret at the click point in the page's own text, whose
-   words were taken for the word being typed. Any other value (mixed, unsupported, error) counts as editable.
+   words were taken for the word being typed. Any other value (mixed, unsupported, error) counts as editable. Itmam
+   is also silent when the focus in a web page is on an element with no text that cannot be a field (a conversation
+   area, a button, a list). In web fields Chromium reports the grey hint of an empty field as the field's text, so a
+   word ending at the end of the field after a caret move with nothing typed gives no suggestions until a letter is
+   typed and the context is read again.
 3. A copy of the range is extended **backwards by at most 49 characters** and `GetText(49)` is called.
 
 Nothing is read in excluded apps (`Itmam.Core.Input.ExcludedApps`; defaults: remote desktop/VMs,
@@ -519,6 +525,10 @@ a row, and learns neither the accepted word nor its sequences. If there is nothi
 Backspace, so the key press is never lost. No undo when a space after the caret was replaced (`DeleteForward`).
 
 ### Long texts (from 1.1; called "long phrases" until 2.0)
+
+With the bar turned off (setting `ShowSuggestionBar`) it appears only for a text shortcut typed exactly, nothing is
+learned and the dictionaries leave memory. With no text shortcuts either, the hook handles the keyboard shortcuts only:
+keys are not translated, no typing, click or focus event is published and the caret context is not read.
 
 Replies of several lines (`LongPhrase`: a name and a text of up to 4,000 characters) in `settings.json`. A shortcut that
 works everywhere (`HotkeySettings.OpenLongPhrases`, default Ctrl+Shift+Space, Ctrl or Alt required) is swallowed by the

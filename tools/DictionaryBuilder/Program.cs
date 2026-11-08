@@ -15,6 +15,11 @@ using Itmam.Core.Languages;
 //
 //   DictionaryBuilder --language en --source frequencywords-en=data/raw/frequencywords-en_full.txt
 //                     --min-count frequencywords-en=5 --blocklist data/blocklist.en.txt --output data/itmam-en.dict
+//
+// --exclude <list> removes the spellings of a list (data/misspellings.ar.txt) from the result. With --filter <dict>
+// instead of sources, an existing dictionary file is rewritten without them: no source file is needed.
+//
+//   DictionaryBuilder --filter data/itmam-ar.dict --exclude data/misspellings.ar.txt --output data/itmam-ar.dict
 
 // Attribution for every source the builder accepts; unknown source names are rejected so the
 // shipped file can never contain unattributed data.
@@ -41,6 +46,19 @@ var knownSources = new Dictionary<string, DictionarySource>(StringComparer.Ordin
 try
 {
     var options = Options.Parse(args);
+    if (options.Filter is { } filterPath && options.Exclude is { } excludePath && options.Output is { } filterOutput)
+    {
+        var filtered = Without(DictionaryFile.Load(filterPath), excludePath, out var before);
+        using (var output = File.Create(filterOutput))
+        {
+            DictionaryFile.Write(output, filtered);
+        }
+
+        Console.WriteLine($"Entries: {before:N0} -> {filtered.Count:N0}");
+        Console.WriteLine($"Output:  {filterOutput} ({new FileInfo(filterOutput).Length:N0} bytes)");
+        return 0;
+    }
+
     if (options.Sources.Count == 0 || options.Output is null)
     {
         Console.Error.WriteLine("Usage: DictionaryBuilder [--language ar|en] --source <name>=<path> [--weight <name>=<w>] [--min-count <name>=<n>] [--blocklist <path>] [--max-words <n>] [--drop-bare-alef-variants] --output <path>");
@@ -83,6 +101,10 @@ try
 
     var (dictionary, stats) = DictionaryBuildPipeline.Build(inputs, blocklist, options.MaxWords, options.DropBareAlefVariants, language);
     readers.ForEach(r => r.Dispose());
+    if (options.Exclude is { } exclude)
+    {
+        dictionary = Without(dictionary, exclude, out _);
+    }
 
     Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(options.Output))!);
     using (var output = File.Create(options.Output))
@@ -105,8 +127,27 @@ catch (Exception ex) when (ex is ArgumentException or IOException or Unauthorize
     return 1;
 }
 
+// The dictionary without the spellings listed in the file (one per line, # starts a comment).
+static WordDictionary Without(WordDictionary dictionary, string listPath, out int entriesBefore)
+{
+    var excluded = File.ReadLines(listPath, Encoding.UTF8)
+        .Where(line => line.Length > 0 && line[0] != '#')
+        .ToHashSet(StringComparer.Ordinal);
+    entriesBefore = dictionary.Count;
+    var source = dictionary;
+    var kept = Enumerable.Range(0, source.Count)
+        .Select(i => (Word: source.GetDisplay(i).ToString(), Frequency: FrequencyScale.ToPerMillion(source.GetFrequency(i))))
+        .Where(entry => !excluded.Contains(entry.Word))
+        .Select(entry => new WeightedWord(entry.Word, entry.Frequency));
+    return WordDictionary.Build(kept, source.Sources, dropBareAlefVariants: false, source.Language, keepAllSpellings: true);
+}
+
 internal sealed class Options
 {
+    public string? Filter { get; private set; }
+
+    public string? Exclude { get; private set; }
+
     public List<(string Name, string Path)> Sources { get; } = [];
 
     public Dictionary<string, double> Weights { get; } = new(StringComparer.OrdinalIgnoreCase);
@@ -151,6 +192,12 @@ internal sealed class Options
                     break;
                 case "--blocklist":
                     options.Blocklist = value;
+                    break;
+                case "--filter":
+                    options.Filter = value;
+                    break;
+                case "--exclude":
+                    options.Exclude = value;
                     break;
                 case "--language":
                     options.Language = value;

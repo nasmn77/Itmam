@@ -175,6 +175,8 @@
   <data name="SectionNotifications" xml:space="preserve"><value>الإشعارات</value></data>
   <data name="NotifyOnToggle" xml:space="preserve"><value>إشعار عند إيقاف إتمام واستئنافه</value></data>
   <data name="NotifyOnToggleHint" xml:space="preserve"><value>وكذلك عند انتهاء الإيقاف المؤقت لساعة.</value></data>
+  <data name="ShowSuggestionBar" xml:space="preserve"><value>إظهار شريط الاقتراحات</value></data>
+  <data name="ShowSuggestionBarHint" xml:space="preserve"><value>عند إيقافه لا يظهر الشريط إلا إذا كتبت أحد اختصاراتك النصية، ولا يتعلم إتمام كلمات جديدة. وتبقى النصوص الطويلة تعمل باختصارها من لوحة المفاتيح.</value></data>
   <data name="NavUpdates" xml:space="preserve"><value>التحديثات</value></data>
   <data name="CheckOnStart" xml:space="preserve"><value>البحث عن التحديثات عند بدء إتمام</value></data>
   <data name="CheckOnStartHint" xml:space="preserve"><value>يسأل إتمام متجر Microsoft عبر Windows، ولا يُرسَل شيء عنك أو عما تكتبه.</value></data>

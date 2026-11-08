@@ -149,6 +149,7 @@ public sealed class SettingsStoreTests : IDisposable
         settings.Hotkeys.ShouldBe(new HotkeySettings());
         settings.CheckForUpdates.ShouldBeTrue();  // added in 1.1: on for people updating from 1.0
         settings.NotifyOnToggle.ShouldBeTrue();
+        settings.ShowSuggestionBar.ShouldBeTrue(); // added after 2.2.1: people updating keep the bar
         settings.UseWikipediaDictionary.ShouldBeTrue(); // added in 1.1: people updating from 1.0 get it too
     }
 

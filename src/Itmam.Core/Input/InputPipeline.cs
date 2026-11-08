@@ -74,7 +74,11 @@ public interface IInputGuard
 /// Up to <see cref="MaxTextAfter"/> characters after the caret (empty at the end of the text), null if not read:
 /// only the rest of the word the caret is in is used (accepting replaces the whole word), the rest is discarded.
 /// </param>
-public readonly record struct CaretContext(CaretContextStatus Status, string Text = "", char? CharAfter = null, string? TextAfter = null)
+/// <param name="MayBePlaceholder">
+/// The caret is at the end of a web field. Chromium reports the grey hint of an empty field as the field's
+/// text with the caret after it, exactly like real text, so what was read may not have been typed.
+/// </param>
+public readonly record struct CaretContext(CaretContextStatus Status, string Text = "", char? CharAfter = null, string? TextAfter = null, bool MayBePlaceholder = false)
 {
     /// <summary>The most characters read after the caret (a word longer than this is not replaced).</summary>
     public const int MaxTextAfter = 30;
@@ -90,8 +94,8 @@ public readonly record struct CaretContext(CaretContextStatus Status, string Tex
     public static CaretContext Of(string text, char? charAfter = null) => new(CaretContextStatus.Text, text, charAfter);
 
     /// <summary>Text read on both sides of the caret.</summary>
-    public static CaretContext Around(string text, string textAfter) =>
-        new(CaretContextStatus.Text, text, textAfter.Length > 0 ? textAfter[0] : '\0', textAfter);
+    public static CaretContext Around(string text, string textAfter, bool mayBePlaceholder = false) =>
+        new(CaretContextStatus.Text, text, textAfter.Length > 0 ? textAfter[0] : '\0', textAfter, mayBePlaceholder);
 }
 
 /// <summary>Types an edit into the focused app (SendInput in production). Returns false if it failed.</summary>
@@ -203,6 +207,9 @@ public sealed record InputPipelineOptions
     /// </summary>
     public int ReadsWhileTyping { get; init; } = 3;
 
+    /// <summary>False when the bar is turned off and there are no text shortcuts: the caret context is never read.</summary>
+    public bool TracksTyping { get; init; } = true;
+
     /// <summary>Type a space after an accepted suggestion (setting, default on).</summary>
     public bool AppendSpaceOnAccept { get; init; } = true;
 
@@ -297,6 +304,7 @@ public sealed class InputPipeline(
         long? probeDue = null;
         var retried = false;
         var detachedByBackspace = false;
+        var placeholderPossible = false;
         var readsWhileTyping = 0;
         Task<bool>? waitForInput = null;
         while (!cancellation.IsCancellationRequested)
@@ -314,7 +322,7 @@ public sealed class InputPipeline(
                     if (await Task.WhenAny(waitForInput, delay).ConfigureAwait(false) == delay)
                     {
                         probeDue = null;
-                        var outcome = await ProbeAsync(isRetry: retried, afterCaretMove: !detachedByBackspace, cancellation).ConfigureAwait(false);
+                        var outcome = await ProbeAsync(isRetry: retried, afterCaretMove: !detachedByBackspace, placeholderPossible, cancellation).ConfigureAwait(false);
                         if (outcome == ProbeOutcome.Discarded)
                         {
                             // Keys arrived: read again once they settle (the text will include them).
@@ -365,8 +373,8 @@ public sealed class InputPipeline(
                 var (wordToLearn, phrasesToLearn) = AdvancePendingWord(record.Input.Kind, result);
                 Raise(record, result, probe: null, wordToLearn, phrasesToLearn, _usage, learnLanguage);
 
-                // Keyboard selection or a silenced window: nothing to read.
-                if (record.Input.Kind == InputEventKind.Selection || _silence != SilenceReason.None)
+                // Keyboard selection, a silenced window or the bar turned off: nothing to read.
+                if (record.Input.Kind == InputEventKind.Selection || _silence != SilenceReason.None || !_options.TracksTyping)
                 {
                     probeDue = null;
                     Tracker.Buffer.AwaitingContext = false;
@@ -384,6 +392,7 @@ public sealed class InputPipeline(
                     probeDue = DateTime.UtcNow.Ticks + _options.ProbeDelay.Ticks;
                     retried = false;
                     detachedByBackspace = record.Input.Kind == InputEventKind.Backspace;
+                    placeholderPossible = record.Input.Kind is not (InputEventKind.Backspace or InputEventKind.Character or InputEventKind.Paste);
                     readsWhileTyping = 0;
                 }
                 else if (Tracker.Buffer.IsDetached && Tracker.Language is not null && probeDue is null && readsWhileTyping < _options.ReadsWhileTyping)
@@ -392,6 +401,7 @@ public sealed class InputPipeline(
                     // letters typed meanwhile are kept), as a last attempt each time.
                     probeDue = DateTime.UtcNow.Ticks + _options.ProbeDelay.Ticks;
                     retried = true;
+                    placeholderPossible = false; // a letter was typed: the hint, if any, is gone
                     readsWhileTyping++;
                 }
                 else if (!Tracker.Buffer.IsDetached)
@@ -694,8 +704,11 @@ public sealed class InputPipeline(
     /// unavailable, assume an empty word (as if the caret were at a word start), unless letters were
     /// typed meanwhile. After Backspace the caret is known to be inside a word, so tracking waits.
     /// </param>
+    /// <param name="placeholderPossible">
+    /// Nothing was typed since the caret moved, so a word read at the end of a web field may be its grey hint.
+    /// </param>
     /// <param name="cancellation">Stops the read.</param>
-    private async Task<ProbeOutcome?> ProbeAsync(bool isRetry, bool afterCaretMove, CancellationToken cancellation)
+    private async Task<ProbeOutcome?> ProbeAsync(bool isRetry, bool afterCaretMove, bool placeholderPossible, CancellationToken cancellation)
     {
         if (!Tracker.Buffer.IsDetached)
         {
@@ -765,6 +778,13 @@ public sealed class InputPipeline(
                     LearnRecoveredWords();
                 }
             }
+        }
+        else if (placeholderPossible && caret.MayBePlaceholder && !Tracker.Buffer.HasBlindTyping
+            && caret.Text.Length > 0 && !Tracker.Buffer.Language.IsWordBoundary(caret.Text[^1]))
+        {
+            // Possibly the grey hint of an empty field («…unfocus Claude», «البحث عن ملصقات»): no suggestions
+            // for it. Stays detached; the first letter typed starts a read, and by then the hint is gone.
+            outcome = ProbeOutcome.Unusable;
         }
         else
         {

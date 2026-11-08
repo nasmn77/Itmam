@@ -50,7 +50,11 @@ public sealed class UiaCaretContextSource(UiaWorker worker, Func<string?, bool> 
         var caret = UiaText.CaretRange(element);
         if (caret is null)
         {
-            return CaretContext.Unavailable;
+            // Focus on a web element that holds no text to type into (a conversation area, a button, a list):
+            // the keys go nowhere, so they must not be taken for a word.
+            return UiaText.IsChromium(element) && !UiaText.MayHoldTextLater(element.CurrentControlType)
+                ? CaretContext.ReadOnly
+                : CaretContext.Unavailable;
         }
 
         // Read-only text (a web page clicked outside its fields, a list item): Chromium reports a caret at
@@ -78,7 +82,8 @@ public sealed class UiaCaretContextSource(UiaWorker worker, Func<string?, bool> 
             before.MoveEndpointByRange(TextPatternRangeEndpoint.TextPatternRangeEndpoint_Start, document, TextPatternRangeEndpoint.TextPatternRangeEndpoint_Start);
         }
 
-        return CaretContext.Around(ReadText(before, maxChars), TextAfter(caret, document));
+        var textAfter = TextAfter(caret, document);
+        return CaretContext.Around(ReadText(before, maxChars), textAfter, mayBePlaceholder: textAfter.Length == 0 && UiaText.IsChromium(element));
     }
 
     // Up to CaretContext.MaxTextAfter characters after the caret, never past the end of the field (empty at
@@ -120,6 +125,31 @@ public sealed class UiaCaretContextSource(UiaWorker worker, Func<string?, bool> 
 /// <summary>Shared UI Automation text helpers.</summary>
 internal static class UiaText
 {
+    /// <summary>True for web content in Chrome, Edge, Electron and WebView2.</summary>
+    public static unsafe bool IsChromium(IUIAutomationElement element)
+    {
+        var framework = element.CurrentFrameworkId;
+        try
+        {
+            return framework.ToString() == "Chrome";
+        }
+        finally
+        {
+            Marshal.FreeBSTR((nint)framework.Value);
+        }
+    }
+
+    /// <summary>
+    /// Control types that can still be a text field without a text pattern: a field itself, or the page or
+    /// window Chromium reports until its accessibility tree has woken up.
+    /// </summary>
+    public static bool MayHoldTextLater(UIA_CONTROLTYPE_ID type) => type is UIA_CONTROLTYPE_ID.UIA_EditControlTypeId
+        or UIA_CONTROLTYPE_ID.UIA_DocumentControlTypeId
+        or UIA_CONTROLTYPE_ID.UIA_PaneControlTypeId
+        or UIA_CONTROLTYPE_ID.UIA_WindowControlTypeId
+        or UIA_CONTROLTYPE_ID.UIA_ComboBoxControlTypeId
+        or UIA_CONTROLTYPE_ID.UIA_CustomControlTypeId;
+
     /// <summary>True when the focused text has a non-empty selection.</summary>
     public static bool HasSelection(IUIAutomationElement element)
     {

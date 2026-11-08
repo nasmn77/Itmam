@@ -76,6 +76,10 @@ dotnet run --project tools/DictionaryBuilder -c Release -- `
 
 أخطاء إملائية شائعة لا يصلحها القاموس وحده (حروف زائدة أو ناقصة، أو كلمات مدموجة) مع صوابها، مثل «لاكن = لكن» و«انشاءالله = إن شاء الله». حين تُكتب الكلمة الخاطئة بالضبط يظهر صوابها أولًا في الشريط، ولا يُستبدل شيء إلا بـ Tab. جُمعت يدويًا لإتمام وتصدر برخصة MIT. أما مواضع الهمزة والتاء المربوطة والألف المقصورة في آخر الكلمة فلا تحتاج بنودًا، لأن القاموس يقدّم الصواب أصلًا.
 
+### الأخطاء المحذوفة من القاموس (`misspellings.ar.txt`)
+
+كتابات خاطئة وردت في النصوص المصدر فعدّها القاموس كلمات، فلم يكن ممكنًا تصحيحها: حروف ض/ظ ود/ذ حين تكون الكتابة الأخرى أشيع بـ100 ضعف على الأقل (بعد مراجعة كلمة بكلمة واستثناء الكلمات الصحيحة)، والتاء المربوطة والهاء في آخر الكلمة بعد «ال» لأن «ال» لا تجتمع مع ضمير الهاء. تُطبَّق بخيار `--exclude`، ويمكن تطبيقها على ملف قاموس جاهز دون مصادره: `DictionaryBuilder --filter data/itmam-ar.dict --exclude data/misspellings.ar.txt --output data/itmam-ar.dict`. جُمعت لإتمام وتصدر برخصة MIT.
+
 ### قائمة الحظر
 
 `blocklist.txt` يضم الكلمات التي لا تُقترح أبدًا (كلمة في كل سطر، والسطر الذي يبدأ بـ `#` تعليق). المساهمات مرحَّب بها؛ أعد بناء القاموس بعد تعديلها. ويستطيع المستخدمون أيضًا حظر الكلمات بأنفسهم.
@@ -185,6 +189,14 @@ Common spelling mistakes the dictionary cannot fix by itself (letters added or m
 their corrections, such as «لاكن = لكن» and «انشاءالله = إن شاء الله». When a mistake is typed exactly its correction
 comes first in the bar; nothing is replaced without Tab. Compiled by hand for Itmam and released under the MIT license.
 Hamza seats and ة/ه, ى/ي at the end need no entry: the dictionary already puts the right spelling first.
+
+### Mistakes removed from the dictionary (`misspellings.ar.txt`)
+
+Wrong spellings found in the source texts, which the dictionary took for words so they could not be corrected: ض/ظ and
+د/ذ where the other spelling is at least 100 times more common (reviewed word by word, real words kept), and ة/ه at the
+end of a word after «ال», which cannot go with the pronoun ه. Applied with `--exclude`, also to a ready dictionary file
+without its sources: `DictionaryBuilder --filter data/itmam-ar.dict --exclude data/misspellings.ar.txt --output data/itmam-ar.dict`.
+Compiled for Itmam and released under the MIT license.
 
 ### Blocklist
 
