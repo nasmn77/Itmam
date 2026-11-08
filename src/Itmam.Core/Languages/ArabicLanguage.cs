@@ -13,6 +13,34 @@ internal sealed class ArabicLanguage : LanguageProfile
     private static readonly string[] BlocklistClitics = ["وال", "بال", "فال", "كال", "لل", "ال", "و", "ف", "ب", "ك", "ل"];
     private static readonly string[] ArticleClitics = ["وال", "بال", "فال", "كال", "لل", "ال"];
 
+    // The Arabic (101) keyboard; the key of the ligature لا is skipped.
+    private static readonly IReadOnlyDictionary<char, string> Neighbors = KeyboardNeighbors.Build(
+        ["ضصثقفغعهخحجد", "شسيبلاتنمكط", "ئءؤر\0ىةوزظ"],
+        ArabicNormalizer.NormalizeChar);
+
+    public override string KeyNeighbors(char keyLetter) => Neighbors.GetValueOrDefault(keyLetter, string.Empty);
+
+    public override string SoundAlikes(char keyLetter) => keyLetter switch
+    {
+        'ض' => "ظ",
+        'ظ' => "ضز",
+        'ذ' => "زد",
+        'ز' => "ذظ",
+        'د' => "ذ",
+        'ث' => "ست",
+        'س' => "ثص",
+        'ص' => "س",
+        'ت' => "طث",
+        'ط' => "ت",
+        'ق' => "غ",
+        'غ' => "ق",
+        'ح' => "ه",
+        'ه' => "ح",
+        _ => string.Empty,
+    };
+
+    public override string KeyAlphabet => "ابتثجحخدذرزسشصضطظعغفقكلمنهويءؤئ";
+
     public override string Id => "ar";
 
     public override bool RightToLeft => true;

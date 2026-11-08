@@ -22,6 +22,12 @@ public enum MatchKind
 
     /// <summary>An attached prefix (و ف ب ك ل ال …) was stripped, the stem completed and the prefix re-attached.</summary>
     Clitic = 3,
+
+    /// <summary>
+    /// Nothing else matched: one typing mistake undone (a key next to the right one, a sound-alike letter, two
+    /// letters swapped, a letter too many or missing, a missing space).
+    /// </summary>
+    KeyTypo = 4,
 }
 
 public readonly record struct Suggestion(string Word, MatchKind Kind, double Score);
@@ -89,16 +95,167 @@ public sealed class SuggestionEngine(
             }
         }
 
+        var typos = KeyTypoNeed(context, literal, key);
+        if (typos != TypoNeed.None)
+        {
+            CollectKeyTypos(context, key, typos == TypoNeed.RareWord);
+        }
+
+        var minTypoScore = typos == TypoNeed.RareWord ? Options.KeyTypoStrongScore : Options.KeyTypoMinScore;
+
         // In the case being typed; the same word in two cases (learned «Hello», dictionary «hello») once.
         return context.Results.Values
             .OrderBy(s => Tier(s.Kind))
             .ThenByDescending(s => s.Score)
             .ThenBy(s => s.Word, StringComparer.Ordinal)
             .Select(s => s with { Word = Language.MatchCase(s.Word, literal) })
-            .Where(s => s.Word != literal)
+            .Where(s => s.Word != literal && (s.Kind != MatchKind.KeyTypo || s.Score >= minTypoScore))
             .DistinctBy(s => Language.DisplayKey(s.Word), StringComparer.Ordinal)
             .Take(Options.MaxSuggestions)
             .ToArray();
+    }
+
+    private enum TypoNeed
+    {
+        None,
+
+        /// <summary>The letters typed match nothing at all: any reasonably common correction is shown.</summary>
+        NoMatch,
+
+        /// <summary>
+        /// They are only a rare dictionary entry with no longer forms (the large dictionaries hold misspellings:
+        /// «مدرية»): only a clearly common correction is shown. Not with other matches: the letters may be the
+        /// start of a correct word («الرجف» on the way to «الرجفان»).
+        /// </summary>
+        RareWord,
+    }
+
+    private TypoNeed KeyTypoNeed(Context context, string literal, string key)
+    {
+        if (context.Results.Count > 0 || userWords.Get(literal) is not null)
+        {
+            return TypoNeed.None;
+        }
+
+        var (start, end) = dictionary.FindPrefixRange(key);
+        if (start >= end)
+        {
+            return TypoNeed.NoMatch;
+        }
+
+        // The spellings of the typed word itself sort first in the range; a correct word is left alone.
+        for (var i = start; i < end && dictionary.GetKey(i).Length == key.Length; i++)
+        {
+            if (dictionary.GetBaseScore(i) >= Options.KeyTypoRareWordScore)
+            {
+                return TypoNeed.None;
+            }
+        }
+
+        return TypoNeed.RareWord;
+    }
+
+    // One mistake undone at a time, each result looked up as a prefix (the word may still be incomplete).
+    // A rare word in the dictionary may be correct: removing a letter or adding a space would break real words
+    // with an attached pronoun («مطاولة» → «طاولة», «شارعها» → «شارع ها»).
+    private void CollectKeyTypos(Context context, string key, bool rareWord)
+    {
+        if (!Options.FixKeyTypos || key.Length < Options.KeyTypoMinChars || key.Length > Options.KeyTypoMaxChars)
+        {
+            return;
+        }
+
+        var seen = new HashSet<string>(StringComparer.Ordinal) { key };
+        void Try(string variant)
+        {
+            // Most variants exist nowhere: no need to allocate a candidate pool for them.
+            var (start, end) = dictionary.FindPrefixRange(variant);
+            if (seen.Add(variant) && (start < end || userWords.FindByPrefix(variant).Any()))
+            {
+                Collect(context, variant, variant, MatchKind.KeyTypo, MatchKind.KeyTypo, "", excludedStemStart: null, skipExactPrefix: false, Options.KeyTypoMinBaseScore);
+            }
+        }
+
+        var letters = key.ToCharArray();
+        for (var i = 0; i < letters.Length; i++)
+        {
+            var original = letters[i];
+
+            // The wrong key, or a letter written as another that sounds like it.
+            foreach (var other in Language.KeyNeighbors(original).Concat(Language.SoundAlikes(original)))
+            {
+                letters[i] = other;
+                Try(new string(letters));
+            }
+
+            letters[i] = original;
+
+            // Two letters swapped.
+            if (i + 1 < letters.Length && letters[i + 1] != original)
+            {
+                (letters[i], letters[i + 1]) = (letters[i + 1], letters[i]);
+                Try(new string(letters));
+                (letters[i], letters[i + 1]) = (letters[i + 1], letters[i]);
+            }
+        }
+
+        if (key.Length < Options.KeyTypoEditMinChars)
+        {
+            return;
+        }
+
+        for (var i = 0; i < key.Length; i++)
+        {
+            if (!rareWord)
+            {
+                Try(key.Remove(i, 1)); // a letter too many
+            }
+
+            // A letter missing; never before the first one, which is rarely forgotten and matches too much.
+            for (var a = 0; i > 0 && a < Language.KeyAlphabet.Length; a++)
+            {
+                Try(key.Insert(i, Language.KeyAlphabet[a].ToString()));
+            }
+        }
+
+        if (!rareWord)
+        {
+            CollectMissingSpace(context, key);
+        }
+    }
+
+    // «فيالبيت» → «في البيت»: two common words, both complete. The second has 3 letters or more: shorter ones are
+    // mostly attached pronouns («حملتها» is not «حملت ها»).
+    private void CollectMissingSpace(Context context, string key)
+    {
+        for (var i = 2; i <= key.Length - 3; i++)
+        {
+            var (left, leftScore) = BestSpelling(key[..i]);
+            var (right, rightScore) = BestSpelling(key[i..]);
+            var score = Math.Min(leftScore, rightScore);
+            if (left is not null && right is not null && score >= Options.KeyTypoSplitMinScore)
+            {
+                context.Add($"{left} {right}", MatchKind.KeyTypo, score + Options.CompleteWordBonus);
+            }
+        }
+    }
+
+    private (string? Word, double Score) BestSpelling(string key)
+    {
+        string? best = null;
+        var bestScore = double.NegativeInfinity;
+        var (start, end) = dictionary.FindPrefixRange(key);
+        for (var i = start; i < end && dictionary.GetKey(i).Length == key.Length; i++)
+        {
+            var score = dictionary.GetBaseScore(i);
+            if (score > bestScore && !userWords.IsBlocked(dictionary.GetDisplay(i)))
+            {
+                best = dictionary.GetDisplay(i).ToString();
+                bestScore = score;
+            }
+        }
+
+        return (best, bestScore);
     }
 
     private static int Tier(MatchKind kind) => kind <= MatchKind.Normalized ? 0 : (int)kind;
@@ -112,7 +269,9 @@ public sealed class SuggestionEngine(
         MatchKind literalKind,
         MatchKind otherKind,
         string attachedPrefix,
-        string? excludedStemStart)
+        string? excludedStemStart,
+        bool skipExactPrefix = true,
+        double minBaseScore = double.NegativeInfinity)
     {
         // 1. Best dictionary entries in the prefix range by (tier, base score + bonuses).
         var pool = new CandidatePool(Options.CandidatePoolSize);
@@ -125,6 +284,11 @@ public sealed class SuggestionEngine(
             var display = dictionary.GetDisplay(i);
             var isLiteral = display.StartsWith(literalPrefix);
             var kind = isLiteral ? literalKind : otherKind;
+            if (dictionary.GetBaseScore(i) < minBaseScore)
+            {
+                return;
+            }
+
             var score = dictionary.GetBaseScore(i) + (isLiteral ? literalBonus : otherBonus);
             if (dictionary.GetKey(i).Length == keyPrefix.Length)
             {
@@ -133,7 +297,7 @@ public sealed class SuggestionEngine(
 
             if (!pool.WouldAccept(Tier(kind), score)
                 || pool.Contains(i)
-                || display.SequenceEqual(literalPrefix)
+                || (skipExactPrefix && display.SequenceEqual(literalPrefix))
                 || (excludedStemStart is not null && display.StartsWith(excludedStemStart))
                 || userWords.IsBlocked(display))
             {
@@ -183,7 +347,7 @@ public sealed class SuggestionEngine(
         foreach (var user in userWords.FindByPrefix(keyPrefix))
         {
             if (user.IsBlocked
-                || user.Word == literalPrefix
+                || (skipExactPrefix && user.Word == literalPrefix)
                 || (excludedStemStart is not null && user.Word.StartsWith(excludedStemStart, StringComparison.Ordinal)))
             {
                 continue;

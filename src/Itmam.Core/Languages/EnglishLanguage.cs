@@ -16,6 +16,13 @@ internal sealed class EnglishLanguage : LanguageProfile
     // Lower case without diacritics for U+0000–U+024F (Latin, Latin-1, Extended-A and -B): one character for one.
     private static readonly char[] FoldTable = BuildFoldTable();
 
+    private static readonly IReadOnlyDictionary<char, string> Neighbors =
+        KeyboardNeighbors.Build(["qwertyuiop", "asdfghjkl", "zxcvbnm"], c => c);
+
+    public override string KeyNeighbors(char keyLetter) => Neighbors.GetValueOrDefault(keyLetter, string.Empty);
+
+    public override string KeyAlphabet => "abcdefghijklmnopqrstuvwxyz";
+
     public override string Id => "en";
 
     public override bool RightToLeft => false;
