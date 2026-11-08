@@ -101,11 +101,16 @@ public sealed class WordDictionary
     /// على / علي are unaffected because they do not differ only by a missing hamza.
     /// </param>
     /// <param name="language">The language of the words (default Arabic).</param>
+    /// <param name="keepAllSpellings">
+    /// Skip the limits per key: for words that come from an existing dictionary and were limited already
+    /// (rounding its frequencies would otherwise drop spellings at the limit).
+    /// </param>
     public static WordDictionary Build(
         IEnumerable<WeightedWord> words,
         IReadOnlyList<DictionarySource>? sources = null,
         bool dropBareAlefVariants = false,
-        LanguageProfile? language = null)
+        LanguageProfile? language = null,
+        bool keepAllSpellings = false)
     {
         language ??= LanguageProfile.Arabic;
         var spellings = new Dictionary<string, double>(StringComparer.Ordinal);
@@ -133,7 +138,7 @@ public sealed class WordDictionary
             var kept = new List<string>(MaxSpellingsPerKey);
             foreach (var (display, perMillion) in ranked)
             {
-                if (kept.Count == MaxSpellingsPerKey || perMillion < threshold)
+                if (!keepAllSpellings && (kept.Count == MaxSpellingsPerKey || perMillion < threshold))
                 {
                     break;
                 }
