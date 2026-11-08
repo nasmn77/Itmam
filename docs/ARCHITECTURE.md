@@ -61,7 +61,7 @@
 ليستأنف بسرعة، ينتظر `InputPipeline` ‏40 ملّي ثانية بعد آخر حدث من هذا النوع (ليكون التطبيق قد طبّقه؛ وإبقاء مفتاح مضغوطًا يقرأ مرة واحدة)، ثم يطلب من `UiaCaretContextSource` النص الذي قبل المؤشر:
 
 1. `IUIAutomation.GetFocusedElement()`؛ وإذا كان `CurrentIsPassword` فلا يُقرأ شيء.
-2. نطاق المؤشر من `TextPattern2.GetCaretRange`، أو التحديد (الفارغ) من `TextPattern`. وإذا قال التطبيق صراحة إن النص عند المؤشر للقراءة فقط (`UIA_IsReadOnlyAttributeId` = true) فلا يُقرأ شيء ويصمت إتمام حتى يتغير السياق (إصلاح بعد 2.0): المتصفحات تضع مؤشرًا عند موضع النقر في نص الصفحة نفسه، فكانت كلماتها تُعامَل كأنها الكلمة التي تُكتب. أي قيمة أخرى (مختلطة، غير مدعومة، خطأ) تُعامَل كنص قابل للتحرير.
+2. نطاق المؤشر من `TextPattern2.GetCaretRange`، أو التحديد (الفارغ) من `TextPattern`. وإذا قال التطبيق صراحة إن النص عند المؤشر للقراءة فقط (`UIA_IsReadOnlyAttributeId` = true) فلا يُقرأ شيء ويصمت إتمام حتى يتغير السياق (إصلاح بعد 2.0): المتصفحات تضع مؤشرًا عند موضع النقر في نص الصفحة نفسه، فكانت كلماتها تُعامَل كأنها الكلمة التي تُكتب. أي قيمة أخرى (مختلطة، غير مدعومة، خطأ) تُعامَل كنص قابل للتحرير. ويصمت إتمام كذلك إذا كان التركيز في صفحة ويب على عنصر لا نص فيه ولا يمكن أن يكون حقلًا (منطقة محادثة، زر، قائمة). وفي حقول الويب يبلّغ Chromium عن النص الإرشادي للحقل الفارغ كأنه نص الحقل، فإذا انتهت كلمة عند نهاية الحقل بعد حركة مؤشر لم يسبقها حرف، فلا تُعرض اقتراحات حتى يُكتب حرف وتُقرأ السياق من جديد.
 3. تُمدّ نسخة من النطاق **إلى الخلف بما لا يزيد عن 49 حرفًا** ويُستدعى `GetText(49)`.
 
 لا يُقرأ شيء في التطبيقات المستثناة (`Itmam.Core.Input.ExcludedApps`؛ افتراضيًا: سطح المكتب البعيد والأجهزة الافتراضية والطرفيات ومشغّلات الألعاب). يُتحقق من ذلك مرتين: عبر `InputPipelineOptions.CanReadContext` على العملية الأمامية قبل كل قراءة، وعبر `UiaCaretContextSource` على العملية المالكة لعنصر UI Automation المركَّز قبل القراءة مباشرة.
@@ -325,7 +325,11 @@ caret:
 2. Caret range from `TextPattern2.GetCaretRange`, or the (empty) selection from `TextPattern`. If the app states
    that the text at the caret is read-only (`UIA_IsReadOnlyAttributeId` = true), nothing is read and Itmam stays
    silent until the context changes (fix after 2.0): browsers put a caret at the click point in the page's own text, whose
-   words were taken for the word being typed. Any other value (mixed, unsupported, error) counts as editable.
+   words were taken for the word being typed. Any other value (mixed, unsupported, error) counts as editable. Itmam
+   is also silent when the focus in a web page is on an element with no text that cannot be a field (a conversation
+   area, a button, a list). In web fields Chromium reports the grey hint of an empty field as the field's text, so a
+   word ending at the end of the field after a caret move with nothing typed gives no suggestions until a letter is
+   typed and the context is read again.
 3. A copy of the range is extended **backwards by at most 49 characters** and `GetText(49)` is called.
 
 Nothing is read in excluded apps (`Itmam.Core.Input.ExcludedApps`; defaults: remote desktop/VMs,

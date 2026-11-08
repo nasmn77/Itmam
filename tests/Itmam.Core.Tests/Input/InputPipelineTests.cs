@@ -466,6 +466,36 @@ public sealed class InputPipelineTests : IAsyncDisposable
         Commits().ShouldBe(["كلمة"]);
     }
 
+    [Theory]
+    [InlineData(InputEventKind.FocusChanged)]
+    [InlineData(InputEventKind.MouseClick)]
+    public async Task A_possible_field_hint_gives_no_word_until_a_letter_is_typed(InputEventKind moved)
+    {
+        _context.Next = "البحث عن ملصقات";
+        _context.TextAfter = "";
+        _context.MayBePlaceholder = true;
+        Send(InputEvent.Of(moved));
+        var probe = await WaitForAsync(u => u.Probe == ProbeOutcome.Unusable);
+        probe.Word.ShouldBeEmpty();
+        probe.IsDetached.ShouldBeTrue();
+
+        _context.Next = "م";   // the hint is gone once the letter is in the field
+        Type("م");
+        var resumed = await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedWithWord);
+        resumed.Word.ShouldBe("م");
+    }
+
+    [Fact]
+    public async Task Backspace_at_the_end_of_a_web_field_still_resumes_the_word()
+    {
+        _context.Next = "مطو";
+        _context.TextAfter = "";
+        _context.MayBePlaceholder = true;
+        Send(InputEvent.Of(InputEventKind.Backspace));
+        var probe = await WaitForAsync(u => u.Probe == ProbeOutcome.ResumedWithWord);
+        probe.Word.ShouldBe("مطو");
+    }
+
     [Fact]
     public async Task A_finished_word_is_learned_when_the_next_event_arrives()
     {
@@ -976,9 +1006,12 @@ public sealed class InputPipelineTests : IAsyncDisposable
 
             var text = Responses is { } responses ? responses(call) : Next;
             return text is null ? CaretContext.Unavailable
-                : TextAfter is { } after ? CaretContext.Around(text, after)
+                : TextAfter is { } after ? CaretContext.Around(text, after, MayBePlaceholder)
                 : CaretContext.Of(text, CharAfter);
         }
+
+        /// <summary>The caret is at the end of a web field (returned with <see cref="TextAfter"/>).</summary>
+        public volatile bool MayBePlaceholder;
 
         /// <summary>The character after the caret returned with the text.</summary>
         public char? CharAfter { get; set; }
