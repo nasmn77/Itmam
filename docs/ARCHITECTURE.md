@@ -177,6 +177,8 @@
 
 ### النصوص الطويلة (من الإصدار 1.1؛ اسمها «العبارات الطويلة» حتى 2.0)
 
+عند إيقاف الشريط (الإعداد `ShowSuggestionBar`) لا يظهر إلا لاختصار نصي مكتوب بالضبط، ولا يُتعلَّم شيء، وتُحذف القواميس من الذاكرة. وإن لم توجد اختصارات نصية يعالج الخطاف اختصارات لوحة المفاتيح فقط: لا تُترجم المفاتيح ولا تُنشر أحداث الكتابة أو النقر أو التركيز، ولا يُقرأ سياق المؤشر.
+
 ردود بعدة أسطر (`LongPhrase`: اسم ونص حتى 4000 حرف) في `settings.json`. اختصار يعمل في كل البرامج (`HotkeySettings.OpenLongPhrases`، افتراضيًا Ctrl+Shift+Space، ويحتاج Ctrl أو Alt) يبتلعه الخطاف ويرسل `OpenLongPhrases`. يحفظ `ItmamApp` النافذة الأمامية ويحدد مكان مؤشرها، ثم يفتح `LongPhrasePicker` قربه: نافذة تأخذ التركيز (يربط `PopupWindows.BringToFront` إدخال الخيط الأمامي لأن Windows يرفض غير ذلك)، فيها بحث بالاسم أو النص (`LongPhrases.Filter`) وقائمة ومعاينة. عند الاختيار تُخفى، ويعود التركيز إلى النافذة السابقة، ثم يلصق `ClipboardPaste` النص (قرار المستخدم، لأن كتابة مئات الأحرف ضغطةً ضغطة جمّدت Word): تُحفظ الحافظة، ويوضع النص فيها مع علامات Windows التي تستثنيه من سجل الحافظة ومزامنتها، ثم Ctrl+V، ثم تُستعاد الحافظة بعد 700 ملّي ثانية. وإن كانت الحافظة مشغولة يُكتب النص، وكل فاصل سطر Shift+Enter. لا يُتعلَّم منها شيء.
 
 **المتغيرات (من الإصدار 1.2):** `LongPhraseVariables` (في Core) يقسم النص: `{اسم}` يُسأل عنه، و`{{اسم}}` تلقائي من أربعة (التاريخ، التاريخ الهجري بتقويم `UmAlQuraCalendar`، اليوم، الوقت)، بأسماء عربية أو إنجليزية؛ والقوس الذي لا يكوّن متغيرًا صحيحًا يبقى نصًا. تُكتب القيم التلقائية بالعربية إن كان في نص العبارة حرف عربي، وإلا بالإنجليزية. `VariableDialog` يُدرج المتغير من نافذة التعديل، ويرفض `LongPhraseDialog` حفظ `{{اسم}}` غير معروف. في `LongPhrasePicker`، العبارة التي فيها متغير يُسأل عنه تُظهر خانة لكل متغير مكان القائمة، ثم يُلصق `LongPhraseVariables.Fill(...)`. القيم في النافذة فقط ولا تُحفظ.
@@ -523,6 +525,10 @@ a row, and learns neither the accepted word nor its sequences. If there is nothi
 Backspace, so the key press is never lost. No undo when a space after the caret was replaced (`DeleteForward`).
 
 ### Long texts (from 1.1; called "long phrases" until 2.0)
+
+With the bar turned off (setting `ShowSuggestionBar`) it appears only for a text shortcut typed exactly, nothing is
+learned and the dictionaries leave memory. With no text shortcuts either, the hook handles the keyboard shortcuts only:
+keys are not translated, no typing, click or focus event is published and the caret context is not read.
 
 Replies of several lines (`LongPhrase`: a name and a text of up to 4,000 characters) in `settings.json`. A shortcut that
 works everywhere (`HotkeySettings.OpenLongPhrases`, default Ctrl+Shift+Space, Ctrl or Alt required) is swallowed by the

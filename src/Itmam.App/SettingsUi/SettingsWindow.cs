@@ -320,6 +320,10 @@ internal sealed class SettingsWindow : Form
         AddCard(Strings.NotifyOnToggle, Strings.NotifyOnToggleHint, notify);
 
         AddSection(Strings.SectionSuggestions);
+        var bar = new ToggleSwitch { Checked = settings.ShowSuggestionBar };
+        bar.CheckedChanged += (_, _) => Update(s => s with { ShowSuggestionBar = bar.Checked });
+        AddCard(Strings.ShowSuggestionBar, Strings.ShowSuggestionBarHint, bar);
+
         var count = Numbers(1, 5, settings.MaxSuggestions);
         count.SelectedIndexChanged += (_, _) => Update(s => s with { MaxSuggestions = count.SelectedIndex + 1 });
         AddCard(Strings.MaxSuggestions, null, count);
@@ -1700,7 +1704,11 @@ internal sealed class SettingsWindow : Form
         AddTitle(Strings.AppName);
         AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutVersion, AppVersion()), secondary: true);
         AddText(Strings.AboutTagline, secondary: false);
-        AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutDictionary, _app.LoadedDictionaries.Sum(d => d.Count)), secondary: false);
+        if (_app.Settings.ShowSuggestionBar)
+        {
+            AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutDictionary, _app.LoadedDictionaries.Sum(d => d.Count)), secondary: false);
+        }
+
         AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutLearned, _app.Learning.Languages.Sum(l => _app.Learning.Snapshot(l).Count)), secondary: false);
         AddLink(Strings.AboutWebsite, _app.Settings.Language == UiLanguage.Arabic ? WebsiteUrl : WebsiteUrlEnglish);
         AddRateCard();
@@ -1713,10 +1721,13 @@ internal sealed class SettingsWindow : Form
         AddText(Strings.AboutOpenSource, secondary: false);
         AddLink(Strings.AboutSourceCode, RepositoryUrl);
 
-        AddSection(Strings.AboutSources);
-        foreach (var source in _app.LoadedDictionaries.SelectMany(d => d.Sources).Distinct())
+        if (_app.Settings.ShowSuggestionBar)
         {
-            AddLink($"{source.Name} — {source.License}", source.Url);
+            AddSection(Strings.AboutSources);
+            foreach (var source in _app.LoadedDictionaries.SelectMany(d => d.Sources).Distinct())
+            {
+                AddLink($"{source.Name} — {source.License}", source.Url);
+            }
         }
 
         AddSection(Strings.AboutPrivacyLink);

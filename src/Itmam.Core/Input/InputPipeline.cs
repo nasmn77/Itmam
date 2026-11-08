@@ -207,6 +207,9 @@ public sealed record InputPipelineOptions
     /// </summary>
     public int ReadsWhileTyping { get; init; } = 3;
 
+    /// <summary>False when the bar is turned off and there are no text shortcuts: the caret context is never read.</summary>
+    public bool TracksTyping { get; init; } = true;
+
     /// <summary>Type a space after an accepted suggestion (setting, default on).</summary>
     public bool AppendSpaceOnAccept { get; init; } = true;
 
@@ -370,8 +373,8 @@ public sealed class InputPipeline(
                 var (wordToLearn, phrasesToLearn) = AdvancePendingWord(record.Input.Kind, result);
                 Raise(record, result, probe: null, wordToLearn, phrasesToLearn, _usage, learnLanguage);
 
-                // Keyboard selection or a silenced window: nothing to read.
-                if (record.Input.Kind == InputEventKind.Selection || _silence != SilenceReason.None)
+                // Keyboard selection, a silenced window or the bar turned off: nothing to read.
+                if (record.Input.Kind == InputEventKind.Selection || _silence != SilenceReason.None || !_options.TracksTyping)
                 {
                     probeDue = null;
                     Tracker.Buffer.AwaitingContext = false;

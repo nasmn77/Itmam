@@ -406,6 +406,12 @@ internal sealed class ItmamApp : IDisposable
         Hooks.Hotkeys = settings.Hotkeys;
         var enabled = settings.EnabledLanguages.ToHashSet(StringComparer.Ordinal);
         Pipeline.Tracker.EnabledLanguages = enabled; // first: a language turned off is not typed into its unloaded engine
+
+        // Bar off: typing is followed only to find the text shortcuts; with none there is nothing to follow.
+        var shortcuts = new TextShortcuts(settings.TextShortcuts);
+        var tracksTyping = settings.ShowSuggestionBar || shortcuts.Count > 0;
+        Suggestions.ShortcutsOnly = !settings.ShowSuggestionBar; // before the dictionaries are unloaded
+        Hooks.TracksTyping = tracksTyping;
         _engineOptions = _engineOptions with
         {
             MaxSuggestions = settings.MaxSuggestions,
@@ -413,7 +419,8 @@ internal sealed class ItmamApp : IDisposable
             MinUsesToSuggest = settings.MinUsesToSuggest,
         };
 
-        var freed = LoadEnabledLanguages(enabled);
+        // Without the bar no dictionary is used: they leave memory, like a language turned off.
+        var freed = LoadEnabledLanguages(settings.ShowSuggestionBar ? enabled : new HashSet<string>());
         foreach (var (language, wikipedia) in new[] { (LanguageProfile.Arabic, settings.UseWikipediaDictionary), (LanguageProfile.English, settings.UseEnglishWikipediaDictionary) })
         {
             if (_usesWikipedia.TryGetValue(language.Id, out var loaded) && loaded != wikipedia)
@@ -438,13 +445,13 @@ internal sealed class ItmamApp : IDisposable
             language.Engine.Options = _engineOptions;
         }
 
-        Pipeline.Options = Pipeline.Options with { AppendSpaceOnAccept = settings.AddSpaceAfterAccept };
+        Pipeline.Options = Pipeline.Options with { AppendSpaceOnAccept = settings.AddSpaceAfterAccept, TracksTyping = tracksTyping };
         Learning.IsPaused = settings.LearningPaused;
         Learning.LearnsPhrases = settings.LearnPhrases;
         ExcludedApps.Replace(settings.ExcludedApps);
         Popup.Appearance = PopupAppearance.From(settings);
         UpdatePhrases();
-        Suggestions.Shortcuts = new TextShortcuts(settings.TextShortcuts);
+        Suggestions.Shortcuts = shortcuts;
         Suggestions.PhrasesLast = settings.PhrasesLast;
     }
 
@@ -536,12 +543,13 @@ internal sealed class ItmamApp : IDisposable
     // Pipeline thread.
     private void OnPipelineUpdated(PipelineUpdate update)
     {
-        if (update.WordToLearn is { } word)
+        // Without the bar nothing learned would be shown: typing is followed only to find the text shortcuts.
+        if (update.WordToLearn is { } word && Settings.ShowSuggestionBar)
         {
             Learning.Learn(word, update.LearnLanguage);
         }
 
-        if (update.PhrasesToLearn is { } phrases)
+        if (update.PhrasesToLearn is { } phrases && Settings.ShowSuggestionBar)
         {
             Learning.LearnPhrases(phrases, update.LearnLanguage);
         }

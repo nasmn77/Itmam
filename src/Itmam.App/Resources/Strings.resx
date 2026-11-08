@@ -175,6 +175,8 @@
   <data name="SectionNotifications" xml:space="preserve"><value>Notifications</value></data>
   <data name="NotifyOnToggle" xml:space="preserve"><value>Notify when Itmam is turned off or on</value></data>
   <data name="NotifyOnToggleHint" xml:space="preserve"><value>Also when a one-hour pause ends.</value></data>
+  <data name="ShowSuggestionBar" xml:space="preserve"><value>Show the suggestion bar</value></data>
+  <data name="ShowSuggestionBarHint" xml:space="preserve"><value>When off, the bar appears only when you type one of your text shortcuts, and Itmam learns no new words. Long texts keep working with their keyboard shortcut.</value></data>
   <data name="NavUpdates" xml:space="preserve"><value>Updates</value></data>
   <data name="CheckOnStart" xml:space="preserve"><value>Check for updates when Itmam starts</value></data>
   <data name="CheckOnStartHint" xml:space="preserve"><value>Itmam asks Microsoft Store through Windows. Nothing about you or what you type is sent.</value></data>

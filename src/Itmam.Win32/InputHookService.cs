@@ -93,6 +93,18 @@ public sealed unsafe class InputHookService : IDisposable
         }
     }
 
+    /// <summary>
+    /// False while the suggestion bar is turned off and there are no text shortcuts: only the keyboard shortcuts
+    /// are handled; keys are not translated, and no key, click or focus change is published.
+    /// </summary>
+    public bool TracksTyping
+    {
+        get => _tracksTyping;
+        set => _tracksTyping = value;
+    }
+
+    private volatile bool _tracksTyping = true;
+
     /// <summary>Keys acting on the bar; replaced live from Settings (the hook reads the new instance on the next key).</summary>
     public HotkeySettings Hotkeys
     {
@@ -377,7 +389,11 @@ public sealed unsafe class InputHookService : IDisposable
             return true;
         }
 
-        OnKeyDown(data, publish: true);
+        if (_tracksTyping)
+        {
+            OnKeyDown(data, publish: true);
+        }
+
         return false;
     }
 
@@ -497,7 +513,7 @@ public sealed unsafe class InputHookService : IDisposable
                     _popup.SetUndoAccept(false);
                 }
 
-                if (_enabled && message is PInvoke.WM_LBUTTONDOWN or PInvoke.WM_RBUTTONDOWN or PInvoke.WM_MBUTTONDOWN or PInvoke.WM_XBUTTONDOWN)
+                if (_enabled && _tracksTyping && message is PInvoke.WM_LBUTTONDOWN or PInvoke.WM_RBUTTONDOWN or PInvoke.WM_MBUTTONDOWN or PInvoke.WM_XBUTTONDOWN)
                 {
                     // A click on the suggestion bar is handled by the bar (accepts a word); the
                     // caret in the app does not move, so it is not a context change.
@@ -523,7 +539,7 @@ public sealed unsafe class InputHookService : IDisposable
     {
         try
         {
-            if (!_enabled)
+            if (!_enabled || !_tracksTyping)
             {
                 return;
             }

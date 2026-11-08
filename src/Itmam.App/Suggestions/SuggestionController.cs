@@ -76,7 +76,10 @@ internal sealed class SuggestionController : IDisposable
         if (update is { Language: not null, IsDetached: false, SuggestionsSuppressed: false, Silenced: SilenceReason.None }
             && _isEnabled())
         {
-            words = Suggest(_forLanguage(language), update, sources);
+            // Checked first: without the bar the dictionaries are unloaded, and asking for a language would load one.
+            words = ShortcutsOnly
+                ? Shortcuts.Find(update.Word) is { } shortcut ? [shortcut] : []
+                : Suggest(_forLanguage(language), update, sources);
         }
 
         var started = update.Input?.Timestamp ?? Stopwatch.GetTimestamp();
@@ -155,6 +158,9 @@ internal sealed class SuggestionController : IDisposable
 
     /// <summary>The user's text shortcuts («ع1» → its text).</summary>
     public TextShortcuts Shortcuts { get; set; } = TextShortcuts.Empty;
+
+    /// <summary>The suggestion bar is turned off: it appears only for a text shortcut typed exactly.</summary>
+    public bool ShortcutsOnly { get; set; }
 
     /// <summary>Phrases after the dictionary words (setting <c>PhrasesLast</c>).</summary>
     public bool PhrasesLast { get; set; }

@@ -466,6 +466,18 @@ public sealed class InputPipelineTests : IAsyncDisposable
         Commits().ShouldBe(["كلمة"]);
     }
 
+    [Fact]
+    public async Task With_typing_not_followed_the_long_texts_shortcut_arrives_and_nothing_is_read()
+    {
+        _pipeline.Options = _pipeline.Options with { TracksTyping = false };
+        _context.Next = "كلمة";
+        Send(InputEvent.Of(InputEventKind.OpenLongPhrases));
+        await WaitForAsync(u => u.Input?.Input.Kind == InputEventKind.OpenLongPhrases);
+        await Task.Delay(60, TestContext.Current.CancellationToken);   // longer than the delay before a read
+
+        _context.Calls.ShouldBe(0);
+    }
+
     [Theory]
     [InlineData(InputEventKind.FocusChanged)]
     [InlineData(InputEventKind.MouseClick)]
