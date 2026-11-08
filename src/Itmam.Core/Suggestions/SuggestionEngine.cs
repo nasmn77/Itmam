@@ -61,6 +61,11 @@ public sealed class SuggestionEngine(
             return [];
         }
 
+        if (AfterWordEndLetter(literal) is { } split)
+        {
+            return split;
+        }
+
         var key = Language.Normalize(literal);
         var context = new Context(literal, _time.GetUtcNow());
 
@@ -98,7 +103,7 @@ public sealed class SuggestionEngine(
         var typos = KeyTypoNeed(context, literal, key);
         if (typos != TypoNeed.None)
         {
-            CollectKeyTypos(context, key, typos == TypoNeed.RareWord);
+            CollectKeyTypos(context, literal, key, typos == TypoNeed.RareWord);
         }
 
         var minTypoScore = typos == TypoNeed.RareWord ? Options.KeyTypoStrongScore : Options.KeyTypoMinScore;
@@ -158,7 +163,7 @@ public sealed class SuggestionEngine(
     // One mistake undone at a time, each result looked up as a prefix (the word may still be incomplete).
     // A rare word in the dictionary may be correct: removing a letter or adding a space would break real words
     // with an attached pronoun («مطاولة» → «طاولة», «شارعها» → «شارع ها»).
-    private void CollectKeyTypos(Context context, string key, bool rareWord)
+    private void CollectKeyTypos(Context context, string literal, string key, bool rareWord)
     {
         if (!Options.FixKeyTypos || key.Length < Options.KeyTypoMinChars || key.Length > Options.KeyTypoMaxChars)
         {
@@ -222,6 +227,34 @@ public sealed class SuggestionEngine(
         {
             CollectMissingSpace(context, key);
         }
+    }
+
+    // A letter that only ends words followed by more letters («خشبةالمسرح»): a space is certainly missing (user
+    // rule), whatever the dictionary holds. The rest is completed like any word, as it may still be being typed.
+    // Null when the typed text has no such letter.
+    private Suggestion[]? AfterWordEndLetter(string literal)
+    {
+        var end = Options.FixKeyTypos && literal.Length > 2
+            ? Array.FindIndex(literal.ToCharArray(1, literal.Length - 2), Language.EndsWordsOnly)
+            : -1;
+        if (end < 0)
+        {
+            return null;
+        }
+
+        var left = literal[..(end + 2)];
+        var right = literal[(end + 2)..];
+        if (right.Length < Options.MinChars)
+        {
+            return [];
+        }
+
+        var (known, _) = BestSpelling(Language.Normalize(right));
+        var completions = Suggest(right).Select(s => s.Word);
+
+        // A whole word comes first; letters that are no word yet are more likely the start of one.
+        string[] words = known is not null ? [known, .. completions] : [.. completions, right];
+        return [.. words.Distinct().Take(Options.MaxSuggestions).Select(w => new Suggestion($"{left} {w}", MatchKind.KeyTypo, 0))];
     }
 
     // «فيالبيت» → «في البيت»: two common words, both complete. The second has 3 letters or more: shorter ones are

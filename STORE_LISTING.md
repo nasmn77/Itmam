@@ -44,6 +44,13 @@ Product: **9P08F7KGRJB0** · Category: **Productivity** · Price: **Free** · Pa
 
 **كلمات البحث** (7 على الأكثر): اتمام · اكمال الكلمات · اقتراح الكلمات · لوحة المفاتيح العربية · الكتابة بالعربي · التنبؤ بالنص · الكتابة التنبؤية
 
+**ما الجديد في 2.3:**
+
+- تصحيح أخطاء الكتابة: إذا لم يجد إتمام ما يطابق ما كتبته، يقترح الكلمة الصحيحة بعد إصلاح خطأ واحد: زر مجاور، أو حرف متشابه النطق، أو حرفان مبدلان، أو حرف زائد أو ناقص، أو مسافة منسية.
+- قاموس عربي أنظف: حُذفت آلاف الكتابات الخاطئة مثل «انتضار» و«السياره»، وأضيفت أخطاء شائعة جديدة إلى قائمة التصحيح.
+- خيار جديد لإيقاف شريط الاقتراحات: يظهر عندها لاختصاراتك النصية فقط، وتبقى النصوص الطويلة تعمل باختصارها.
+- إصلاح: لم يعد الشريط يظهر دون كتابة في الحقول الفارغة التي فيها نص إرشادي، ولا عند الكتابة خارج مربع النص في صفحات الويب.
+
 **ما الجديد في 2.2.1:**
 
 - إصلاح زر «تقييم ومراجعة»: كان إرسال المراجعة من نافذته لا يعمل، فصار يفتح صفحة المراجعة في تطبيق المتجر.
@@ -154,6 +161,13 @@ Your privacy first. Itmam sends no data: no statistics, no crash reports. Its on
 - Arabic and English interface; open source (MIT)
 
 **Search terms** (7 max): Arabic keyboard · Arabic word prediction · Arabic autocomplete · predictive text · word suggestions · Arabic typing · اتمام
+
+**What's new in 2.3:**
+
+- Typing mistakes corrected: when nothing matches what you typed, Itmam suggests the right word after fixing one mistake: a key next to the right one, a letter that sounds alike (Arabic), two letters swapped, a letter too many or missing, or a missing space.
+- A cleaner Arabic dictionary: thousands of misspellings removed, and more common mistakes added to the corrections.
+- A new option turns off the suggestion bar: it then appears only for your text shortcuts, and long texts keep working with their keyboard shortcut.
+- Fixed: the bar no longer appears without typing in empty fields that show a grey hint, or when typing outside a text box on web pages.
 
 **What's new in 2.2.1:**
 

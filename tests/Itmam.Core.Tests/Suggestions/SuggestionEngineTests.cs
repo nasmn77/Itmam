@@ -118,6 +118,30 @@ public class SuggestionEngineTests
         Engine(TestDictionaries.Of(("شارع", 1000), ("ولدي", 1000), ("شارعولدي", 1)), options).Suggest("شارعولدي").ShouldBeEmpty();
     }
 
+    [Theory]
+    [InlineData("خشبةالمسرح", "خشبة المسرح")]
+    [InlineData("خشبةفي", "خشبة في")] // a short second word
+    [InlineData("خشبةزيد", "خشبة زيد")] // not in the dictionary
+    [InlineData("علىالمسرح", "على المسرح")] // ى also only ends words
+    public void A_letter_that_only_ends_words_means_a_space_is_missing(string typed, string expected) =>
+        Words(Engine(TestDictionaries.Of(("المسرح", 100), ("في", 100))).Suggest(typed)).ShouldBe([expected]);
+
+    [Fact]
+    public void The_word_after_a_ta_marbuta_is_completed_while_it_is_typed() =>
+        Words(Engine(TestDictionaries.Of(("المسرح", 100))).Suggest("خشبةالمس")).ShouldBe(["خشبة المسرح", "خشبة المس"]);
+
+    [Fact]
+    public void A_dictionary_entry_does_not_stop_the_space_after_a_ta_marbuta() =>
+        Words(Engine(TestDictionaries.Of(("في", 1000), ("مدينةفي", 900), ("مدينةفيها", 900))).Suggest("مدينةفي")).ShouldBe(["مدينة في"]);
+
+    [Fact]
+    public void One_letter_after_a_ta_marbuta_is_too_few_to_suggest() =>
+        Engine(TestDictionaries.Of(("المسرح", 100))).Suggest("خشبةا").ShouldBeEmpty();
+
+    [Fact]
+    public void A_ta_marbuta_at_the_end_changes_nothing() =>
+        Words(Engine(TestDictionaries.Of(("خشبة", 100), ("خشبةا", 1))).Suggest("خشبة")).ShouldBe(["خشبةا"]);
+
     [Fact]
     public void A_short_second_part_is_not_split_off() =>
         Engine(TestDictionaries.Of(("حملت", 100), ("ها", 100)), AnyFrequency with { KeyTypoSplitMinScore = double.NegativeInfinity })

@@ -124,6 +124,9 @@ public abstract class LanguageProfile
     /// <summary>Matching-key letters commonly written for this one because they sound alike.</summary>
     public virtual string SoundAlikes(char keyLetter) => string.Empty;
 
+    /// <summary>A letter found only at the end of a word: followed by more letters, a space is missing.</summary>
+    public virtual bool EndsWordsOnly(char letter) => false;
+
     /// <summary>The matching-key letters tried when a letter is missing; empty when they are not known.</summary>
     public virtual string KeyAlphabet => string.Empty;
 
