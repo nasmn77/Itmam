@@ -18,6 +18,7 @@ Website: https://nasmn77.github.io/Itmam/en/ · Repository: https://github.com/n
 - **Text shortcuts:** type «ع1» and the bar offers «السلام عليكم ورحمة الله وبركاته»; Tab puts it in place, with the shortcuts you choose.
 - **Long texts of several lines** (such as technical support replies): press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Space</kbd> in any program and choose by name from the list. With **variables**: `{customer name}` is asked for when inserting, and `{{date}}` is written by Itmam (the date, the Hijri date, the day and the time).
 - **Fixes common mistakes:** «لاكن» → «لكن», «انشاءالله» → «إن شاء الله», «مدرسه» → «مدرسة», with Tab.
+- **Fixes typing mistakes (from 2.3):** when nothing matches what you typed, it suggests the right word after fixing one mistake: a key next to the right one («hrllo» → «hello»), two letters swapped, a letter too many or missing, or a missing space; in Arabic also a letter that sounds alike.
 - **Learns your phrases:** words you type in a row twice are then suggested as a whole phrase (can be turned off).
 - **Completes a word from the middle:** go back into a word with a click or Backspace and it continues from the caret.
 - **Several languages (from 2.0):** it follows your keyboard layout and suggests in the language you are typing.
@@ -48,7 +49,7 @@ Shortcuts can be changed in Settings → "Keyboard shortcuts".
 
 Click the Itmam icon next to the clock (right or left button) and choose "Settings":
 
-- **General:** start with Windows, number of suggestions, letters before they appear.
+- **General:** start with Windows, show or turn off the suggestion bar (when off it appears only for your text shortcuts, and long texts keep working with their keyboard shortcut), number of suggestions, letters before they appear.
 - **Languages:** the interface language (it starts in Arabic if Windows is displayed in Arabic and in English otherwise, and the tray menu switches it too), the keyboard languages on your PC and what Itmam does with each, turning them on or off (a
   language turned off frees its dictionary from memory at once), and the Arabic and English dictionaries (basic or Wikipedia).
 - **Appearance:** theme, bar, text and selection colors, opacity, text size, with a live preview.
