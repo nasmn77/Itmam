@@ -7,6 +7,8 @@ History of every release and the detailed user decisions: [docs/HISTORY.md](docs
 ## Current status
 - **Latest published: 2.3.0.0** (Submission 11, published 2026-11-09). Everything is merged into `main`; no open branch.
 - Store product **9P08F7KGRJB0**. A version number already uploaded is never rebuilt: any change needs a new number.
+- Every published version has an annotated tag `vX.Y.Z` on the commit its package was built from (v1.0.0 … v2.3.0);
+  a GitHub Release only for the latest, with the What's new from `STORE_LISTING.md` (Arabic then English).
 - A release: version in `Package.appxmanifest`, `tools/Build-Package.ps1`, What's new + certification notes in `STORE_LISTING.md`.
 - Site: `site/` → GitHub Pages (https://nasmn77.github.io/Itmam/). Keep `site/privacy.html`, `site/en/privacy.html`, `docs/PRIVACY.md` in sync.
 - Guide: `docs/guide/guide.{ar,en}.html` → `tools/Build-Guide.ps1` → PDFs (shipped in the package, copied to `site/assets/guide/`).
