@@ -1,15 +1,9 @@
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
 using System.Globalization;
-using System.Reflection;
 using Itmam.App.Resources;
-using Itmam.App.Suggestions;
-using Itmam.Core.Input;
-using Itmam.Core.Languages;
-using Itmam.Core.Learning;
-using Itmam.Core.Presentation;
+using Itmam.App.SettingsUi.Pages;
 using Itmam.Core.Settings;
-using Itmam.Core.Suggestions;
 using Itmam.Win32;
 using Microsoft.Win32;
 
@@ -38,13 +32,6 @@ internal enum SettingsPage
 /// </summary>
 internal sealed class SettingsWindow : Form
 {
-    private const string RepositoryUrl = "https://github.com/nasmn77/Itmam";
-    // The website's policy, the same one registered in Partner Center; English for the English interface.
-    private const string WebsiteUrl = "https://nasmn77.github.io/Itmam/";
-    private const string WebsiteUrlEnglish = "https://nasmn77.github.io/Itmam/en/";
-    private const string PrivacyUrl = "https://nasmn77.github.io/Itmam/privacy.html";
-    private const string PrivacyUrlEnglish = "https://nasmn77.github.io/Itmam/en/privacy.html";
-    private const string DeveloperEmail = "nasmn77@gmail.com";
     private const int WS_EX_LAYOUTRTL = 0x00400000;
     private const int WS_EX_NOINHERITLAYOUT = 0x00100000;
 
@@ -56,21 +43,9 @@ internal sealed class SettingsWindow : Form
     private readonly Dictionary<SettingsPage, NavItem> _navItems = [];
     private readonly List<Control> _pageControls = [];
     private readonly HashSet<Control> _filteredOut = [];
-    private string _excludedSearch = string.Empty; // kept when the page is rebuilt after add/remove
-    private string _wordsFilter = string.Empty;
-    private int _wordsSort;
-    private LanguageProfile _wordsLanguage = LanguageProfile.Arabic; // My words, and the learned phrases on My phrases
-    private Label? _wordsHeader;
-    private SearchBox? _wordsSearch;
-    private WordList? _wordList;
-    private ThemedButton? _editWord;
-    private ThemedButton? _toggleBlock;
-    private ThemedButton? _deleteWord;
     private SettingsPalette _palette;
     private SettingsPage _page;
     private bool _loading;
-    private BarPreview? _preview;
-    private SettingCard? _textCard;
 
     /// <param name="app">The running app (settings are read and saved through it).</param>
     /// <param name="exit">Exits Itmam (the "Close Itmam" section).</param>
@@ -107,6 +82,27 @@ internal sealed class SettingsWindow : Form
 
     /// <summary>The page currently shown.</summary>
     public SettingsPage CurrentPage => _page;
+
+    // What the pages (SettingsUi/Pages) use: the app, the state kept between builds, and the page being built.
+    internal ItmamApp App => _app;
+
+    internal SettingsViewState State { get; } = new();
+
+    internal SettingsPalette Palette => _palette;
+
+    internal bool Mirrored => _mirrored;
+
+    internal PageScroller Content => _content;
+
+    internal List<Control> PageControls => _pageControls;
+
+    internal HashSet<Control> FilteredOut => _filteredOut;
+
+    internal bool IsLoading => _loading;
+
+    internal void SetLoading(bool loading) => _loading = loading;
+
+    internal void ExitApp() => _exit();
 
 #if DEBUG
     /// <summary>Debug demo only: scrolls to the end of the page (screenshots).</summary>
@@ -203,13 +199,13 @@ internal sealed class SettingsWindow : Form
         }
     }
 
-    private void SelectPage(SettingsPage page)
+    internal void SelectPage(SettingsPage page)
     {
         if (page != _page)
         {
-            _excludedSearch = string.Empty; // a search applies only while staying on its page
+            State.ExcludedSearch = string.Empty; // a search applies only while staying on its page
             _content.Offset = 0;
-            _wordsFilter = string.Empty;
+            State.WordsFilter = string.Empty;
         }
 
         _page = page;
@@ -227,52 +223,24 @@ internal sealed class SettingsWindow : Form
 
         _pageControls.Clear();
         _filteredOut.Clear();
-        _preview = null;
-        _wordsHeader = null;
-        _wordsSearch = null;
-        _wordList = null;
-        _editWord = _toggleBlock = _deleteWord = null;
-        _textCard = null;
         _loading = true;
-        switch (page)
+        SettingsPageBase? content = page switch
         {
-            case SettingsPage.General:
-                BuildGeneralPage();
-                break;
-            case SettingsPage.Languages:
-                BuildLanguagesPage();
-                break;
-            case SettingsPage.Appearance:
-                BuildAppearancePage();
-                break;
-            case SettingsPage.Shortcuts:
-                BuildShortcutsPage();
-                break;
-            case SettingsPage.Excluded:
-                BuildExcludedPage();
-                break;
-            case SettingsPage.Words:
-                BuildWordsPage();
-                break;
-            case SettingsPage.Phrases:
-                BuildPhrasesPage();
-                break;
-            case SettingsPage.TextShortcuts:
-                BuildTextShortcutsPage();
-                break;
-            case SettingsPage.LongPhrases:
-                BuildLongPhrasesPage();
-                break;
-            case SettingsPage.Updates:
-                BuildUpdatesPage();
-                break;
-            case SettingsPage.About:
-                BuildAboutPage();
-                break;
-            case SettingsPage.Exit:
-                BuildExitPage();
-                break;
-        }
+            SettingsPage.General => new GeneralPage(this),
+            SettingsPage.Languages => new LanguagesPage(this),
+            SettingsPage.Appearance => new AppearancePage(this),
+            SettingsPage.Shortcuts => new ShortcutsPage(this),
+            SettingsPage.Excluded => new ExcludedPage(this),
+            SettingsPage.Words => new WordsPage(this),
+            SettingsPage.Phrases => new PhrasesPage(this),
+            SettingsPage.TextShortcuts => new TextShortcutsPage(this),
+            SettingsPage.LongPhrases => new LongPhrasesPage(this),
+            SettingsPage.Updates => new UpdatesPage(this),
+            SettingsPage.About => new AboutPage(this),
+            SettingsPage.Exit => new ExitPage(this),
+            _ => null,
+        };
+        content?.Build();
 
         _loading = false;
         ApplyPalette();
@@ -280,590 +248,10 @@ internal sealed class SettingsWindow : Form
         LayoutPage();
     }
 
-    private void BuildGeneralPage()
-    {
-        var settings = _app.Settings;
-        AddTitle(Strings.NavGeneral);
-
-        // User guide (user decision 1.1.1): a PDF shipped in the package, in the interface language.
-        var guide = new ThemedButton { Text = Strings.OpenButton };
-        guide.Click += (_, _) =>
-        {
-            if (!UserGuide.Open(_app.Settings.Language))
-            {
-                ShowInfo(Strings.GuideUnavailable);
-            }
-        };
-        AddCard(Strings.UserGuide, Strings.UserGuideHint, guide);
-
-        AddSection(Strings.SectionStartup);
-        var startup = new ToggleSwitch();
-        AddCard(Strings.StartWithWindows, Strings.StartWithWindowsHint, startup);
-        _ = LoadStartupStateAsync(startup);
-        startup.CheckedChanged += async (_, _) =>
-        {
-            if (_loading)
-            {
-                return;
-            }
-
-            var actual = await StartupRegistration.SetEnabledAsync(startup.Checked);
-            _app.UpdateSettings(_app.Settings with { StartWithWindows = actual });
-            _loading = true;
-            startup.Checked = actual; // the user or a policy may have refused
-            _loading = false;
-        };
-
-        AddSection(Strings.SectionNotifications);
-        var notify = new ToggleSwitch { Checked = settings.NotifyOnToggle };
-        notify.CheckedChanged += (_, _) => Update(s => s with { NotifyOnToggle = notify.Checked });
-        AddCard(Strings.NotifyOnToggle, Strings.NotifyOnToggleHint, notify);
-
-        AddSection(Strings.SectionSuggestions);
-        var bar = new ToggleSwitch { Checked = settings.ShowSuggestionBar };
-        bar.CheckedChanged += (_, _) => Update(s => s with { ShowSuggestionBar = bar.Checked });
-        AddCard(Strings.ShowSuggestionBar, Strings.ShowSuggestionBarHint, bar);
-
-        var count = Numbers(1, 5, settings.MaxSuggestions);
-        count.SelectedIndexChanged += (_, _) => Update(s => s with { MaxSuggestions = count.SelectedIndex + 1 });
-        AddCard(Strings.MaxSuggestions, null, count);
-
-        var letters = Numbers(1, 4, settings.MinLetters);
-        letters.SelectedIndexChanged += (_, _) => Update(s => s with { MinLetters = letters.SelectedIndex + 1 });
-        AddCard(Strings.MinLetters, null, letters);
-
-        var space = new ToggleSwitch { Checked = settings.AddSpaceAfterAccept };
-        space.CheckedChanged += (_, _) => Update(s => s with { AddSpaceAfterAccept = space.Checked });
-        AddCard(Strings.AddSpace, null, space);
-
-        AddSection(Strings.SectionLearning);
-        var learn = new ToggleSwitch { Checked = !settings.LearningPaused };
-        learn.CheckedChanged += (_, _) => Update(s => s with { LearningPaused = !learn.Checked });
-        AddCard(Strings.LearnNewWords, null, learn);
-
-        var uses = Numbers(1, 5, settings.MinUsesToSuggest);
-        uses.SelectedIndexChanged += (_, _) => Update(s => s with { MinUsesToSuggest = uses.SelectedIndex + 1 });
-        AddCard(Strings.MinUses, null, uses);
-
-        // Full backup (user decision 1.1): one file to move everything to another PC.
-        AddSection(Strings.SectionBackup);
-        var backup = new ThemedButton { Text = Strings.BackupButton };
-        backup.Click += (_, _) => SaveFullBackup();
-        var restore = new ThemedButton { Text = Strings.RestoreBackupButton };
-        restore.Click += (_, _) => RestoreFullBackup();
-        AddCard(Strings.FullBackup, Strings.FullBackupHint, new ButtonRow(backup, restore));
-
-        // Statistics (user decision 1.1): counts only, kept in user.db.
-        AddSection(Strings.SectionStats);
-        var usage = _app.Learning.Usage;
-        var reset = new ThemedButton { Text = Strings.ResetStatsButton };
-        reset.Click += (_, _) =>
-        {
-            if (Confirm(Strings.ConfirmResetStats, null))
-            {
-                _app.Learning.ResetUsage();
-                BeginInvoke(RebuildPage);
-            }
-        };
-        AddCard(string.Format(CultureInfo.CurrentCulture, Strings.StatsSummary, usage.Completions, usage.CharactersSaved),
-            string.Format(CultureInfo.CurrentCulture, Strings.StatsSince, usage.Since.ToLocalTime().DateTime), reset);
-    }
-
-    // User decisions 2.0: Itmam follows the keyboard layout. Arabic and English have dictionaries, other
-    // alphabetic languages learn from typing (off until turned on), input-method languages stay silent.
-    private void BuildLanguagesPage()
-    {
-        var settings = _app.Settings;
-        AddTitle(Strings.NavLanguages);
-        AddText(Strings.LanguagesIntro, secondary: true);
-
-        // The interface language lives here too (user decision 2.0), moved from General.
-        AddSection(Strings.SectionLanguage);
-        var uiLanguage = new SegmentedChoice { Options = [Strings.LanguageArabic, Strings.LanguageEnglish] };
-        uiLanguage.SelectedIndex = settings.Language == UiLanguage.Arabic ? 0 : 1;
-        uiLanguage.SelectedIndexChanged += (_, _) => Update(s => s with { Language = uiLanguage.SelectedIndex == 0 ? UiLanguage.Arabic : UiLanguage.English });
-        AddCard(Strings.UiLanguage, null, uiLanguage);
-
-        AddSection(Strings.SectionKeyboardLanguages);
-        var installed = KeyboardLayouts.Installed()
-            .Select(layout => (Tag: LanguageRegistry.ForLayout(layout)?.Id ?? TagOf(layout), Language: LanguageRegistry.ForLayout(layout)))
-            .DistinctBy(l => l.Tag)
-            .ToList();
-        var notInstalled = settings.EnabledLanguages
-            .Where(tag => installed.All(l => l.Tag != tag))
-            .Select(tag => (Tag: tag, Language: (LanguageProfile?)LanguageRegistry.ForTag(tag)));
-        foreach (var (tag, language) in installed.Concat(notInstalled).OrderBy(l => l.Tag switch { "ar" => 0, "en" => 1, _ => 2 }).ThenBy(l => l.Tag, StringComparer.Ordinal))
-        {
-            var description = LanguageRegistry.Support(language) switch
-            {
-                LanguageSupport.Full => Strings.LanguageFull,
-                LanguageSupport.LearningOnly => Strings.LanguageLearningOnly,
-                _ => Strings.LanguageUnsupported,
-            };
-            if (installed.All(l => l.Tag != tag))
-            {
-                description += " " + Strings.LanguageNoKeyboard;
-            }
-
-            var toggle = new ToggleSwitch { Checked = language is not null && settings.EnabledLanguages.Contains(tag), Enabled = language is not null };
-            toggle.CheckedChanged += (_, _) => Update(s => s with
-            {
-                EnabledLanguages = toggle.Checked ? [.. s.EnabledLanguages, tag] : [.. s.EnabledLanguages.Where(l => l != tag)],
-            });
-            AddCard(LanguageName(tag), description, toggle);
-        }
-
-        // Two shipped Arabic dictionaries (user decision 1.1): the basic one, or the larger Wikipedia one.
-        AddSection(Strings.SectionDictionary);
-        var dictionary = new SegmentedChoice { Options = [Strings.DictionaryBasic, Strings.DictionaryWikipedia] };
-        dictionary.SelectedIndex = settings.UseWikipediaDictionary ? 1 : 0;
-        dictionary.SelectedIndexChanged += (_, _) => Update(s => s with { UseWikipediaDictionary = dictionary.SelectedIndex == 1 });
-        AddCard(Strings.DictionaryChoice, Strings.DictionaryChoiceHint, dictionary);
-
-        // The same choice for English (user decision 2.0).
-        AddSection(Strings.SectionEnglishDictionary);
-        var english = new SegmentedChoice { Options = [Strings.DictionaryBasic, Strings.DictionaryWikipedia] };
-        english.SelectedIndex = settings.UseEnglishWikipediaDictionary ? 1 : 0;
-        english.SelectedIndexChanged += (_, _) => Update(s => s with { UseEnglishWikipediaDictionary = english.SelectedIndex == 1 });
-        AddCard(Strings.DictionaryChoice, Strings.EnglishDictionaryChoiceHint, english);
-
-        // Windows' own suggestions for the physical keyboard would show a second bar.
-        AddSection(Strings.SectionTwoBars);
-        var open = new ThemedButton { Text = Strings.OpenButton };
-        open.Click += (_, _) =>
-        {
-            try
-            {
-                Process.Start(new ProcessStartInfo("ms-settings:typing") { UseShellExecute = true });
-            }
-            catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
-            {
-                ShowInfo(Strings.FileError);
-            }
-        };
-        AddCard(Strings.TwoBars, Strings.TwoBarsHint, open);
-    }
-
-    // The language of a layout Itmam does not support (Chinese …), as a tag for its name.
-    private static string TagOf(nint layout)
-    {
-        try
-        {
-            return CultureInfo.GetCultureInfo((int)(layout & 0xFFFF)).TwoLetterISOLanguageName;
-        }
-        catch (CultureNotFoundException)
-        {
-            return $"x{layout & 0x3FF:x2}";
-        }
-    }
-
-    // Arabic and English in the interface language; any other language by its own name («עברית», «Français»).
-    private static string LanguageName(string tag)
-    {
-        switch (tag)
-        {
-            case "ar":
-                return Strings.LanguageArabic;
-            case "en":
-                return Strings.LanguageEnglish;
-        }
-
-        try
-        {
-            var culture = CultureInfo.GetCultureInfo(tag);
-            var name = culture.NativeName;
-            return name.Length > 0 ? culture.TextInfo.ToUpper(name[0]) + name[1..] : tag;
-        }
-        catch (CultureNotFoundException)
-        {
-            return tag;
-        }
-    }
-
-    // The languages that have something to show in My words / My phrases: those with learned words or
-    // phrases, and those turned on that Itmam suggests in. Arabic first.
-    private List<LanguageProfile> ListLanguages() =>
-        [.. _app.Learning.LanguagesWithLearned
-            .Concat(_app.Settings.EnabledLanguages.Select(LanguageRegistry.ForTag).Where(l => LanguageRegistry.Support(l) != LanguageSupport.Unsupported))
-            .DistinctBy(l => l.Id)
-            .OrderBy(l => l.Id switch { "ar" => 0, "en" => 1, _ => 2 })
-            .ThenBy(l => l.Id, StringComparer.Ordinal)];
-
-    // A choice of language at the top of a list, when there is more than one (rebuilds the page on change).
-    private void AddLanguageChoice()
-    {
-        var languages = ListLanguages();
-        if (!languages.Contains(_wordsLanguage))
-        {
-            _wordsLanguage = LanguageProfile.Arabic;
-        }
-
-        if (languages.Count < 2)
-        {
-            return;
-        }
-
-        var choice = new SegmentedChoice { Options = [.. languages.Select(l => LanguageName(l.Id))] };
-        choice.SelectedIndex = languages.IndexOf(_wordsLanguage);
-        choice.SelectedIndexChanged += (_, _) =>
-        {
-            _wordsLanguage = languages[choice.SelectedIndex];
-            BeginInvoke(RebuildPage);
-        };
-        AddCard(Strings.WordsLanguage, null, choice);
-    }
-
-    // Every change shows at once in the preview (and in the real bar).
-    private void BuildAppearancePage()
-    {
-        var settings = _app.Settings;
-        AddTitle(Strings.NavAppearance);
-
-        AddSection(Strings.SectionPreview);
-        _preview = new BarPreview { Appearance = PopupAppearance.From(settings) };
-        AddPageControl(_preview);
-
-        AddSection(Strings.SectionTheme);
-        var theme = new SegmentedChoice { Options = [Strings.ThemeSystem, Strings.ThemeLight, Strings.ThemeDark] };
-        theme.SelectedIndex = (int)settings.Theme;
-        theme.SelectedIndexChanged += (_, _) => UpdateLook(s => s with { Theme = (ThemeChoice)theme.SelectedIndex });
-        AddCard(Strings.ThemeLabel, null, theme);
-
-        AddSection(Strings.SectionColors);
-        var background = Swatches(BarColorPresets.All.Select(p => p.Hex), settings.BarBackground);
-        background.ValueChanged += (_, _) => UpdateLook(s => s with { BarBackground = Hex(background.Value) });
-        AddCard(Strings.BarBackground, Strings.BarBackgroundHint, background, stacked: true);
-
-        var text = Swatches(BarColorPresets.Texts, settings.BarText);
-        text.ValueChanged += (_, _) => UpdateLook(s => s with { BarText = Hex(text.Value) });
-        _textCard = AddCard(Strings.BarText, Strings.BarTextHint, text, stacked: true);
-
-        var highlight = Swatches(BarColorPresets.Highlights, settings.BarHighlight);
-        highlight.ValueChanged += (_, _) => UpdateLook(s => s with { BarHighlight = Hex(highlight.Value) });
-        AddCard(Strings.BarHighlight, Strings.BarHighlightHint, highlight, stacked: true);
-
-        AddSection(Strings.SectionBarLook);
-        int[] opacities = [100, 95, 90, 85, 80];
-        var opacity = new SegmentedChoice { Options = [.. opacities.Select(o => $"{o}%")] };
-        opacity.SelectedIndex = Math.Max(0, Array.IndexOf(opacities, settings.BarOpacity - (settings.BarOpacity % 5)));
-        opacity.SelectedIndexChanged += (_, _) => UpdateLook(s => s with { BarOpacity = opacities[opacity.SelectedIndex] });
-        AddCard(Strings.BarOpacity, null, opacity);
-
-        int[] sizes = [12, 13, 14, 16, 18, 20];
-        var size = new SegmentedChoice { Options = [.. sizes.Select(n => n.ToString(CultureInfo.CurrentCulture))] };
-        size.SelectedIndex = Array.IndexOf(sizes, settings.BarFontSize) is var index and >= 0 ? index : Array.IndexOf(sizes, 14);
-        size.SelectedIndexChanged += (_, _) => UpdateLook(s => s with { BarFontSize = sizes[size.SelectedIndex] });
-        AddCard(Strings.BarFontSize, null, size);
-
-        var first = new ToggleSwitch { Checked = settings.HighlightFirstSuggestion };
-        first.CheckedChanged += (_, _) => UpdateLook(s => s with { HighlightFirstSuggestion = first.Checked });
-        AddCard(Strings.HighlightFirst, Strings.HighlightFirstHint, first);
-
-        var hints = new ToggleSwitch { Checked = settings.ShowHotkeyHints };
-        hints.CheckedChanged += (_, _) => UpdateLook(s => s with { ShowHotkeyHints = hints.Checked });
-        AddCard(Strings.HotkeyHints, Strings.HotkeyHintsHint, hints);
-
-        var reset = new ThemedButton { Text = Strings.ResetButton };
-        reset.Click += (_, _) =>
-        {
-            var defaults = new AppSettings();
-            UpdateLook(s => s with
-            {
-                Theme = defaults.Theme,
-                BarBackground = null,
-                BarHighlight = null,
-                BarText = null,
-                BarOpacity = defaults.BarOpacity,
-                BarFontSize = defaults.BarFontSize,
-                HighlightFirstSuggestion = defaults.HighlightFirstSuggestion,
-                ShowHotkeyHints = defaults.ShowHotkeyHints,
-            });
-            BeginInvoke(() => SelectPage(SettingsPage.Appearance)); // rebuild after this click is handled
-        };
-        AddCard(Strings.ResetLook, Strings.ResetLookHint, reset);
-        UpdateContrastWarning();
-    }
-
-    private ColorSwatches Swatches(IEnumerable<string> presets, string? selected)
-    {
-        var swatches = new ColorSwatches([.. presets.Select(h => ColorContrast.Parse(h)!.Value)], Strings.ColorAuto, Strings.ColorCustom)
-        {
-            Value = ColorContrast.Parse(selected),
-        };
-        swatches.CustomRequested += (_, _) =>
-        {
-            using var dialog = new ColorDialog { FullOpen = true, AnyColor = true, Color = swatches.Value ?? Color.White };
-            if (dialog.ShowDialog(this) == DialogResult.OK)
-            {
-                swatches.Value = Color.FromArgb(dialog.Color.R, dialog.Color.G, dialog.Color.B);
-            }
-        };
-        return swatches;
-    }
-
-    private static string? Hex(Color? color) => color is { } c ? ColorContrast.ToHex(c) : null;
-
-    // Saves, then refreshes the preview, the window's own theme and the contrast warning.
-    private void UpdateLook(Func<AppSettings, AppSettings> change)
-    {
-        if (_loading)
-        {
-            return;
-        }
-
-        var theme = _app.Settings.Theme;
-        Update(change);
-        if (_preview is not null)
-        {
-            _preview.Appearance = PopupAppearance.From(_app.Settings);
-        }
-
-        if (_app.Settings.Theme != theme)
-        {
-            _palette = SettingsPalette.For(_app.Settings.Theme);
-            ApplyPalette();
-            Invalidate(invalidateChildren: true);
-        }
-
-        UpdateContrastWarning();
-    }
-
-    // A custom text color can be hard to read on the bar: say so under "Text color".
-    private void UpdateContrastWarning()
-    {
-        var colors = PopupColors.For(PopupAppearance.From(_app.Settings));
-        var ratio = ColorContrast.Ratio(colors.Background, colors.Text);
-        _textCard?.SetDescription(ratio < ColorContrast.MinimumReadable
-            ? string.Format(CultureInfo.CurrentCulture, Strings.ContrastWarning, ratio)
-            : Strings.BarTextHint);
-    }
-
-    // Shortcuts are checked (HotkeyRules) before they are saved; a refused one shows why under its card.
-    private void BuildShortcutsPage()
-    {
-        var hotkeys = _app.Settings.Hotkeys;
-        AddTitle(Strings.NavShortcuts);
-        AddText(Strings.ShortcutsIntro, secondary: true);
-
-        AddSection(Strings.SectionBarKeys);
-        AddHotkeyCard(HotkeyAction.AcceptFirst, Strings.ShortcutAcceptFirst, null);
-
-        KeyModifiers[] nthModifiers = [KeyModifiers.Ctrl, KeyModifiers.Alt];
-        var nth = new SegmentedChoice { Options = [.. nthModifiers.Select(HotkeyNames.Format)] };
-        nth.SelectedIndex = Math.Max(0, Array.IndexOf(nthModifiers, hotkeys.AcceptNthModifier));
-        var nthCard = AddCard(Strings.ShortcutAcceptNth, Strings.ShortcutAcceptNthHint, nth);
-        nth.SelectedIndexChanged += (_, _) =>
-        {
-            if (_loading)
-            {
-                return;
-            }
-
-            var modifier = nthModifiers[nth.SelectedIndex];
-            var problem = HotkeyRules.CheckAcceptNthModifier(_app.Settings.Hotkeys, modifier);
-            if (problem == HotkeyProblem.None)
-            {
-                Update(s => s with { Hotkeys = s.Hotkeys with { AcceptNthModifier = modifier } });
-                nthCard.SetDescription(Strings.ShortcutAcceptNthHint);
-                return;
-            }
-
-            nthCard.SetDescription(ProblemText(problem, new Hotkey('1', modifier)));
-            _loading = true;
-            nth.SelectedIndex = Array.IndexOf(nthModifiers, _app.Settings.Hotkeys.AcceptNthModifier);
-            _loading = false;
-        };
-
-        AddHotkeyCard(HotkeyAction.Dismiss, Strings.ShortcutDismiss, Strings.ShortcutDismissHint);
-
-        var navigation = new ToggleSwitch { Checked = hotkeys.NativeNavigation };
-        navigation.CheckedChanged += (_, _) => Update(s => s with { Hotkeys = s.Hotkeys with { NativeNavigation = navigation.Checked } });
-        AddCard(Strings.NativeNavigation, Strings.NativeNavigationHint, navigation);
-
-        AddSection(Strings.SectionEverywhere);
-        AddHotkeyCard(HotkeyAction.ToggleEnabled, Strings.ShortcutToggle, Strings.ShortcutToggleHint);
-        AddHotkeyCard(HotkeyAction.OpenLongPhrases, Strings.ShortcutLongPhrases, Strings.ShortcutLongPhrasesHint);
-
-        var reset = new ThemedButton { Text = Strings.ResetButton };
-        reset.Click += (_, _) =>
-        {
-            Update(s => s with { Hotkeys = new HotkeySettings() });
-            BeginInvoke(() => SelectPage(SettingsPage.Shortcuts)); // rebuild after this click is handled
-        };
-        AddCard(Strings.ResetShortcuts, Strings.ResetShortcutsHint, reset);
-    }
-
-    private void AddHotkeyCard(HotkeyAction action, string title, string? hint, Action? changed = null)
-    {
-        var box = new HotkeyBox { Hotkey = HotkeyRules.Get(_app.Settings.Hotkeys, action), RecordingText = Strings.ShortcutRecording };
-        var card = AddCard(title, hint, box);
-        box.RecordingChanged += _app.SuspendHotkeys;
-        box.Recorded += hotkey =>
-        {
-            var problem = HotkeyRules.Check(_app.Settings.Hotkeys, action, hotkey);
-            if (problem == HotkeyProblem.None)
-            {
-                Update(s => s with { Hotkeys = HotkeyRules.With(s.Hotkeys, action, hotkey) });
-                box.Hotkey = hotkey;
-                card.SetDescription(hint);
-                changed?.Invoke();
-            }
-            else
-            {
-                card.SetDescription(ProblemText(problem, hotkey));
-            }
-        };
-    }
-
-    private static string ProblemText(HotkeyProblem problem, Hotkey hotkey)
-    {
-        var format = problem switch
-        {
-            HotkeyProblem.Duplicate => Strings.HotkeyProblemDuplicate,
-            HotkeyProblem.TypesText => Strings.HotkeyProblemTypesText,
-            HotkeyProblem.EditingKey => Strings.HotkeyProblemEditingKey,
-            HotkeyProblem.NeedsModifier => Strings.HotkeyProblemNeedsModifier,
-            HotkeyProblem.CommonShortcut => Strings.HotkeyProblemCommonShortcut,
-            HotkeyProblem.ModifiersOnly => Strings.HotkeyProblemModifiersOnly,
-            _ => Strings.HotkeyProblemAcceptsNth,
-        };
-
-        // A left-to-right embedding keeps "Ctrl+Alt+P" in order inside Arabic text.
-        return string.Format(CultureInfo.CurrentCulture, format, "\u202A" + HotkeyNames.Format(hotkey) + "\u202C");
-    }
-
-    // Process names only: nothing about what the user does in these apps is read or stored.
-    private void BuildExcludedPage()
-    {
-        var excluded = _app.Settings.ExcludedApps;
-        var running = RunningApps();
-        AddTitle(Strings.NavExcluded);
-        AddText(Strings.ExcludedIntro, secondary: true);
-
-        var add = new ThemedButton { Text = Strings.AddButton };
-        add.Click += (_, _) => ShowAddAppMenu(add);
-        AddCard(Strings.AddApp, Strings.AddAppHint, add);
-
-        AddSection(string.Format(CultureInfo.CurrentCulture, Strings.SectionExcludedList, excluded.Count));
-        if (excluded.Count == 0)
-        {
-            AddText(Strings.ExcludedEmpty, secondary: true);
-        }
-
-        var search = new SearchBox { Placeholder = Strings.SearchApps, Text = _excludedSearch };
-        AddPageControl(search);
-        AddText(Strings.NoMatchingApps, secondary: true);
-        var noMatches = _pageControls[^1];
-
-        // Open apps first (they show their description), then the rest in list order.
-        var cards = new List<(Control Card, string Searchable)>();
-        foreach (var name in excluded.OrderBy(n => running.ContainsKey(ExcludedApps.NormalizeName(n)) ? 0 : 1))
-        {
-            var remove = new ThemedButton { Text = Strings.RemoveButton };
-            remove.Click += (_, _) =>
-            {
-                if (!Confirm(Strings.ConfirmRemoveExcluded, name))
-                {
-                    return;
-                }
-
-                Update(s => s with { ExcludedApps = ExcludedApps.Without(s.ExcludedApps, name) });
-                BeginInvoke(RebuildPage); // after this click is handled
-            };
-            var description = running.TryGetValue(ExcludedApps.NormalizeName(name), out var found) ? found : null;
-            cards.Add((AddCard(name, description, remove), $"{name} {description}"));
-        }
-
-        void Filter()
-        {
-            _excludedSearch = search.Text.Trim();
-            foreach (var (card, searchable) in cards)
-            {
-                if (searchable.Contains(_excludedSearch, StringComparison.CurrentCultureIgnoreCase))
-                {
-                    _filteredOut.Remove(card);
-                }
-                else
-                {
-                    _filteredOut.Add(card);
-                }
-            }
-
-            if (cards.Count > 0 && cards.All(c => _filteredOut.Contains(c.Card)))
-            {
-                _filteredOut.Remove(noMatches);
-            }
-            else
-            {
-                _filteredOut.Add(noMatches);
-            }
-
-            if (excluded.Count == 0)
-            {
-                _filteredOut.Add(search);
-            }
-
-            LayoutPage();
-        }
-
-        search.TextChanged += (_, _) => Filter();
-        Filter();
-
-        var reset = new ThemedButton { Text = Strings.ResetButton };
-        reset.Click += (_, _) =>
-        {
-            if (!Confirm(Strings.ConfirmResetExcluded, null))
-            {
-                return;
-            }
-
-            Update(s => s with { ExcludedApps = [.. ExcludedApps.Defaults] });
-            BeginInvoke(RebuildPage);
-        };
-        AddCard(Strings.ResetExcluded, Strings.ResetExcludedHint, reset);
-    }
-
-    // Open apps (with a window) that are not excluded yet, then "Browse…" for any program file.
-    private void ShowAddAppMenu(Control anchor)
-    {
-        var excluded = _app.Settings.ExcludedApps.Select(ExcludedApps.NormalizeName).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var menu = new ContextMenuStrip { RightToLeft = RightToLeft, ShowImageMargin = false };
-        foreach (var (name, description) in RunningApps().Where(a => !excluded.Contains(a.Key)).OrderBy(a => a.Value, StringComparer.CurrentCultureIgnoreCase))
-        {
-            menu.Items.Add($"{description} — {name}", null, (_, _) => AddExcluded(name));
-        }
-
-        if (menu.Items.Count > 0)
-        {
-            menu.Items.Add(new ToolStripSeparator());
-        }
-
-        menu.Items.Add(Strings.BrowseApp, null, (_, _) =>
-        {
-            using var dialog = new OpenFileDialog { Filter = Strings.ExeFilter, CheckFileExists = true };
-            if (dialog.ShowDialog(this) == DialogResult.OK)
-            {
-                AddExcluded(dialog.FileName);
-            }
-        });
-        menu.Closed += (_, _) => BeginInvoke(menu.Dispose);
-        menu.Show(anchor, new Point(0, anchor.Height));
-    }
-
-    private void AddExcluded(string name)
-    {
-        if (!Confirm(Strings.ConfirmAddExcluded, ExcludedApps.NormalizeName(name)))
-        {
-            return;
-        }
-
-        Update(s => s with { ExcludedApps = ExcludedApps.With(s.ExcludedApps, name) });
-        BeginInvoke(RebuildPage);
-    }
 
     // Warning before a change; "No" is the default button. Names are kept left to right (file names,
     // single words) unless they are Arabic phrases, whose word order must stay right to left.
-    private bool Confirm(string format, string? name, bool leftToRight = true)
+    internal bool Confirm(string format, string? name, bool leftToRight = true)
     {
         var shown = leftToRight ? "\u202A" + name + "\u202C" : name;
         var text = name is null ? format : string.Format(CultureInfo.CurrentCulture, format, shown);
@@ -871,879 +259,21 @@ internal sealed class SettingsWindow : Form
         return MessageBox.Show(this, text, Strings.AppName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2, options) == DialogResult.Yes;
     }
 
-    // Executable name → description ("Visual Studio Code") of processes that have a window.
-    private static Dictionary<string, string> RunningApps()
-    {
-        var apps = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        var self = Environment.ProcessId;
-        foreach (var process in Process.GetProcesses())
-        {
-            using (process)
-            {
-                try
-                {
-                    if (process.Id == self || process.MainWindowHandle == 0 || ProcessNames.PathOf((uint)process.Id) is not { } path)
-                    {
-                        continue;
-                    }
-
-                    var name = ExcludedApps.NormalizeName(path);
-                    var description = FileVersionInfo.GetVersionInfo(path).FileDescription;
-                    apps.TryAdd(name, string.IsNullOrWhiteSpace(description) ? name : description.Trim());
-                }
-                catch (Exception ex) when (ex is InvalidOperationException or System.ComponentModel.Win32Exception or IOException or UnauthorizedAccessException)
-                {
-                    // The process exited or is protected: skip it.
-                }
-            }
-        }
-
-        return apps;
-    }
-
     // Rebuilds the current page, keeping the scroll position.
-    private void RebuildPage()
+    internal void RebuildPage()
     {
         var scroll = _content.Offset;
         SelectPage(_page);
         _content.Offset = scroll;
     }
 
-    // "My words": only word → count / last use is stored (see docs/PRIVACY.md). Every change goes through
-    // LearningService, under the lock the suggestion engine also holds.
-    private void BuildWordsPage()
-    {
-        var settings = _app.Settings;
-        AddTitle(Strings.NavWords);
-        AddText(Strings.WordsIntro, secondary: true);
-
-        var learn = new ToggleSwitch { Checked = !settings.LearningPaused };
-        learn.CheckedChanged += (_, _) => Update(s => s with { LearningPaused = !learn.Checked });
-        AddCard(Strings.LearnNewWords, Strings.LearnNewWordsHint, learn);
-
-        var add = new ThemedButton { Text = Strings.AddWordButton };
-        add.Click += (_, _) => AddWord(blocked: false);
-        var block = new ThemedButton { Text = Strings.BlockWordButton };
-        block.Click += (_, _) => AddWord(blocked: true);
-        AddCard(Strings.AddWord, Strings.AddWordHint, new ButtonRow(add, block));
-
-        var import = new ThemedButton { Text = Strings.ImportButton };
-        import.Click += (_, _) => ImportWords();
-        var export = new ThemedButton { Text = Strings.ExportButton };
-        export.Click += (_, _) => ExportWords();
-        AddCard(Strings.ImportExport, Strings.ImportExportHint, new ButtonRow(import, export));
-
-        AddSection(string.Empty);
-        _wordsHeader = (Label)_pageControls[^1];
-        AddLanguageChoice();
-
-        string[] sorts = [Strings.SortMostUsed, Strings.SortRecent, Strings.SortAlphabetical];
-        var sort = new SegmentedChoice { Options = sorts };
-        sort.SelectedIndex = _wordsSort;
-        sort.SelectedIndexChanged += (_, _) =>
-        {
-            _wordsSort = sort.SelectedIndex;
-            RefreshWords();
-        };
-        AddCard(Strings.SortWords, null, sort);
-
-        _wordsSearch = new SearchBox { Placeholder = Strings.SearchWords, Text = _wordsFilter };
-        _wordsSearch.TextChanged += (_, _) =>
-        {
-            _wordsFilter = _wordsSearch.Text.Trim();
-            RefreshWords();
-        };
-        AddPageControl(_wordsSearch);
-
-        _wordList = new WordList();
-        _wordList.ItemActivated += (_, _) => EditSelectedWord();
-        _wordList.DeleteRequested += (_, _) => DeleteSelectedWord();
-        _wordList.ContextRequested += ShowWordMenu;
-        AddPageControl(_wordList);
-
-        _editWord = new ThemedButton { Text = Strings.EditWordButton };
-        _editWord.Click += (_, _) => EditSelectedWord();
-        _toggleBlock = new ThemedButton { Text = Strings.UnblockButton }; // the longer label sizes the button
-        _toggleBlock.Click += (_, _) => ToggleSelectedBlock();
-        _deleteWord = new ThemedButton { Text = Strings.DeleteButton };
-        _deleteWord.Click += (_, _) => DeleteSelectedWord();
-        AddPageControl(new ButtonRow(_editWord, _toggleBlock, _deleteWord) { Stretch = true });
-        _wordList.SelectionChanged += (_, _) => UpdateWordButtons();
-
-        AddSection(Strings.SectionClearWords);
-        var clear = new ThemedButton { Text = Strings.ClearAllButton };
-        clear.Click += (_, _) =>
-        {
-            if (Confirm(Strings.ConfirmClearWords, null))
-            {
-                _app.Learning.ClearAll(_wordsLanguage);
-                RefreshWords();
-            }
-        };
-        AddCard(Strings.ClearWords, Strings.ClearWordsHint, clear);
-        RefreshWords();
-    }
-
-    // Reads a fresh copy of the words, then filters and sorts it for the list.
-    private void RefreshWords()
-    {
-        if (_wordList is null || _wordsHeader is null)
-        {
-            return;
-        }
-
-        var all = _app.Learning.Snapshot(_wordsLanguage);
-        _wordsHeader.Text = string.Format(CultureInfo.CurrentCulture, Strings.SectionWordsList, all.Count);
-        IEnumerable<StoredWord> words = all;
-        if (_wordsFilter.Length > 0)
-        {
-            words = words.Where(w => w.Word.Contains(_wordsFilter, StringComparison.Ordinal));
-        }
-
-        words = _wordsSort switch
-        {
-            1 => words.OrderByDescending(w => w.LastUsed),
-            2 => words.OrderBy(w => w.Word, StringComparer.Create(SortCulture(_wordsLanguage), ignoreCase: false)),
-            _ => words.OrderByDescending(w => w.Count).ThenByDescending(w => w.LastUsed),
-        };
-        _wordList.Words = [.. words];
-        UpdateWordButtons();
-    }
-
-    private string? CleanWord(string word) => _wordsLanguage.CleanWord(word);
-
-    // Alphabetical order of the language's own alphabet.
-    private static CultureInfo SortCulture(LanguageProfile language)
-    {
-        try
-        {
-            return CultureInfo.GetCultureInfo(language.Id);
-        }
-        catch (CultureNotFoundException)
-        {
-            return CultureInfo.InvariantCulture;
-        }
-    }
-
-    private void UpdateWordButtons()
-    {
-        var selected = _wordList?.SelectedWord;
-        foreach (var button in new[] { _editWord, _toggleBlock, _deleteWord })
-        {
-            if (button is not null)
-            {
-                button.Enabled = selected is not null;
-                button.Invalidate();
-            }
-        }
-
-        if (_toggleBlock is not null)
-        {
-            _toggleBlock.Text = selected is { Blocked: true } ? Strings.UnblockButton : Strings.BlockButton;
-        }
-    }
-
-    // Add: suggested at once (counted as used enough times). Block: never suggested, even from the dictionary.
-    private void AddWord(bool blocked)
-    {
-        var word = WordDialog.Ask(this, blocked ? Strings.BlockWord : Strings.AddWord, blocked ? Strings.BlockWordPrompt : Strings.AddWordPrompt, string.Empty, _palette, _mirrored, CleanWord);
-        if (word is null || (blocked && !Confirm(Strings.ConfirmBlockWord, word)))
-        {
-            return;
-        }
-
-        if (blocked)
-        {
-            _app.Learning.SetBlocked(word, blocked: true, _wordsLanguage);
-        }
-        else
-        {
-            _app.Learning.AddManually(word, _app.Settings.MinUsesToSuggest, _wordsLanguage);
-        }
-
-        RefreshWords();
-    }
-
-    private void EditSelectedWord()
-    {
-        if (_wordList?.SelectedWord is not { } selected)
-        {
-            return;
-        }
-
-        var word = WordDialog.Ask(this, Strings.EditWord, Strings.EditWordPrompt, selected.Word, _palette, _mirrored, CleanWord);
-        if (word is not null && word != selected.Word)
-        {
-            _app.Learning.Rename(selected.Word, word, _wordsLanguage);
-            RefreshWords();
-        }
-    }
-
-    private void ToggleSelectedBlock()
-    {
-        if (_wordList?.SelectedWord is not { } selected
-            || !Confirm(selected.Blocked ? Strings.ConfirmUnblockWord : Strings.ConfirmBlockWord, selected.Word))
-        {
-            return;
-        }
-
-        if (selected.Blocked && selected.Count == 0)
-        {
-            _app.Learning.Remove(selected.Word, _wordsLanguage); // only existed to be blocked
-        }
-        else
-        {
-            _app.Learning.SetBlocked(selected.Word, !selected.Blocked, _wordsLanguage);
-        }
-
-        RefreshWords();
-    }
-
-    private void DeleteSelectedWord()
-    {
-        if (_wordList?.SelectedWord is { } selected && Confirm(Strings.ConfirmDeleteWord, selected.Word))
-        {
-            _app.Learning.Remove(selected.Word, _wordsLanguage);
-            RefreshWords();
-        }
-    }
-
-    private void ShowWordMenu(Point location)
-    {
-        if (_wordList?.SelectedWord is not { } selected)
-        {
-            return;
-        }
-
-        var menu = new ContextMenuStrip { RightToLeft = RightToLeft, ShowImageMargin = false };
-        menu.Items.Add(Strings.EditWordButton, null, (_, _) => EditSelectedWord());
-        menu.Items.Add(selected.Blocked ? Strings.UnblockButton : Strings.BlockButton, null, (_, _) => ToggleSelectedBlock());
-        menu.Items.Add(Strings.DeleteButton, null, (_, _) => DeleteSelectedWord());
-        menu.Closed += (_, _) => BeginInvoke(menu.Dispose);
-        menu.Show(_wordList, location);
-    }
-
-    // The file is the user's choice (user decision 2.0): any text — the words of the chosen language are taken
-    // from it with their counts, all suggested at once — or a file exported from "My words" (one word per line,
-    // "word<TAB>count", "!word" = blocked), imported as such. Only words and counts are kept, never the text.
-    private void ImportWords()
-    {
-        using var dialog = new OpenFileDialog { Filter = Strings.WordsFileFilter };
-        if (dialog.ShowDialog(this) != DialogResult.OK)
-        {
-            return;
-        }
-
-        try
-        {
-            if (new FileInfo(dialog.FileName).Length > TextWords.MaxBytes)
-            {
-                ShowInfo(Strings.ImportFileTooLarge);
-                return;
-            }
-
-            var text = TextWords.Decode(File.ReadAllBytes(dialog.FileName), _wordsLanguage);
-            ImportResult result;
-            if (TextWords.IsWordList(text))
-            {
-                // Words of other languages follow their own line; a plain word is suggested at once.
-                result = _app.Learning.Import(new StringReader(text), _wordsLanguage, _app.Settings.MinUsesToSuggest);
-            }
-            else
-            {
-                var words = TextWords.Count(text, _wordsLanguage);
-                if (words.Count == 0)
-                {
-                    ShowInfo(Strings.ImportTextNone);
-                    return;
-                }
-
-                var known = _app.Learning.Snapshot(_wordsLanguage).Select(w => w.Word).ToHashSet(StringComparer.Ordinal);
-                var message = string.Format(CultureInfo.CurrentCulture, Strings.ImportTextConfirm, words.Count, words.Keys.Count(w => !known.Contains(w)), LanguageName(_wordsLanguage.Id));
-                if (!Confirm(message, null))
-                {
-                    return;
-                }
-
-                result = _app.Learning.ImportCounts(words, _app.Settings.MinUsesToSuggest, _wordsLanguage);
-            }
-
-            RefreshWords();
-            ShowInfo(string.Format(CultureInfo.CurrentCulture, Strings.ImportDone, result.Added, result.Updated, result.Skipped));
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            ShowInfo(Strings.FileError);
-        }
-    }
-
-    private void ExportWords()
-    {
-        using var dialog = new SaveFileDialog { Filter = Strings.WordsFileFilter, FileName = Strings.WordsFileName };
-        if (dialog.ShowDialog(this) != DialogResult.OK)
-        {
-            return;
-        }
-
-        try
-        {
-            using var writer = new StreamWriter(dialog.FileName, append: false, new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
-            _app.Learning.Export(writer);
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            ShowInfo(Strings.FileError);
-        }
-    }
-
-    // "Import…" / "Export…" for a list kept in settings.json ("My phrases", text shortcuts): a UTF-8 text
-    // file. Importing only adds entries; the page is rebuilt to show them.
-    private void AddImportExportCard<T>(string fileName, Action<TextWriter> write, Func<TextReader, ListImport<T>> read,
-        Func<AppSettings, IReadOnlyList<T>, AppSettings> apply, string? hint = null)
-    {
-        var import = new ThemedButton { Text = Strings.ImportButton };
-        import.Click += (_, _) =>
-        {
-            using var dialog = new OpenFileDialog { Filter = Strings.WordsFileFilter };
-            if (dialog.ShowDialog(this) != DialogResult.OK)
-            {
-                return;
-            }
-
-            try
-            {
-                using var reader = new StreamReader(dialog.FileName, System.Text.Encoding.UTF8);
-                var result = read(reader);
-                Update(s => apply(s, result.Merged));
-                ShowInfo(string.Format(CultureInfo.CurrentCulture, Strings.ImportListDone, result.Added, result.Skipped));
-                BeginInvoke(RebuildPage);
-            }
-            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-            {
-                ShowInfo(Strings.FileError);
-            }
-        };
-
-        var export = new ThemedButton { Text = Strings.ExportButton };
-        export.Click += (_, _) =>
-        {
-            using var dialog = new SaveFileDialog { Filter = Strings.WordsFileFilter, FileName = fileName };
-            if (dialog.ShowDialog(this) != DialogResult.OK)
-            {
-                return;
-            }
-
-            try
-            {
-                using var writer = new StreamWriter(dialog.FileName, append: false, new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
-                write(writer);
-            }
-            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-            {
-                ShowInfo(Strings.FileError);
-            }
-        };
-
-        AddCard(Strings.ImportExport, hint ?? Strings.ImportExportListHint, new ButtonRow(import, export));
-    }
-
-    private void SaveFullBackup()
-    {
-        using var dialog = new SaveFileDialog
-        {
-            Filter = Strings.BackupFileFilter,
-            FileName = string.Format(CultureInfo.CurrentCulture, Strings.BackupFileName, DateTime.Now),
-        };
-        if (dialog.ShowDialog(this) != DialogResult.OK)
-        {
-            return;
-        }
-
-        try
-        {
-            _app.Learning.Flush();
-            using (var file = File.Create(dialog.FileName))
-            {
-                FullBackup.Write(file, _app.Settings, _app.Learning);
-            }
-
-            ShowInfo(Strings.BackupDone);
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            ShowInfo(Strings.FileError);
-        }
-    }
-
-    // Replaces everything with the backup's content, after a confirmation (user decision). Start with
-    // Windows and on/off stay as they are on this PC.
-    private void RestoreFullBackup()
-    {
-        using var dialog = new OpenFileDialog { Filter = Strings.BackupFileFilter };
-        if (dialog.ShowDialog(this) != DialogResult.OK)
-        {
-            return;
-        }
-
-        BackupContent? content;
-        try
-        {
-            using var file = File.OpenRead(dialog.FileName);
-            content = FullBackup.Read(file);
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            ShowInfo(Strings.FileError);
-            return;
-        }
-
-        if (content is null)
-        {
-            ShowInfo(Strings.NotABackup);
-            return;
-        }
-
-        if (!Confirm(Strings.ConfirmRestoreBackup, null))
-        {
-            return;
-        }
-
-        FullBackup.RestoreLearning(content, _app.Learning);
-        var current = _app.Settings;
-        _app.UpdateSettings(content.Settings with { StartWithWindows = current.StartWithWindows, Enabled = current.Enabled });
-        ShowInfo(Strings.RestoreDone);
-        BeginInvoke(RebuildPage);
-    }
-
-    private void ShowInfo(string text)
+    internal void ShowInfo(string text)
     {
         var options = _mirrored ? MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign : 0;
         MessageBox.Show(this, text, Strings.AppName, MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, options);
     }
 
-    // User decision (1.1): fixed expressions are completed whole (Tab) or word by word: the user's own
-    // ("My phrases", kept in settings.json), the learned ones (sequences typed twice, in user.db) and the
-    // shipped list.
-    private void BuildPhrasesPage()
-    {
-        var settings = _app.Settings;
-        AddTitle(Strings.NavPhrases);
-        AddText(string.Format(CultureInfo.CurrentCulture, Strings.PhrasesIntro, _app.ShippedPhrases.Count), secondary: true);
-
-        var suggest = new ToggleSwitch { Checked = settings.SuggestPhrases };
-        suggest.CheckedChanged += (_, _) => Update(s => s with { SuggestPhrases = suggest.Checked });
-        AddCard(Strings.SuggestPhrases, Strings.SuggestPhrasesHint, suggest);
-
-        // User decision (after 2.0): phrases before the words (default) or after them.
-        var position = new SegmentedChoice { Options = [Strings.PhrasesPositionFirst, Strings.PhrasesPositionLast] };
-        position.SelectedIndex = settings.PhrasesLast ? 1 : 0;
-        position.SelectedIndexChanged += (_, _) => Update(s => s with { PhrasesLast = position.SelectedIndex == 1 });
-        AddCard(Strings.PhrasesPosition, Strings.PhrasesPositionHint, position);
-
-        var learn = new ToggleSwitch { Checked = settings.LearnPhrases };
-        learn.CheckedChanged += (_, _) => Update(s => s with { LearnPhrases = learn.Checked });
-        AddCard(Strings.LearnPhrases, Strings.LearnPhrasesHint, learn);
-
-        AddSection(string.Format(CultureInfo.CurrentCulture, Strings.SectionMyPhrases, settings.MyPhrases.Count));
-        var add = new ThemedButton { Text = Strings.AddWordButton };
-        add.Click += (_, _) => EditPhrase(null);
-        AddCard(Strings.AddPhrase, Strings.AddPhraseHint, add);
-        AddImportExportCard(
-            Strings.PhrasesFileName,
-            writer => UserListFiles.WritePhrases(writer, _app.Settings.MyPhrases,
-                _app.Learning.LearnedPhrases(all: true, _wordsLanguage).Select(p => (p.Text, p.Count))),
-            reader =>
-            {
-                // The learned phrases in the file go back to the learned list (of the language chosen below), with their counts.
-                var learned = new List<(string Text, int Count)>();
-                var mine = UserListFiles.ReadPhrases(reader, _app.Settings.MyPhrases, learned, _wordsLanguage);
-                return mine with { Added = mine.Added + _app.Learning.ImportPhrases(learned, _wordsLanguage) };
-            },
-            (s, merged) => s with { MyPhrases = merged },
-            Strings.ImportExportPhrasesHint);
-
-        foreach (var phrase in settings.MyPhrases)
-        {
-            var change = new ThemedButton { Text = Strings.EditWordButton };
-            change.Click += (_, _) => EditPhrase(phrase);
-            var remove = new ThemedButton { Text = Strings.DeleteButton };
-            remove.Click += (_, _) =>
-            {
-                if (Confirm(Strings.ConfirmDeletePhrase, phrase, leftToRight: false))
-                {
-                    Update(s => s with { MyPhrases = [.. s.MyPhrases.Where(p => p != phrase)] });
-                    BeginInvoke(RebuildPage); // after this click is handled
-                }
-            };
-            AddCard(phrase, null, new ButtonRow(change, remove));
-        }
-
-        BuildLearnedPhrases();
-
-        // Built-in phrases deleted from the bar.
-        if (settings.HiddenPhrases.Count > 0)
-        {
-            var restore = new ThemedButton { Text = Strings.RestoreButton };
-            restore.Click += (_, _) =>
-            {
-                Update(s => s with { HiddenPhrases = [] });
-                BeginInvoke(RebuildPage);
-            };
-            AddCard(string.Format(CultureInfo.CurrentCulture, Strings.HiddenPhrases, settings.HiddenPhrases.Count),
-                string.Join("، ", settings.HiddenPhrases), restore);
-        }
-    }
-
-    // The learned phrases: forget one (learned again if typed again), keep it for good in "My phrases",
-    // or delete them all together with every sequence counted so far.
-    private void BuildLearnedPhrases()
-    {
-        var phrases = _app.Learning.LearnedPhrases(language: _wordsLanguage); // like the bar: not the parts of a longer learned phrase
-        AddSection(string.Format(CultureInfo.CurrentCulture, Strings.SectionLearnedPhrases, phrases.Count));
-        AddLanguageChoice();
-        if (phrases.Count == 0)
-        {
-            AddText(Strings.NoLearnedPhrases, secondary: true);
-        }
-        else
-        {
-            var list = new WordList { Height = 280 };
-            list.Words = [.. phrases.Select(p => new StoredWord(p.Text, p.Count, p.LastUsed, Blocked: false))];
-            var keep = new ThemedButton { Text = Strings.KeepPhraseButton };
-            var forget = new ThemedButton { Text = Strings.DeleteButton };
-            void UpdateButtons()
-            {
-                foreach (var button in new[] { keep, forget })
-                {
-                    button.Enabled = list.SelectedWord is not null;
-                    button.Invalidate();
-                }
-            }
-
-            void Forget()
-            {
-                if (list.SelectedWord is { } selected && Confirm(Strings.ConfirmForgetPhrase, selected.Word, leftToRight: false))
-                {
-                    _app.Learning.ForgetPhrase(selected.Word, _wordsLanguage);
-                    BeginInvoke(RebuildPage);
-                }
-            }
-
-            keep.Click += (_, _) =>
-            {
-                if (list.SelectedWord is { } selected)
-                {
-                    Update(s => s with { MyPhrases = [.. s.MyPhrases.Append(selected.Word).Distinct()] });
-                    _app.Learning.ForgetPhrase(selected.Word, _wordsLanguage);
-                    BeginInvoke(RebuildPage);
-                }
-            };
-            forget.Click += (_, _) => Forget();
-            list.DeleteRequested += (_, _) => Forget();
-            list.SelectionChanged += (_, _) => UpdateButtons();
-            AddPageControl(list);
-            AddPageControl(new ButtonRow(keep, forget) { Stretch = true });
-            UpdateButtons();
-        }
-
-        var clear = new ThemedButton { Text = Strings.ClearAllButton };
-        clear.Click += (_, _) =>
-        {
-            if (Confirm(Strings.ConfirmClearPhrases, null))
-            {
-                _app.Learning.ClearPhrases(_wordsLanguage);
-                BeginInvoke(RebuildPage);
-            }
-        };
-        AddCard(Strings.ClearPhrases, Strings.ClearPhrasesHint, clear);
-    }
-
-    // Add (existing = null) or edit one of "My phrases".
-    private void EditPhrase(string? existing)
-    {
-        var text = WordDialog.Ask(this, existing is null ? Strings.AddPhrase : Strings.EditPhrase, Strings.PhrasePrompt,
-            existing ?? string.Empty, _palette, _mirrored, PhraseIndex.CleanAny, Strings.NotAPhrase);
-        if (text is null || text == existing)
-        {
-            return;
-        }
-
-        Update(s => s with { MyPhrases = [.. s.MyPhrases.Where(p => p != existing).Append(text).Distinct()] });
-        BeginInvoke(RebuildPage);
-    }
-
-    // User decision (1.1): a text shortcut («ع1») typed exactly shows its text first in the bar; Tab inserts
-    // it. Kept in settings.json, like "My phrases".
-    private void BuildTextShortcutsPage()
-    {
-        var shortcuts = _app.Settings.TextShortcuts;
-        AddTitle(Strings.NavTextShortcuts);
-        AddText(Strings.TextShortcutsIntro, secondary: true);
-
-        var add = new ThemedButton { Text = Strings.AddWordButton };
-        add.Click += (_, _) => EditTextShortcut(null);
-        AddCard(Strings.AddTextShortcut, Strings.AddTextShortcutHint, add);
-        AddImportExportCard(
-            Strings.TextShortcutsFileName,
-            writer => UserListFiles.WriteShortcuts(writer, _app.Settings.TextShortcuts),
-            reader => UserListFiles.ReadShortcuts(reader, _app.Settings.TextShortcuts),
-            (s, merged) => s with { TextShortcuts = merged });
-
-        AddSection(string.Format(CultureInfo.CurrentCulture, Strings.SectionTextShortcuts, shortcuts.Count));
-        foreach (var shortcut in shortcuts)
-        {
-            var change = new ThemedButton { Text = Strings.EditWordButton };
-            change.Click += (_, _) => EditTextShortcut(shortcut);
-            var remove = new ThemedButton { Text = Strings.DeleteButton };
-            remove.Click += (_, _) =>
-            {
-                if (Confirm(Strings.ConfirmDeleteTextShortcut, shortcut.Key, leftToRight: false))
-                {
-                    Update(s => s with { TextShortcuts = [.. s.TextShortcuts.Where(t => t.Key != shortcut.Key)] });
-                    BeginInvoke(RebuildPage); // after this click is handled
-                }
-            };
-            AddCard(shortcut.Key, shortcut.Text, new ButtonRow(change, remove));
-        }
-    }
-
-    // Add (existing = null) or edit a text shortcut; a key already used is replaced after a confirmation.
-    private void EditTextShortcut(TextShortcut? existing)
-    {
-        if (TextShortcutDialog.Ask(this, existing is null ? Strings.AddTextShortcut : Strings.EditTextShortcut, existing, _palette, _mirrored) is not { } edited
-            || edited == existing)
-        {
-            return;
-        }
-
-        var replaced = _app.Settings.TextShortcuts.Any(t => t.Key == edited.Key && t.Key != existing?.Key);
-        if (replaced && !Confirm(Strings.ConfirmReplaceTextShortcut, edited.Key, leftToRight: false))
-        {
-            return;
-        }
-
-        Update(s =>
-        {
-            // An edited shortcut keeps its place; a new one goes last.
-            var list = s.TextShortcuts.ToList();
-            var index = existing is null ? -1 : list.FindIndex(t => t.Key == existing.Key);
-            list.RemoveAll(t => t.Key == edited.Key || t.Key == existing?.Key);
-            list.Insert(index < 0 ? list.Count : Math.Min(index, list.Count), edited);
-            return s with { TextShortcuts = list };
-        });
-        BeginInvoke(RebuildPage);
-    }
-
-    // User decision (1.1): long phrases (support replies of several lines) are chosen by name from a list
-    // opened with a shortcut anywhere (LongPhrasePicker). Kept in settings.json.
-    private void BuildLongPhrasesPage()
-    {
-        var phrases = _app.Settings.LongPhrases;
-        var shortcut = "\u202A" + HotkeyNames.Format(_app.Settings.Hotkeys.OpenLongPhrases) + "\u202C";
-        AddTitle(Strings.NavLongPhrases);
-        AddText(string.Format(CultureInfo.CurrentCulture, Strings.LongPhrasesIntro, shortcut), secondary: true);
-
-        // The same shortcut as on the Shortcuts page, here too (user decision); the intro names it.
-        AddHotkeyCard(HotkeyAction.OpenLongPhrases, Strings.ShortcutLongPhrases, Strings.ShortcutLongPhrasesHint, () => BeginInvoke(RebuildPage));
-
-        var add = new ThemedButton { Text = Strings.AddWordButton };
-        add.Click += (_, _) => EditLongPhrase(null);
-        AddCard(Strings.AddLongPhrase, Strings.AddLongPhraseHint, add);
-        AddImportExportCard(
-            Strings.LongPhrasesFileName,
-            writer => UserListFiles.WriteLongPhrases(writer, _app.Settings.LongPhrases),
-            reader => UserListFiles.ReadLongPhrases(reader, _app.Settings.LongPhrases),
-            (s, merged) => s with { LongPhrases = merged });
-
-        AddSection(string.Format(CultureInfo.CurrentCulture, Strings.SectionLongPhrases, phrases.Count));
-        if (phrases.Count > 1)
-        {
-            AddText(Strings.LongPhrasesDragHint, secondary: true);
-        }
-
-        // User decision (after 2.0): put in order by dragging; the shortcut's list follows this order.
-        var cards = new List<SettingCard>();
-        foreach (var phrase in phrases)
-        {
-            var change = new ThemedButton { Text = Strings.EditWordButton };
-            change.Click += (_, _) => EditLongPhrase(phrase);
-            var remove = new ThemedButton { Text = Strings.DeleteButton };
-            remove.Click += (_, _) =>
-            {
-                if (Confirm(Strings.ConfirmDeleteLongPhrase, phrase.Name, leftToRight: false))
-                {
-                    Update(s => s with { LongPhrases = [.. s.LongPhrases.Where(p => p.Name != phrase.Name)] });
-                    BeginInvoke(RebuildPage); // after this click is handled
-                }
-            };
-            cards.Add(AddCard(phrase.Name, LongPhrases.Preview(phrase.Text), new ButtonRow(change, remove)));
-        }
-
-        // Saved by name, without rebuilding the page: the cards are already in their places.
-        CardReorder.Attach(_content, cards, _pageControls, LayoutPage, order => Update(s =>
-        {
-            var names = order.Select(i => phrases[i].Name).ToList();
-            var ordered = names.Select(name => s.LongPhrases.FirstOrDefault(p => p.Name == name)).OfType<LongPhrase>();
-            return s with { LongPhrases = [.. ordered, .. s.LongPhrases.Where(p => !names.Contains(p.Name))] };
-        }));
-    }
-
-    // Add (existing = null) or edit a long phrase; a name already used is replaced after a confirmation.
-    private void EditLongPhrase(LongPhrase? existing)
-    {
-        if (LongPhraseDialog.Ask(this, existing is null ? Strings.AddLongPhrase : Strings.EditLongPhrase, existing, _palette, _mirrored) is not { } edited
-            || edited == existing)
-        {
-            return;
-        }
-
-        if (_app.Settings.LongPhrases.Any(p => p.Name == edited.Name && p.Name != existing?.Name)
-            && !Confirm(Strings.ConfirmReplaceLongPhrase, edited.Name, leftToRight: false))
-        {
-            return;
-        }
-
-        Update(s =>
-        {
-            // An edited phrase keeps its place; a new one goes last.
-            var list = s.LongPhrases.ToList();
-            var index = existing is null ? -1 : list.FindIndex(p => p.Name == existing.Name);
-            list.RemoveAll(p => p.Name == edited.Name || p.Name == existing?.Name);
-            list.Insert(index < 0 ? list.Count : Math.Min(index, list.Count), edited);
-            return s with { LongPhrases = list };
-        });
-        BeginInvoke(RebuildPage);
-    }
-
-    // User decision: updates come from Microsoft Store. Itmam only asks the Store whether a newer version
-    // exists (StoreUpdates); it never downloads anything itself, and the button opens the Store page.
-    private void BuildUpdatesPage()
-    {
-        AddTitle(Strings.NavUpdates);
-        AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutVersion, AppVersion()), secondary: true);
-
-        var onStart = new ToggleSwitch { Checked = _app.Settings.CheckForUpdates };
-        onStart.CheckedChanged += (_, _) => Update(s => s with { CheckForUpdates = onStart.Checked });
-        AddCard(Strings.CheckOnStart, Strings.CheckOnStartHint, onStart);
-
-        var check = new ThemedButton { Text = Strings.CheckNowButton };
-        var checkCard = AddCard(Strings.CheckNow, null, check);
-        check.Click += async (_, _) =>
-        {
-            check.Enabled = false;
-            check.Invalidate();
-            checkCard.SetDescription(Strings.UpdateChecking);
-            var result = await StoreUpdates.CheckAsync();
-            if (checkCard.IsDisposed)
-            {
-                return; // the page was left meanwhile
-            }
-
-            checkCard.SetDescription(result switch
-            {
-                UpdateCheck.UpdateAvailable => Strings.UpdateAvailable,
-                UpdateCheck.UpToDate => Strings.UpdateUpToDate,
-                _ => Strings.UpdateUnavailable,
-            });
-            check.Enabled = true;
-            check.Invalidate();
-        };
-
-        var open = new ThemedButton { Text = Strings.OpenButton };
-        open.Click += (_, _) => Tray.TrayApplication.OpenStorePage();
-        AddCard(Strings.OpenStore, Strings.OpenStoreHint, open);
-        AddRateCard();
-    }
-
-    // User decision: one button, on the Updates and About pages, for Itmam's review page in the Store app.
-    private void AddRateCard()
-    {
-        var rate = new ThemedButton { Text = Strings.RateButton };
-        rate.Click += (_, _) =>
-        {
-            try
-            {
-                Process.Start(new ProcessStartInfo(StoreUpdates.ReviewPage.ToString()) { UseShellExecute = true });
-            }
-            catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
-            {
-                ShowInfo(Strings.RateUnavailable);
-            }
-        };
-        AddCard(Strings.RateTitle, Strings.RateHint, rate);
-    }
-
-    // The package version when installed from the Store or a test package, else the assembly version.
-    private static string AppVersion() =>
-        StoreUpdates.PackageVersion
-        ?? Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion?.Split('+')[0]
-        ?? "1.0";
-
-    // Its own page: exiting is different from "Enabled" off, and is explained here.
-    private void BuildExitPage()
-    {
-        AddTitle(Strings.SectionExit);
-
-        // Turning off keeps Itmam next to the clock (gray icon) and is remembered, like the toggle shortcut.
-        var toggle = new ThemedButton { Text = _app.IsEnabled ? Strings.TurnOffButton : Strings.TurnOnButton };
-        toggle.Click += (_, _) =>
-        {
-            _app.SetEnabled(!_app.IsEnabled);
-            BeginInvoke(RebuildPage); // after this click is handled
-        };
-        var shortcut = "\u202A" + HotkeyNames.Format(_app.Settings.Hotkeys.ToggleEnabled) + "\u202C";
-        AddCard(_app.IsEnabled ? Strings.TurnOffTitle : Strings.TurnOnTitle,
-            string.Format(CultureInfo.CurrentCulture, Strings.TurnOffHint, shortcut), toggle);
-        var exit = new ThemedButton { Text = Strings.ExitButton };
-        exit.Click += (_, _) => _exit();
-        AddCard(Strings.ExitTitle, Strings.ExitHint, exit);
-    }
-
-    private void BuildAboutPage()
-    {
-        AddTitle(Strings.AppName);
-        AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutVersion, AppVersion()), secondary: true);
-        AddText(Strings.AboutTagline, secondary: false);
-        if (_app.Settings.ShowSuggestionBar)
-        {
-            AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutDictionary, _app.LoadedDictionaries.Sum(d => d.Count)), secondary: false);
-        }
-
-        AddText(string.Format(CultureInfo.CurrentCulture, Strings.AboutLearned, _app.Learning.Languages.Sum(l => _app.Learning.Snapshot(l).Count)), secondary: false);
-        AddLink(Strings.AboutWebsite, _app.Settings.Language == UiLanguage.Arabic ? WebsiteUrl : WebsiteUrlEnglish);
-        AddRateCard();
-
-        AddSection(Strings.SectionDeveloper);
-        AddText(Strings.DeveloperName, secondary: false);
-        AddLink(DeveloperEmail, $"mailto:{DeveloperEmail}");
-
-        AddSection(Strings.SectionOpenSource);
-        AddText(Strings.AboutOpenSource, secondary: false);
-        AddLink(Strings.AboutSourceCode, RepositoryUrl);
-
-        if (_app.Settings.ShowSuggestionBar)
-        {
-            AddSection(Strings.AboutSources);
-            foreach (var source in _app.LoadedDictionaries.SelectMany(d => d.Sources).Distinct())
-            {
-                AddLink($"{source.Name} — {source.License}", source.Url);
-            }
-        }
-
-        AddSection(Strings.AboutPrivacyLink);
-        AddText(Strings.AboutPrivacy, secondary: false);
-        AddLink(Strings.AboutPrivacyLink, _app.Settings.Language == UiLanguage.Arabic ? PrivacyUrl : PrivacyUrlEnglish);
-    }
-
-    private async Task LoadStartupStateAsync(ToggleSwitch toggle)
-    {
-        var enabled = await StartupRegistration.IsEnabledAsync();
-        _loading = true;
-        toggle.Checked = enabled;
-        _loading = false;
-    }
-
-    private void Update(Func<AppSettings, AppSettings> change)
+    internal void Update(Func<AppSettings, AppSettings> change)
     {
         if (!_loading)
         {
@@ -1751,31 +281,21 @@ internal sealed class SettingsWindow : Form
         }
     }
 
-    private static SegmentedChoice Numbers(int from, int to, int selected)
-    {
-        var choice = new SegmentedChoice
-        {
-            Options = Enumerable.Range(from, to - from + 1).Select(n => n.ToString(CultureInfo.CurrentCulture)).ToArray(),
-        };
-        choice.SelectedIndex = selected - from;
-        return choice;
-    }
+    internal void AddTitle(string text) => AddPageControl(new Label { Text = text, Font = new Font("Segoe UI Semibold", 20f), Height = 56, UseMnemonic = false, Tag = "title" });
 
-    private void AddTitle(string text) => AddPageControl(new Label { Text = text, Font = new Font("Segoe UI Semibold", 20f), Height = 56, UseMnemonic = false, Tag = "title" });
+    internal void AddSection(string text) => AddPageControl(new Label { Text = text, Font = new Font("Segoe UI Semibold", 10.5f), Height = 40, TextAlign = ContentAlignment.BottomLeft, UseMnemonic = false });
 
-    private void AddSection(string text) => AddPageControl(new Label { Text = text, Font = new Font("Segoe UI Semibold", 10.5f), Height = 40, TextAlign = ContentAlignment.BottomLeft, UseMnemonic = false });
-
-    private void AddText(string text, bool secondary) =>
+    internal void AddText(string text, bool secondary) =>
         AddPageControl(new Label { Text = text, Height = 28, Tag = secondary ? "secondary" : "text", UseMnemonic = false });
 
-    private void AddLink(string text, string url)
+    internal void AddLink(string text, string url)
     {
         var link = new LinkLabel { Text = text, Height = 28, UseMnemonic = false };
         link.LinkClicked += (_, _) => Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); // opens the user's browser
         AddPageControl(link);
     }
 
-    private SettingCard AddCard(string title, string? description, Control control, bool stacked = false)
+    internal SettingCard AddCard(string title, string? description, Control control, bool stacked = false)
     {
         var card = new SettingCard(title, description, control, stacked);
         card.SizeChanged += (_, _) => LayoutPage(); // a wrapped description made it taller
@@ -1783,7 +303,7 @@ internal sealed class SettingsWindow : Form
         return card;
     }
 
-    private void AddPageControl(Control control)
+    internal void AddPageControl(Control control)
     {
         control.RightToLeft = RightToLeft;
         _content.Controls.Add(control);
@@ -1791,7 +311,7 @@ internal sealed class SettingsWindow : Form
     }
 
     // Stacks the page's controls vertically at full width.
-    private void LayoutPage()
+    internal void LayoutPage()
     {
         var scale = DeviceDpi / 96f;
         var margin = (int)(28 * scale);
@@ -1878,10 +398,16 @@ internal sealed class SettingsWindow : Form
     {
         if (e.Category is UserPreferenceCategory.General or UserPreferenceCategory.Color or UserPreferenceCategory.VisualStyle)
         {
-            _palette = SettingsPalette.For(_app.Settings.Theme);
-            ApplyPalette();
-            Invalidate(invalidateChildren: true);
+            RefreshTheme();
         }
+    }
+
+    // The theme setting or the colors of Windows changed: a new palette for the window and the page shown.
+    internal void RefreshTheme()
+    {
+        _palette = SettingsPalette.For(_app.Settings.Theme);
+        ApplyPalette();
+        Invalidate(invalidateChildren: true);
     }
 
     /// <summary>A navigation entry: rounded highlight, accent bar on the start side when selected.</summary>
