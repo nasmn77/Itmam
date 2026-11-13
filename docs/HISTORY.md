@@ -1,151 +1,10 @@
-# سجل المشروع — إتمام | Project history — Itmam
-
-[العربية](#العربية) · [English](#english)
-
-<div dir="rtl">
-
-## العربية
-
-هذا الملف يحفظ تاريخ الإصدارات وقرارات المستخدم التفصيلية التي كانت في `CLAUDE.md` حتى الإصدار 2.3. نُقلت كما هي
-ولم يُحذف منها شيء؛ القواعد السارية وحدها بقيت في `CLAUDE.md`. القسم الإنجليزي يحمل الملاحظات الأصلية بنصّها
-(بأسماء الأصناف والملفات)، وهذا القسم يرويها بالعربية بالترتيب نفسه.
-
-### الإصدارات المنشورة في متجر Microsoft
-
-| الإصدار | الإرسال | أُرسل للاعتماد | نُشر | أبرز ما فيه |
-|---|---|---|---|---|
-| 1.0.0.0 | 1 | 2026-10-28 | 2026-10-30 | الإصدار الأول |
-| 1.1.0.0 | 2 | 2026-10-31 | 2026-10-31 | العبارات، الاختصارات النصية، العبارات الطويلة، قاموس ويكيبيديا، النسخ الاحتياطي |
-| 1.1.1.0 | 3 | 2026-10-31 | 2026-10-31 | دليل المستخدم، رابط الموقع في صفحة «حول» |
-| 1.1.2.0 | 4 | 2026-11-01 | 2026-11-01 | صياغة واحدة للخصوصية في كل مكان |
-| 1.2.0.0 | 5 | 2026-11-01 | 2026-11-02 | متغيرات العبارات الطويلة |
-| 1.3.0.0 | 6 | 2026-11-02 | 2026-11-02 | تعديل النص قبل إدراجه، تمييز أخف للاقتراح الأول |
-| 2.0.0.0 | 7 | 2026-11-03 | 2026-11-04 | تعدد اللغات: الإنجليزية بقاموسها، وأي لغة أبجدية بالتعلّم |
-| 2.1.0.0 | 8 | 2026-11-04 | 2026-11-05 | الصمت في النص غير القابل للتحرير، استبدال الكلمة كاملة، «النصوص الطويلة» |
-| 2.2.0.0 | 9 | 2026-11-05 | 2026-11-06 | السحب لترتيب النصوص، لغة الواجهة عند أول تشغيل، زر «تقييم ومراجعة» |
-| 2.2.1.0 | 10 | 2026-11-06 | — (لم يُسجَّل تاريخ نشره) | زر التقييم يفتح صفحة المراجعة في تطبيق المتجر |
-| 2.3.0.0 | 11 | 2026-11-08 | 2026-11-09 | تلميحات الحقول، إيقاف شريط الاقتراحات، أخطاء الكتابة، تنظيف القاموس العربي |
-
-الرقم 1.0.1.0 حمله تصحيحان في المستودع ولم يُنشر وحده؛ خرجا ضمن 1.1.
-
-### المراحل 0–7 (حتى 1.0)
-
-- **المرحلة 2 (الخطاف):** مسار الإدخال موثّق في `docs/ARCHITECTURE.md`. تصنيف المفاتيح وربط العمل بتخطيط لوحة
-  المفاتيح في Core وعليهما اختبارات. معيار زمن الخطاف بقرار المستخدم: **p99 أقل من 1 مللي ثانية والحد الأقصى أقل
-  من 5** (لا حدّ صارمًا عند 1). قاسه المستخدم: الأقصى نحو 1.07 مللي ثانية بلا تدخل من جامع المهملات.
-- **Backspace على كلمة فارغة (قرار المستخدم):** ينفصل المخزن المؤقت، ويُقرأ ما لا يزيد على 49 حرفًا قبل المؤشر عبر
-  UI Automation (لا في حقول كلمات المرور، ولا يُحفظ شيء)، ثم يُستأنف بالكلمة التي فيها المؤشر. موثّق في PRIVACY.md.
-- **تحرّك المؤشر** (نقرة، أسهم، تغيّر التركيز أو النافذة أو التخطيط، لصق، اختصار، Ctrl+Backspace) يفصل ويقرأ السياق
-  كذلك (قرار المستخدم بعد أن بدأت «مد» + نقرة + «ر» كلمة جديدة). Esc يصفّر دون فصل. إن لم يتوفر السياق أُعيدت
-  المحاولة مرة بعد 100 مللي ثانية (Chromium/Electron)، وتحقق المستخدم منه في المفكرة و Word و Chrome.
-- **المرحلة 3 (الشريط):** شكل الشريط مقيس من لقطة المستخدم (بلا فواصل، 35 بكسل، Segoe UI 14، ‏`#2C2C2C` وأبيض
-  في الداكن). موضعه يحاكي شريط Windows: حافته اليمنى عند المؤشر في العربية.
-- **المرحلة 4 (القبول):** Tab و Ctrl+رقم و Esc تعمل والشريط ظاهر فقط؛ مفتاح التشغيل والإيقاف دائمًا، وافتراضيّه
-  Ctrl+Alt مضغوطين ومحرَّرين وحدهما (قرار المستخدم؛ Ctrl+Alt+P فشل مع التخطيط العربي). التنقل بالأسهم مفعّل
-  افتراضيًا. لا اقتراحات والنص محدَّد. القبول وسط السطر لا يضاعف المسافة.
-- **المرحلة 5 (التعلّم):** تُتعلَّم الكلمات من حرفين فأكثر؛ الصمت في ملء الشاشة لـ D3D الحصري ووضع العرض التقديمي فقط؛
-  الكلمة المنتهية تبقى معلّقة وتُترك إن تلاها Backspace فورًا؛ SQLite في Core والملف التالف يُحفظ باسم
-  `user.db.corrupt-*`؛ لا عمل في حقول كلمات المرور ولا التطبيقات المرفوعة الصلاحية أو المستثناة أو ملء الشاشة؛
-  النقر الأيمن أو Ctrl+Delete ينسى كلمة متعلَّمة (تُتعلَّم من جديد إن استُعملت)، والحظر الدائم من «كلماتي».
-- **المرحلة 6 (أيقونة الإشعارات والإعدادات):** قُسمت جزأين بقرار المستخدم؛ إعدادات بأسلوب Windows 11 (تنقل جانبي)؛
-  نافذة التشخيص في بناء Debug فقط؛ إشعار «إتمام يعمل» عند **كل** تشغيل حتى مع بدء Windows (يخالف الموجز عمدًا)؛
-  أيقونة التطبيق: التصور A (شريط اقتراحات + «ت»). الصفحات: عام، المظهر، الاختصارات، التطبيقات المستثناة، كلماتي،
-  حول، إغلاق.
-- **المرحلة 7 (MSIX والمتجر):** مشروع `src/Itmam.Package` (حزمة x64 + ARM64)، هوية المنتج **9P08F7KGRJB0** من
-  Partner Center، مكتفية ذاتيًا مع ReadyToRun (نحو 67 م.ب لكل معمارية). قرارات المستخدم: الفئة «الإنتاجية»، مجاني،
-  الحجم الكامل بلا تشذيب. نتيجة WACK (تحذيران: «ملفات تنفيذية محظورة» و DPI) مشروحة في ملاحظات الاعتماد.
-- **الموقع:** تصميم «ورق وحبر» على GitHub Pages، عربي افتراضيًا مع `site/en/`، بلا خطوط ويب ولا متتبّعات ولا
-  طلبات خارجية؛ شارة المتجر مستضافة في الموقع ورابطها صفحة المتجر لا المثبّت المباشر.
-
-### 1.0 (الإرسال 1)
-
-أُرسل في 2026-10-28 ونُشر في 2026-10-30. في Partner Center: مجاني في كل الأسواق، فئة الإنتاجية، إقرارا النسخ الاحتياطي
-إلى OneDrive وتسجيل المقاطع مطفآن (للخصوصية)، استبيان التصنيف العمري كله «لا»، وصفان عربي وإنجليزي من
-STORE_LISTING.md.
-
-### 1.1 و 1.1.1 و 1.1.2
-
-- **قرارات 2026-10-29:** التحقق من التحديثات عبر متجر Microsoft وحده؛ إشعارات التشغيل والإيقاف؛ تأكيد قبل الإغلاق.
-- **العبارات الشائعة:** تُعرض العبارة كاملة أولًا و Tab يدرجها ثم كلمة كلمة؛ 249 عبارة جُمعت يدويًا (MIT)؛
-  «عباراتي» في settings.json؛ آخر 8 كلمات في الذاكرة فقط.
-- **العبارات المتعلَّمة:** تلقائية ومفعّلة افتراضيًا؛ تسلسلات من 2 إلى 5 كلمات تُعدّ في user.db، تُتعلَّم عند
-  استعمالين (كانت 3)، وغير المتعلَّم يُحذف بعد 30 يومًا؛ الترتيب: عباراتي ثم المتعلَّمة ثم المرفقة.
-- **الاختصارات النصية:** تظهر أولًا في الشريط و Tab يدرجها، ولا استبدال تلقائيًا أبدًا؛ لها صفحتها.
-- **العبارات الطويلة:** صفحة خاصة، اسم ونص متعدد الأسطر حتى 4000 حرف، اختصار يفتح قائمة الأسماء
-  (Ctrl+Shift+Space افتراضيًا)؛ تُدرج **باللصق** لأن الكتابة جمّدت Word، مع حفظ الحافظة واستعادتها.
-- **التراجع:** Backspace بعد القبول مباشرة يتراجع عنه. **النقر الأيمن على الشريط:** شريط إجراءات غير مفعِّل
-  فوق العنصر (حذف، حظر بلا تأكيد، إضافة إلى عباراتي)؛ القائمة المنسدلة الحقيقية أخذت التركيز فلا تُستعمل هناك.
-- **قاموس ويكيبيديا العربي:** القاموسان مرفقان (لا تنزيل ولا صلاحية إنترنت)، وويكيبيديا هو الافتراضي.
-- **أيضًا:** «إيقاف إتمام في <التطبيق>» من القائمة؛ الإحصاءات (الإكمالات والأحرف الموفَّرة)؛ النسخة الاحتياطية
-  الكاملة في ملف ‎.itmam واحد (الاستعادة **تستبدل** كل شيء بعد تأكيد)؛ الأخطاء الشائعة (`data/corrections.txt`)؛
-  تصحيحا 1.0.1 (موضع الشريط عند الحقل المركَّز، وإعادة قراءة المؤشر بعد 60 مللي ثانية).
-- **1.1.1:** رابط الموقع في «حول»، ودليل المستخدم PDF بالعربية والإنجليزية مرفقًا في الحزمة. `Build-Package.ps1`
-  صار ينظّف مشروع الحزمة ويتحقق من رقم كل حزمة داخلية (بناء تزايدي وضع حزم 1.1.0.0 داخل 1.1.1.0 فرفضه المتجر).
-- **1.1.2:** صياغة واحدة للخصوصية في كل مكان؛ نموذج GitHub للبلاغات عن الأخطاء فقط.
-
-### 1.2 و 1.3
-
-- **1.2 — متغيرات العبارات الطويلة:** `{اسم}` يُسأل عنه، و`{{اسم}}` تلقائي وهو أربعة فقط: التاريخ، التاريخ الهجري،
-  اليوم، الوقت. القيم التلقائية بلغة نص العبارة ولا تُحفظ. ومعه تصحيحان للكلمة الأولى.
-- **1.3:** الاقتراح الأول بدرجة أخف من لون التحديد والتحديد بالأسهم بالدرجة الكاملة؛ Esc يخفي الشريط حتى **الحرف**
-  التالي؛ قائمة العبارات الطويلة بعرض 640 في وسط الشاشة ونصها قابل للتعديل، والتعديل يسأل «حفظ التعديل؟».
-
-### 2.0 — تعدد اللغات
-
-قرارات المستخدم: إصدار واحد كبير؛ الإنجليزية اللغة الجديدة الوحيدة بدعم كامل؛ أي تخطيط أبجدي آخر تعلّم فقط؛ لغات
-IME (الصينية واليابانية والكورية) صامتة بلا استعلام IMM.
-
-- لقطات مرجعية لكل مسار عربي في الاختبارات يجب أن تبقى كما هي.
-- ملفات تعريف اللغات، وربط اللغة بتخطيط لوحة المفاتيح، والكلمات والعبارات المتعلَّمة لكل لغة (مخطط user.db رقم 4،
-  مع نسخة `user.db.v3-backup` قبل الترحيل)، ونسخة احتياطية بصيغة 2.
-- الإنجليزية: قاموس أساسي من FrequencyWords وقاموس ويكيبيديا (الافتراضي)، قائمة حظر من 181 كلمة بقرار المستخدم
-  في الكلمات الحدّية، 172 عبارة شائعة، ومطابقة حالة الأحرف.
-- صفحة «اللغات» في الإعدادات، واختيار اللغة في «كلماتي» و«عباراتي»؛ لغة الواجهة انتقلت إليها من «عام».
-- اللغة المطفأة تغادر الذاكرة فورًا وتُحمَّل عند تشغيلها. الاستيراد من أي ملف نصي (كلمات وأعدادها فقط).
-
-### 2.1
-
-- بلاغ من مستخدم: اختيار عنصر من قائمة ويب أو النقر على نص الصفحة أظهر الشريط. الآن يصمت إتمام حين يكون المؤشر
-  في نص للقراءة فقط؛ تحقق منه المستخدم في Chrome و Edge و Firefox.
-- القبول والمؤشر داخل كلمة يستبدل الكلمة **كلها** بلا مسافة؛ لذلك يُقرأ حتى 30 حرفًا بعد المؤشر (في سياسة الخصوصية).
-- إعداد «مكان العبارات في الشريط»؛ «العبارات الطويلة» صار اسمها «النصوص الطويلة» في الواجهة والوثائق، وبقيت أسماء
-  الشيفرة والإعدادات كما هي؛ زر «إضافة نص…» في القائمة؛ نافذة القائمة قابلة لتغيير الحجم وتتذكر حجمها.
-- تصحيحان من اختبار 2.0: قائمة اللغات تترك التخطيطات المزالة، واختيار اللغة يعرض اللغات التي فيها شيء متعلَّم فقط.
-
-### 2.2 و 2.2.1
-
-- ترتيب النصوص الطويلة بالسحب كقائمة اللغات في إعدادات Windows.
-- لغة الواجهة عند أول تشغيل تتبع لغة عرض Windows؛ وعنصر في قائمة الأيقونة يبدّلها.
-- زر «تقييم ومراجعة» في «التحديثات» و«حول»، وصياغة الخصوصية: «اتصاله **التلقائي** الوحيد هو التحقق من التحديثات».
-- حمل بناءان الرقم 2.2.0.0 ورفض المتجر الثاني حتى أُزيل الأول: **لا يُعاد بناء رقم رُفع.**
-- **2.2.1:** نافذة التقييم داخل التطبيق تفتح لكن «إرسال» لا يفعل شيئًا في النسخة المنشورة؛ صار الزر يفتح صفحة
-  المراجعة في تطبيق المتجر.
-
-### 2.3
-
-- **تلميحات الحقول:** Chromium يبلّغ عن التلميح الرمادي للحقل الفارغ كأنه نصه؛ الكلمة هناك تبقى منفصلة حتى يُكتب حرف.
-- **إعداد «إظهار شريط الاقتراحات»:** عند إطفائه يظهر الشريط للاختصار النصي المطابق فقط، ولا يُتعلَّم شيء،
-  وتُفرَّغ القواميس.
-- **أخطاء الكتابة:** تُقترح حين لا يطابق شيء (مفتاح مجاور، حرف متشابه الصوت، حرفان متبادلان، حرف زائد أو ناقص،
-  مسافة ناقصة). قاعدة المستخدم: بعد ة و ى مسافة دائمًا. خطأ لغة لوحة المفاتيح (`hgsghl`) لم يُطلب.
-- **تنظيف القاموسين العربيين:** 5,371 إملاءً خاطئًا أُزيلت بعد مراجعة كلمة كلمة (ض/ظ، د/ذ، ة/ه بعد «ال»).
-
-### قرارات البداية
-
-التفاصيل الكاملة في القسم الإنجليزي «Decisions made»: مصادر القاموس وتراخيصها (FrequencyWords أولًا ثم ويكيبيديا،
-وقبول CC-BY-SA للملف المشتق)، سرعة البحث، قائمة الحظر (21 كلمة اختارها المستخدم؛ الكلمات العادية والطبية
-والقانونية والإخبارية غير محظورة عمدًا)، قاعدة الحظر عند التعلّم، الترتيب ومكافأة المطابقة الحرفية، وتعدد الإملاءات
-للمفتاح الواحد (لا تُدمج أن/إن ولا على/علي ولا إلى/إلي).
-
-</div>
-
-## English
+# Project history — Itmam
 
 This file keeps the release history and the detailed user decisions that lived in `CLAUDE.md` up to 2.3. They were
 moved as they were — nothing was dropped; only the rules still in force stayed in `CLAUDE.md`. The notes below are
 the original working notes, in order of time.
 
-### Published releases (Microsoft Store)
+## Published releases (Microsoft Store)
 
 | Version | Submission | Sent for certification | Published | Highlights |
 |---|---|---|---|---|
@@ -163,7 +22,7 @@ the original working notes, in order of time.
 
 The number 1.0.1.0 was carried by two fixes in the repository and was never published on its own; they shipped in 1.1.
 
-### Phases 0–7 (up to 1.0)
+## Phases 0–7 (up to 1.0)
 
 - Phase 2 notes: input path documented in `docs/ARCHITECTURE.md`; `Program.cs` temporarily runs `DebugWindow` (replaced
   in Phase 6). Key classification (`KeyClassifier`) and layout gating (`InputTracker`) live in Core and are unit-tested.
@@ -233,7 +92,7 @@ The number 1.0.1.0 was carried by two fixes in the repository and was never publ
   privacy URL is https://nasmn77.github.io/Itmam/privacy.html; keep `site/privacy.html`, `site/en/privacy.html` and
   `docs/PRIVACY.md` in sync.
 
-### 1.0
+## 1.0
 
 - **Store submission 1 (v1.0.0.0) sent for certification on 2026-10-28, PUBLISHED by 2026-10-30** (the user confirmed).
   Partner Center: pricing free (0 USD, all markets), category Productivity, OneDrive backup and clip recording
@@ -241,7 +100,7 @@ The number 1.0.1.0 was carried by two fixes in the repository and was never publ
   screenshots docs/store, logos docs/store/logos), certification notes in Additional Testing Information. Super hero art
   is ready in docs/store/logos (add it in the next submission).
 
-### 1.1, 1.1.1, 1.1.2
+## 1.1, 1.1.1, 1.1.2
 
 - **1.1.0 (merged into main 2026-10-31, branch `release-1.1` deleted; site and privacy policy live; WACK same as 1.0;
   Store submission 2 (1.1.0.0) sent for certification on 2026-10-31: new package (1.0.0.0 removed), ar/en description,
@@ -303,7 +162,7 @@ The number 1.0.1.0 was carried by two fixes in the repository and was never publ
   unused), links on the site/guide. Partner Center: package 1.1.2.0 + Description privacy paragraph + What's new, ar and
   en.
 
-### 1.2 and 1.3
+## 1.2 and 1.3
 
 - **1.2 (version 1.2.0.0; merged into main 2026-11-01, branch deleted; PUBLISHED 2026-11-02, the user's Store install
   updated — Submission 5: package + What's new + long phrases feature line, ar and en): long phrase variables**, plus
@@ -329,7 +188,7 @@ The number 1.0.1.0 was carried by two fixes in the repository and was never publ
   them). Debug: `--demo-longphrases [edit [save]]`. Guide (new picker/fill screenshots, `figure.tall`), site,
   ARCHITECTURE and STORE_LISTING "What's new in 1.3" updated; version 1.3.0.0, Store package built.
 
-### 2.0
+## 2.0
 
 - **2.0 multi-language (MERGED into main and pushed 2026-11-03, branch `release-2.0` deleted — it was never on GitHub;
   GitHub Pages deployed, CI build green; Submission 7 (package 2.0.0.0 + ar/en Description, What's new, two feature
@@ -415,7 +274,7 @@ The number 1.0.1.0 was carried by two fixes in the repository and was never publ
   data incl. itmam-en-wikipedia.dict, ShellExecute; DPIAwarenessValidation); certification notes now also name
   ms-settings:typing.
 
-### 2.1
+## 2.1
 
 - **Fixes and features after 2.0 (branch `fix-readonly-context` MERGED into main 2026-11-04 and deleted; PUSHED
   2026-11-04 with new guide/site screenshots and rebuilt guide PDFs (site and privacy page live, CI green); released as
@@ -459,7 +318,7 @@ The number 1.0.1.0 was carried by two fixes in the repository and was never publ
   `TrayApplication.AddLongPhrase`, same dialog as Settings, a used name replaced after a confirmation, the new text
   shown SELECTED, not inserted; hidden while filling variables).
 
-### 2.2 and 2.2.1
+## 2.2 and 2.2.1
 
 - **In 2.2 (user decisions 2026-11-05):** the interface language on first run follows the Windows display language
   (`AppSettings.FirstRunLanguage`: Arabic if «ar», else English; `SettingsStore.Load(firstRunLanguage)` uses it only
@@ -481,7 +340,7 @@ The number 1.0.1.0 was carried by two fixes in the repository and was never publ
   (the window can be tried only in a Store install). The button now opens `StoreUpdates.ReviewPage`;
   `RequestRateAndReviewAsync` removed. Built only after the user tried it: never upload a number that may be rebuilt.
 
-### 2.3
+## 2.3
 
 - **2.3 (version 2.3.0.0): Submission 11 SENT FOR CERTIFICATION 2026-11-08, PUBLISHED 2026-11-09 (the user confirmed);
   branch `release-2.3` merged into main and pushed 2026-11-08 (user decision, before publication); site feature cards
@@ -515,7 +374,7 @@ The number 1.0.1.0 was carried by two fixes in the repository and was never publ
   tried. The WhatsApp report («ملصقات») is assumed to be the same hint problem. Guide, site, READMEs and Store texts
   updated for 2.3.
 
-### Decisions made
+## Decisions made
 
 - User words: embedded SQLite at `%LOCALAPPDATA%\Itmam\user.db`.
 - Dictionary sources: **FrequencyWords `ar_full` first (Phase 1)**; Arabic Wikipedia counts added later once everything
@@ -557,7 +416,7 @@ The number 1.0.1.0 was carried by two fixes in the repository and was never publ
   trie, to meet the memory target.
 - The `.wapproj` is created in Phase 7: the MSIX tooling (DesktopBridge targets) is not installed in Visual Studio yet.
 
-### Privacy exceptions (how they came about)
+## Privacy exceptions (how they came about)
 
 The rules themselves are in `CLAUDE.md`; these are the notes as they were written.
 
